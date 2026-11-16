@@ -2,6 +2,21 @@
 
 Public showcase site: Astro + EmDash (content/copy/blog) + Tailwind v4 + shadcn/ui, on a Cloudflare Worker. Content source: `docs/requirements/initial`. CD details: `docs/cd.md`.
 
+## HARD RULE: no custom design values
+Everything visual uses defaults only. Humans and agents alike.
+- **Colors and sizes:** only Tailwind v4 default palette and scale, e.g. `bg-sky-100`, `text-lime-700`, `p-4`, `rounded-lg`. **Never** arbitrary values such as `bg-[#12ab34]`, `text-[13px]`, `w-[317px]`, or custom hex/rgb/oklch in CSS. Do not add custom colors to the theme.
+- **Components:** only default shadcn/ui components, unmodified in look (no restyled one-offs). Pick the closest default component to what the brand documents show.
+- **Icons:** only the default icon set that shadcn/ui uses (lucide). No custom SVGs or other icon packs.
+- The brand documents in `docs/requirements/initial` are a *reference*, not a spec to copy pixel-for-pixel: choose the **closest** Tailwind color / shadcn component. The mapping (brand color or element -> Tailwind class / shadcn component) lives in `docs/brand-colors.md`; use it, and add a row there instead of inventing a value. If nothing fits, ask the owner.
+- Dark/light and mobile come from Tailwind variants (`dark:`, responsive prefixes) and the shadcn theme tokens, automatically.
+
+## Trunk-based workflow
+- `main` is the trunk: always releasable, protected, changed only by PR.
+- Short-lived branches (hours to a day or two) cut from the latest `main`, small PRs, merged to `main` often. No long-lived feature or release branches.
+- Unfinished work merges to `main` **dark behind a flag** (`flags.json`, off in production) instead of living on a branch.
+- Merging to `main` runs CI only and never deploys. A release is a `vX.Y.Z` tag on `main`, which deploys the Worker; rollback is deploying an earlier tag. See `docs/cd.md`.
+- Code releases never overwrite or break EmDash content or its own releases.
+
 ## Git and PR flow
 - Never push to `main`. One branch per agent/task (`claude/<topic>`), one PR per task, opened as **draft**, small and focused.
 - A PR needs green `cd / ci` and a human review/merge. Agents never merge or tag releases unless the owner asks.
