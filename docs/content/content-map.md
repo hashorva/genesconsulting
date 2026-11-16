@@ -495,7 +495,7 @@ Genes Consulting S.r.l., Milano, Registro delle Imprese, Camera di Commercio, Pu
 
 ## 8. EmDash content model
 
-Suggested collections, so content edits never need a code release.
+Suggested collections, so content edits never need a code release. Every collection also carries the `locale` and `translationKey` fields described in section 9.
 
 | Collection | Type | Fields |
 | --- | --- | --- |
@@ -514,9 +514,86 @@ Section blocks for `pages`: hero, text, card grid, steps, two columns, FAQ, late
 
 ---
 
-## 9. Open questions for the client
+## 9. Internationalisation
 
-1. **Language.** All material is Italian. Is an English version wanted, now or later? The URL structure above can take an `/en/` prefix later without changes.
+Decision from Zam: the site launches in Italian only, with an Italian-first home page and no language switcher. The architecture is prepared for more languages from day one, in the i18next style, so adding one later is a content task and not a rebuild.
+
+**Locales and URLs.**
+
+- Default locale `it`, served at the root with no prefix. The URLs in section 3 are the Italian URLs and never change.
+- Future locales get a prefix: `/en/`, with their own translated slugs (for example `/en/services/company-filings/`).
+- Supported locales live in one config list. Today it contains only `it`.
+- The language switcher and the `hreflang` tags are rendered only when that list has more than one locale, so nothing English shows up now.
+
+**Two kinds of text, two homes.**
+
+| Kind | Examples | Where it lives |
+| --- | --- | --- |
+| Interface strings | Navigation labels, button text, form labels, "Ultimo aggiornamento", breadcrumbs, 404 text | Locale files in the code, `src/i18n/locales/it/<namespace>.json`, read through i18next-style keys |
+| Content | Everything in sections 4 to 6: page copy, services, FAQ, posts, legal pages | EmDash, one entry per locale |
+
+**Key convention for interface strings.** Namespaced, lower camel case, named by meaning and not by wording:
+
+```json
+// src/i18n/locales/it/common.json
+{
+  "nav": {
+    "about": "Chi siamo",
+    "services": "Servizi",
+    "forBusinesses": "Per le imprese",
+    "forFirms": "Per gli studi",
+    "updates": "Aggiornamenti",
+    "cta": "Parliamone"
+  },
+  "actions": {
+    "discoverServices": "Scopri i servizi",
+    "contactUs": "Contattaci",
+    "readMore": "Leggi tutto"
+  },
+  "post": {
+    "lastUpdated": "Ultimo aggiornamento: {{date}}"
+  }
+}
+```
+
+Suggested namespaces: `common` (navigation, actions, footer), `forms`, `blog`, `seo` (title suffix, default descriptions), `errors`. No Italian text is hard-coded in components.
+
+**Content in EmDash.** Every collection in section 8 carries two extra fields:
+
+- `locale`: `it` for everything today.
+- `translationKey`: a stable identifier shared by all language versions of the same entry (for example `service.corporate-filings`). It is what links the Italian page to its future English page for the switcher and for `hreflang`.
+
+Slugs are per locale. `site_settings` holds the translatable company strings (payoff, tagline, description) per locale, while facts such as address, phone and VAT number are stored once. If EmDash offers built-in localisation, use that instead of the two manual fields; this is to be checked when the project is scaffolded.
+
+**Stable keys for this document.** So the map itself is ready, pages and services are identified by these keys, independent of language:
+
+| translationKey | Italian slug |
+| --- | --- |
+| `page.home` | `/` |
+| `page.about` | `/chi-siamo/` |
+| `page.method` | `/metodo/` |
+| `page.services` | `/servizi/` |
+| `service.consulting` | `/servizi/consulenza-aziendale/` |
+| `service.corporate-filings` | `/servizi/amministrativi-societari/` |
+| `service.digital-documents` | `/servizi/digitali-documentali/` |
+| `audience.businesses` | `/per-le-imprese/` |
+| `audience.firms` | `/per-gli-studi-professionali/` |
+| `page.collaboration` | `/collaborazione-professionale/` |
+| `page.updates` | `/aggiornamenti/` |
+| `page.contact` | `/contatti/` |
+| `legal.privacy` | `/privacy/` |
+| `legal.cookies` | `/cookie/` |
+| `legal.notes` | `/note-legali/` |
+
+**SEO with one locale.** `<html lang="it">`, `inLanguage: it-IT` in structured data, `og:locale` set to `it_IT`. When a second locale is added: `hreflang` pairs plus `x-default` pointing to Italian, one sitemap entry per locale, and a page is only published in a language once its translation exists (no automatic fallback pages, which would create duplicate content).
+
+**Dates and numbers** are formatted through the locale (`Intl.DateTimeFormat('it-IT')`), never as fixed strings.
+
+---
+
+## 10. Open questions for the client
+
+1. **Language.** Decided: Italian only at launch, with the structure ready for more languages (section 9). No action needed from the client now.
 2. **Domain.** The signature already shows `www.genesconsulting.it` and an email on that domain. Is that domain already owned, and is it the one that will point to the worker?
 3. **LinkedIn.** The signature mentions LinkedIn but gives no URL.
 4. **Company data.** REA number, share capital and PEC address are needed for the footer and legal notes.
