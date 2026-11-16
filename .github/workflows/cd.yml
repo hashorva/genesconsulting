@@ -34,7 +34,7 @@ jobs:
           persist-credentials: false
       - id: d
         run: |
-          if [[ -f package.json ]] && ls package-lock.json pnpm-lock.yaml yarn.lock bun.lock bun.lockb >/dev/null 2>&1; then
+          if [[ -f package.json ]] && { [[ -f package-lock.json ]] || [[ -f pnpm-lock.yaml ]] || [[ -f yarn.lock ]] || [[ -f bun.lock ]] || [[ -f bun.lockb ]]; }; then
             echo "has-app=true" >> "$GITHUB_OUTPUT"
           else
             echo "has-app=false" >> "$GITHUB_OUTPUT"
