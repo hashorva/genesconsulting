@@ -1,263 +1,268 @@
-# Genes Consulting: brand colors and theme tokens
+# Genes Consulting: brand colors, components and icons mapped to defaults
 
-Status: draft for review. Replaces the default blue and emerald of shadcn preset `b2DcSAJ7K` with the Genes palette, for light and dark themes.
+Status: draft for review.
 
-## 1. Where the colors come from
+## The rule
 
-| Source | How the values were read | Reliability |
+Nothing in the code is custom. Every color is a Tailwind v4 default palette color, every component is a default shadcn/ui component, every icon comes from lucide, and every size, radius and spacing value comes from the Tailwind default scale.
+
+- Write `bg-sky-950`, `text-sky-400`, `rounded-xl`, `p-6`.
+- Never write arbitrary values such as `bg-[#071F37]`, `text-[17px]`, `w-[340px]` or `rounded-[14px]`.
+- Never add hex or OKLCH values to the stylesheet. Theme tokens point to Tailwind color variables only.
+
+The brand colors found in the client's documents are the reference used to choose the closest default. They do not go into the code.
+
+## 1. How the match was made
+
+The brand colors were read from the three files in `docs/requirements/initial`: exact hex values from the presentation XML, and sampled pixels from the banner and the email signature. Each one was compared with all 273 colors of the Tailwind v4 default palette (version 4.3.5) by distance in the OKLab color space, which follows how different two colors look. A distance under 0.02 is hard to see, 0.02 to 0.05 is a visible but small shift, and above 0.05 is a clear difference.
+
+## 2. Color table
+
+"Found in the documents" is the brand value. "Closest Tailwind" is the mathematically nearest default. "Used on the site" is the choice, which differs from the nearest only where noted.
+
+| Role in the documents | Found in the documents | Closest Tailwind | Distance | Used on the site | Note |
+| --- | --- | --- | --- | --- | --- |
+| Dark background (slides) | `#071F37` | `slate-900` `#0F172B` | 0.033 | `slate-900` | Tailwind has no navy this dark with the same blue tint. `slate-900` is the nearest and keeps cards visibly lighter than the page |
+| Dark cards and panels (slides) | `#0C314D` | `sky-950` `#052F4A` | 0.010 | `sky-950` | Almost exact |
+| Navy panel and dark cards (banner) | `#043D66` | `sky-900` `#024A70` | 0.042 | `sky-900` | |
+| Navy text on white (banner, signature) | `#002C6C` | `blue-950` `#162456` | 0.045 | `sky-950` | Second nearest (0.063). Chosen so that all navy stays in one family |
+| Cyan accent (slides) | `#14B5EB` | `sky-400` `#00BCFF` | 0.032 | `sky-400` | |
+| Cyan accent (logo, banner) | `#00B8F8` | `sky-400` `#00BCFF` | 0.014 | `sky-400` | Almost exact |
+| Darker end of the logo gradient | `#0098E8` | `sky-500` `#00A6F4` | 0.037 | `sky-500` | |
+| Teal decoration (short rules, dots) | `#24C0CB` | `cyan-500` `#00B8DB` | 0.044 | `cyan-500` | |
+| Mint decoration (small dot, tagline) | `#9ADFDA` | `teal-200` `#96F7E4` | 0.061 | `teal-200` | |
+| Gold nodes in the network graphic | `#B49E6F` | `olive-400` `#ABAB9C` | 0.058 | `yellow-600` `#D08700` | The nearest defaults are greys and lose the gold. `yellow-600` (0.099) is the nearest that still reads as gold. Tailwind has no muted gold |
+| Connector lines in the graphic | `#347091` | `cyan-700` `#007595` | 0.031 | `sky-800` `#00598A` | Used for borders on dark, kept in the sky family |
+| Text on dark | `#F7FAFC` | `slate-50` `#F8FAFC` | 0.001 | `slate-50` | Exact |
+| Secondary text on dark | `#A9C1D0` | `slate-300` `#CAD5E2` | 0.073 | `slate-300` | |
+| "CONSULTING" in the wordmark | `#BED5E3` | `slate-300` `#CAD5E2` | 0.015 | `slate-300` | Only inside the logo image |
+| Light background | `#FFFFFF` | `white` | 0 | `white` | Exact |
+| Ice tint (light cards, waves) | `#E8F7FE` | `blue-50` `#EFF6FF` | 0.009 | `sky-50` `#F0F9FF` | Second nearest (0.012), same family as the rest |
+| Subtitle on white (banner) | `#5080A8` | `slate-500` `#62748E` | 0.047 | `slate-600` `#45556C` | One step darker for readable contrast |
+
+The whole site therefore uses four Tailwind color families: **sky** (brand navy and cyan), **slate** (text and neutrals), and small amounts of **cyan**, **teal** and **yellow** for decoration. Red is added for errors only.
+
+## 3. The usage pattern
+
+Reading the three files together, the brand follows one consistent logic, and the site keeps it:
+
+1. **Navy is the base.** Full background on dark material, text and solid panels on light material.
+2. **Cyan is the single accent.** Eyebrows, numbers, card titles, the logo, thin rules.
+3. **Two-tone headlines.** The second half of a statement is in cyan: "Meno complessità. **Più impresa.**"
+4. **Cards are one step lighter than the background** on dark. On light they alternate between navy and ice.
+5. **Teal and mint are decoration only**, at small sizes.
+6. **Gold appears only in the network graphic.**
+7. No red, green, orange or purple appears anywhere in the brand.
+
+## 4. Theme tokens
+
+shadcn components read semantic tokens (`bg-primary`, `text-muted-foreground`). Each token points to a Tailwind default color. Components and pages use the semantic classes first, and a direct palette class such as `text-sky-400` only for brand decoration.
+
+| Token | Light | Dark |
 | --- | --- | --- |
-| `GENES_Consulting_Presentazione_WOW.pptx` | Hex values read directly from the slide XML | Exact |
-| `Banner aziendale Genes Consulting blu e ciano.png` | Sampled from pixels | Close, within a few units. The image has gradients and anti-aliasing |
-| `Firma email aziendale GENES Consulting (4).jpg` | Sampled from pixels | Approximate. JPEG compression shifts values |
+| `background` | `white` | `slate-900` |
+| `foreground` | `sky-950` | `slate-50` |
+| `card` | `white` | `sky-950` |
+| `card-foreground` | `sky-950` | `slate-50` |
+| `popover` | `white` | `sky-950` |
+| `popover-foreground` | `sky-950` | `slate-50` |
+| `primary` | `sky-900` | `sky-400` |
+| `primary-foreground` | `slate-50` | `sky-950` |
+| `secondary` | `sky-50` | `sky-900` |
+| `secondary-foreground` | `sky-900` | `slate-50` |
+| `muted` | `sky-50` | `sky-950` |
+| `muted-foreground` | `slate-600` | `slate-300` |
+| `accent` | `sky-100` | `sky-900` |
+| `accent-foreground` | `sky-900` | `slate-50` |
+| `border` | `slate-200` | `sky-900` |
+| `input` | `slate-200` | `sky-800` |
+| `ring` | `sky-400` | `sky-400` |
+| `destructive` | `red-600` | `red-400` |
+| `chart-1` | `sky-400` | `sky-400` |
+| `chart-2` | `sky-900` | `teal-200` |
+| `chart-3` | `cyan-500` | `cyan-500` |
+| `chart-4` | `yellow-600` | `yellow-600` |
+| `chart-5` | `sky-700` | `sky-700` |
 
-No brand manual is in the repository. If the client has one, its values should replace the sampled ones.
+### Contrast check
 
-## 2. The palette
+Measured with the Tailwind values. 4.5 to 1 is the minimum for normal text.
 
-### Exact values from the presentation (dark theme)
-
-| Hex | Name used here | Role in the deck | Count |
-| --- | --- | --- | --- |
-| `#071F37` | Navy 950 | Slide background (`#071F35` on slides 9 to 12, visually identical) | 13 slides |
-| `#0C314D` | Navy 800 | Card and panel fill (`#0E334D` on slides 9 to 12) | 31 |
-| `#347091` | Steel | Connector lines in the network graphic | 21 |
-| `#14B5EB` | Cyan | Eyebrow labels, step numbers, card titles, footer rule, network nodes (`#15B3E4` on slides 9 to 12) | 64 |
-| `#24C0CB` | Teal | Small decorations only: the short rule under each eyebrow and the dots at the top right | 33 |
-| `#9ADFDA` | Mint | The smallest decoration dot, and the tagline once | 12 |
-| `#B49E6F` | Gold | Every other node of the network graphic, nothing else | 9 |
-| `#F7FAFC` | Off-white | Headings and body text (`#F5F8FB` on slides 9 to 12) | 54 |
-| `#A9C1D0` | Mist | Secondary text: footer, captions, contact details (`#A9BFCC` on slides 9 to 12) | 32 |
-| `#BED5E3` | Mist light | "CONSULTING" in the wordmark | 2 |
-| `#FFFFFF` | White | "GENES" in the wordmark | 2 |
-
-The small differences on slides 9 to 12 come from those slides being built separately. They are the same intent, so the site uses one value for each role.
-
-### Sampled values from the banner and the signature (light theme)
-
-| Hex (approx.) | Name used here | Role |
+| Pair | Ratio | Result |
 | --- | --- | --- |
-| `#FFFFFF` | White | Page background |
-| `#043D66` | Navy 700 | The large curved panel and the dark service cards in the banner |
-| `#002C6C` to `#043878` | Royal navy | Headings, wordmark and body text on white. Slightly more blue than the panel navy |
-| `#00B8F8` | Bright cyan | Logo arcs, highlighted words, short accent rules, vertical divider |
-| `#0098E8` | Azure | The darker end of the cyan gradient in the logo arcs |
-| `#E8F7FE` | Ice | Light card fill, wave at the bottom of the signature, large faded arcs |
-| `#5080A8` | Slate blue | The subtitle line under the headline in the banner |
+| `sky-950` text on `white` | 13.9 | Pass |
+| `slate-50` label on `sky-900` button (light primary) | 9.1 | Pass |
+| `slate-600` secondary text on `white` / on `sky-50` | 7.6 / 7.1 | Pass |
+| `sky-700` link on `white` | 5.9 | Pass |
+| `red-600` on `white` | 4.8 | Pass |
+| `sky-400` on `white` | about 2.2 | Fail. Decoration and large headline words only |
+| `slate-50` text on `slate-900` / on `sky-950` | 17.0 / 13.3 | Pass |
+| `sky-400` on `slate-900` / on `sky-950` | 8.2 / 6.4 | Pass |
+| `sky-950` label on `sky-400` button (dark primary) | 6.4 | Pass |
+| `slate-300` secondary text on `slate-900` / on `sky-950` | 12.0 / 9.3 | Pass |
+| `red-400` on `slate-900` | 6.2 | Pass |
 
-## 3. The pattern
+This is why the light theme uses navy (`sky-900`) for buttons and `sky-700` for links: cyan on white is not readable as text. The client's own banner does the same, with navy text and cyan only as a highlight.
 
-Reading the three files together, the brand follows one consistent logic:
+### Stylesheet
 
-1. **Navy is the brand's body.** It is the full background on dark material and the text color on light material. It is never replaced by black or neutral grey. Every "grey" in the brand is a blue-tinted grey.
-2. **Cyan is the single accent.** It marks what to look at first: eyebrows, numbers, card titles, the logo, thin rules.
-3. **Two-tone headlines.** A statement is split in two, with the second half in cyan: "Meno complessità. **Più impresa.**" and "per **imprese e studi professionali**." This is the brand's signature device and the site should reuse it in the hero.
-4. **Cards are one step lighter than the background** on dark (`#0C314D` on `#071F37`), with no visible border. On light, cards alternate between navy and ice.
-5. **Teal and mint are decoration only**, at very small sizes. They never carry text or actions, with one exception for the tagline.
-6. **Gold appears only in the network graphic**, alternating with cyan. It is the one warm color and should stay rare.
-7. **Thin cyan rules** close a layout (footer line) or sit under a label (short bar).
-8. **The logo arcs repeat as a watermark** in the corner of cards, at low opacity.
-
-No red, green, orange or purple appears anywhere. Colors for errors and success states are not part of the brand and are proposed below.
-
-## 4. Decisions for the site
-
-**Dark theme follows the presentation exactly.** Cyan on navy has a contrast of 7.0 to 1, so cyan works as the primary color for buttons, links and labels.
-
-**Light theme cannot use cyan the same way.** Cyan `#14B5EB` on white has a contrast of only 2.4 to 1, which fails accessibility for text and for button labels. The banner already solves this the right way: navy carries the text and the solid panels, and cyan is used large or decoratively. So in the light theme:
-
-- `primary` is navy `#043D66` (buttons, solid panels), with off-white text at 10.7 to 1.
-- Cyan stays for decoration, focus rings, the logo, and the large highlighted words in headlines (large bold text only).
-- For small cyan-like text and links on white, the site uses a deeper azure, `#0B6FA4` (5.5 to 1). This color is **derived**, not found in the sources. It is the brand cyan hue at a lower lightness.
-
-**One navy for light-theme text.** The deck navy `#071F37` is used for text on white (16.7 to 1). The slightly bluer royal navy from the signature is close enough that using both would only look inconsistent.
-
-**Gold is kept as a chart and illustration color**, not as a UI color. For text on white it needs a darker version, `#7A6638`.
-
-**Destructive red is proposed**, since the brand has none: `#C8102E` on light and `#FF6B6B` on dark.
-
-## 5. Token mapping
-
-Values are given in hex for review and in OKLCH for the stylesheet, since Tailwind v4 and current shadcn themes use OKLCH.
-
-### Light
-
-| Token | Hex | Brand source | Contrast |
-| --- | --- | --- | --- |
-| `background` | `#FFFFFF` | Banner and signature background | |
-| `foreground` | `#071F37` | Navy 950 | 16.7 on background |
-| `card` | `#FFFFFF` | | |
-| `card-foreground` | `#071F37` | | |
-| `popover` / `popover-foreground` | `#FFFFFF` / `#071F37` | | |
-| `primary` | `#043D66` | Banner navy panel | |
-| `primary-foreground` | `#F7FAFC` | Deck off-white | 10.7 on primary |
-| `secondary` | `#E8F7FE` | Ice | |
-| `secondary-foreground` | `#043D66` | | 10.3 on secondary |
-| `muted` | `#F2F9FD` | Lighter ice, derived | |
-| `muted-foreground` | `#48667F` | Blue-grey, derived from Mist | 5.7 on muted |
-| `accent` | `#E8F7FE` | Ice (hover backgrounds) | |
-| `accent-foreground` | `#043D66` | | |
-| `border` / `input` | `#D6E6EF` | Derived from Mist | |
-| `ring` | `#14B5EB` | Cyan | |
-| `destructive` | `#C8102E` | Proposed | 5.9 on background |
-| `brand` | `#14B5EB` | Cyan, for decoration and large highlights | |
-| `brand-strong` | `#0B6FA4` | Derived azure, for links and small accent text | 5.5 on background |
-| `chart-1` to `chart-5` | `#14B5EB`, `#043D66`, `#24C0CB`, `#B49E6F`, `#347091` | Cyan, navy, teal, gold, steel | |
-
-### Dark
-
-| Token | Hex | Brand source | Contrast |
-| --- | --- | --- | --- |
-| `background` | `#071F37` | Slide background | |
-| `foreground` | `#F7FAFC` | Slide text | 15.9 on background |
-| `card` | `#0C314D` | Slide cards | |
-| `card-foreground` | `#F7FAFC` | | 12.8 on card |
-| `popover` / `popover-foreground` | `#0C314D` / `#F7FAFC` | | |
-| `primary` | `#14B5EB` | Cyan | 7.0 on background |
-| `primary-foreground` | `#071F37` | As in the "G" node: navy letter on cyan | 7.0 on primary |
-| `secondary` | `#123E5E` | One step above card, derived | |
-| `secondary-foreground` | `#F7FAFC` | | |
-| `muted` | `#0C314D` | Card navy | |
-| `muted-foreground` | `#A9C1D0` | Mist | 8.9 on background, 7.2 on card |
-| `accent` | `#123E5E` | Hover backgrounds, derived | |
-| `accent-foreground` | `#F7FAFC` | | |
-| `border` / `input` | `#1B4A6B` | Derived from Steel, darkened | |
-| `ring` | `#14B5EB` | Cyan | |
-| `destructive` | `#FF6B6B` | Proposed | 6.0 on background |
-| `brand` | `#14B5EB` | Cyan | |
-| `brand-strong` | `#14B5EB` | Same as brand in dark | |
-| `chart-1` to `chart-5` | `#14B5EB`, `#9ADFDA`, `#24C0CB`, `#B49E6F`, `#347091` | Cyan, mint, teal, gold, steel | |
-
-## 6. Stylesheet
-
-Drop-in replacement for the color variables that the preset writes into the global stylesheet. Radius, fonts and the rest of the preset stay as generated.
+Replaces the blue and emerald values that preset `b2DcSAJ7K` writes into the global stylesheet. Only references to Tailwind variables, no color values.
 
 ```css
-@import "tailwindcss";
-
-@custom-variant dark (&:is(.dark *));
-
 :root {
-  --background: oklch(1 0 0);                    /* #FFFFFF */
-  --foreground: oklch(0.235 0.055 251.2);        /* #071F37 */
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.235 0.055 251.2);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.235 0.055 251.2);
-  --primary: oklch(0.350 0.089 247.1);           /* #043D66 */
-  --primary-foreground: oklch(0.983 0.004 236.5);/* #F7FAFC */
-  --secondary: oklch(0.967 0.018 227.3);         /* #E8F7FE */
-  --secondary-foreground: oklch(0.350 0.089 247.1);
-  --muted: oklch(0.978 0.009 232.4);             /* #F2F9FD */
-  --muted-foreground: oklch(0.497 0.053 244.3);  /* #48667F */
-  --accent: oklch(0.967 0.018 227.3);
-  --accent-foreground: oklch(0.350 0.089 247.1);
-  --destructive: oklch(0.530 0.207 22.3);        /* #C8102E */
-  --border: oklch(0.916 0.021 232.1);            /* #D6E6EF */
-  --input: oklch(0.916 0.021 232.1);
-  --ring: oklch(0.724 0.140 229.0);              /* #14B5EB */
-
-  --brand: oklch(0.724 0.140 229.0);             /* #14B5EB */
-  --brand-strong: oklch(0.517 0.116 240.6);      /* #0B6FA4 */
-  --brand-teal: oklch(0.738 0.120 202.5);        /* #24C0CB */
-  --brand-mint: oklch(0.856 0.069 190.2);        /* #9ADFDA */
-  --brand-gold: oklch(0.707 0.068 85.6);         /* #B49E6F */
-
-  --chart-1: oklch(0.724 0.140 229.0);
-  --chart-2: oklch(0.350 0.089 247.1);
-  --chart-3: oklch(0.738 0.120 202.5);
-  --chart-4: oklch(0.707 0.068 85.6);
-  --chart-5: oklch(0.520 0.081 235.4);           /* #347091 */
+  --background: var(--color-white);
+  --foreground: var(--color-sky-950);
+  --card: var(--color-white);
+  --card-foreground: var(--color-sky-950);
+  --popover: var(--color-white);
+  --popover-foreground: var(--color-sky-950);
+  --primary: var(--color-sky-900);
+  --primary-foreground: var(--color-slate-50);
+  --secondary: var(--color-sky-50);
+  --secondary-foreground: var(--color-sky-900);
+  --muted: var(--color-sky-50);
+  --muted-foreground: var(--color-slate-600);
+  --accent: var(--color-sky-100);
+  --accent-foreground: var(--color-sky-900);
+  --destructive: var(--color-red-600);
+  --border: var(--color-slate-200);
+  --input: var(--color-slate-200);
+  --ring: var(--color-sky-400);
+  --chart-1: var(--color-sky-400);
+  --chart-2: var(--color-sky-900);
+  --chart-3: var(--color-cyan-500);
+  --chart-4: var(--color-yellow-600);
+  --chart-5: var(--color-sky-700);
 }
 
 .dark {
-  --background: oklch(0.235 0.055 251.2);        /* #071F37 */
-  --foreground: oklch(0.983 0.004 236.5);        /* #F7FAFC */
-  --card: oklch(0.303 0.065 245.5);              /* #0C314D */
-  --card-foreground: oklch(0.983 0.004 236.5);
-  --popover: oklch(0.303 0.065 245.5);
-  --popover-foreground: oklch(0.983 0.004 236.5);
-  --primary: oklch(0.724 0.140 229.0);           /* #14B5EB */
-  --primary-foreground: oklch(0.235 0.055 251.2);
-  --secondary: oklch(0.351 0.073 244.4);         /* #123E5E */
-  --secondary-foreground: oklch(0.983 0.004 236.5);
-  --muted: oklch(0.303 0.065 245.5);
-  --muted-foreground: oklch(0.798 0.034 235.3);  /* #A9C1D0 */
-  --accent: oklch(0.351 0.073 244.4);
-  --accent-foreground: oklch(0.983 0.004 236.5);
-  --destructive: oklch(0.712 0.181 22.8);        /* #FF6B6B */
-  --border: oklch(0.394 0.075 242.8);            /* #1B4A6B */
-  --input: oklch(0.394 0.075 242.8);
-  --ring: oklch(0.724 0.140 229.0);
-
-  --brand: oklch(0.724 0.140 229.0);
-  --brand-strong: oklch(0.724 0.140 229.0);
-
-  --chart-2: oklch(0.856 0.069 190.2);
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-brand: var(--brand);
-  --color-brand-strong: var(--brand-strong);
-  --color-brand-teal: var(--brand-teal);
-  --color-brand-mint: var(--brand-mint);
-  --color-brand-gold: var(--brand-gold);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
+  --background: var(--color-slate-900);
+  --foreground: var(--color-slate-50);
+  --card: var(--color-sky-950);
+  --card-foreground: var(--color-slate-50);
+  --popover: var(--color-sky-950);
+  --popover-foreground: var(--color-slate-50);
+  --primary: var(--color-sky-400);
+  --primary-foreground: var(--color-sky-950);
+  --secondary: var(--color-sky-900);
+  --secondary-foreground: var(--color-slate-50);
+  --muted: var(--color-sky-950);
+  --muted-foreground: var(--color-slate-300);
+  --accent: var(--color-sky-900);
+  --accent-foreground: var(--color-slate-50);
+  --destructive: var(--color-red-400);
+  --border: var(--color-sky-900);
+  --input: var(--color-sky-800);
+  --chart-2: var(--color-teal-200);
 }
 ```
 
-The `.dark` class is the shadcn convention. For the theme to follow the visitor's system setting automatically, a small inline script in the page head sets the class from `prefers-color-scheme` before first paint, and a toggle can override it. That belongs to the scaffolding work, not to this document.
+The `@theme inline` block that the preset generates (mapping `--color-primary: var(--primary)` and so on) stays as generated. Any extra tokens the preset defines, such as sidebar tokens, get the same treatment: sky for navy and cyan, slate for neutrals. To verify when scaffolding: that Tailwind emits the referenced `--color-*` variables in the build. If one is missing, declaring the theme as `@theme static` makes all of them available.
 
-The preset's own variable list (for example sidebar tokens) should be checked when the project is scaffolded, and any extra tokens mapped the same way: navy surfaces, cyan accent.
+Radius, spacing, font sizes and shadows are left exactly as the preset and Tailwind define them.
 
-## 7. Usage rules for components
+## 5. Component table
+
+Each visual element found in the documents, and the default shadcn/ui component that replaces it. Components are added with the shadcn CLI and used with their stock variants.
+
+| Found in the documents | Where | shadcn/ui component | Variant and classes |
+| --- | --- | --- | --- |
+| Rounded navy cards with title and one line of text | Slides 3 to 12 | `Card` with `CardHeader`, `CardTitle`, `CardDescription`, `CardContent` | Default. Title in `text-primary` on dark |
+| Numbered step cards (01 to 04) | Slides 3, 6 | `Card` | Number as text: `text-2xl font-bold text-sky-400` |
+| Full-width list rows | Slide 5 | `Item` inside `ItemGroup`, or `Card` with `size="sm"` | Default |
+| Eyebrow label above titles ("AREA 01") | All slides | `Badge` | `variant="outline"` or plain text with `text-xs font-semibold uppercase tracking-widest` |
+| Short rule under the eyebrow, footer rule, vertical divider in the signature | All | `Separator` | `bg-cyan-500` for the short one, default for the others |
+| Light and navy service cards with icon | Banner | `Card` | Default, and one featured card with `bg-primary text-primary-foreground` |
+| Call to action ("Parliamone") | Slide 13 | `Button` | `default` and `outline`, sizes `default` and `lg` |
+| Text links | | `Button` | `variant="link"` |
+| Top navigation with services dropdown | Site | `NavigationMenu` | Default |
+| Mobile menu | Site | `Sheet` | `side="right"` |
+| Light and dark switch | Site | `Button` `variant="ghost" size="icon"` with `DropdownMenu` | Light, dark, system |
+| Breadcrumbs | Site | `Breadcrumb` | Default |
+| FAQ | Site | `Accordion` | `type="single" collapsible` |
+| Contact form | Site | `Field`, `Input`, `Textarea`, `Checkbox`, `Label`, `Button` | Default |
+| Form feedback | Site | `Sonner` (toast), `Alert` | Default |
+| Blog post cards | Site | `Card` | Default, with `AspectRatio` for the cover |
+| Blog categories and tags | Site | `Badge` | `variant="secondary"` |
+| Blog pagination | Site | `Pagination` | Default |
+| Privacy and AI notices | Signature | `Alert` with `AlertTitle`, `AlertDescription` | Default |
+| Loading placeholders | Site | `Skeleton` | Default |
+| Two-column blocks ("Per le imprese" / "Per gli studi") | Slide 10 | Two `Card`s in `grid md:grid-cols-2 gap-6` | Default |
+| Three dots at the top right of slides | Slides 2 to 12 | Not reproduced | Pure decoration with no default equivalent |
+| Faded arcs in card corners and backgrounds | Banner | Not reproduced, or the logo image at `opacity-10` | No default equivalent |
+| Hub-and-spoke "G" network graphic | Slides 1, 2, 7 | lucide `Waypoints` icon at large size in `text-sky-400`, or left out | A custom drawing would break the rule. To decide with the client |
+
+Exact component names (`Item`, `Field`) are to be confirmed against the shadcn version installed by the preset. If one is not available, `Card` and the plain form primitives cover the same need.
+
+## 6. Icon table
+
+All icons from lucide, which is the icon library the shadcn preset installs. Default stroke, sized with `size-4`, `size-5`, `size-6` or `size-8`.
+
+| Found in the documents | Where | lucide icon |
+| --- | --- | --- |
+| Checklist document with a tick | Banner, "Servizi amministrativi e societari" | `ClipboardCheck` |
+| Group of three people | Banner, "Consulenza aziendale integrata" | `Users` |
+| Monitor | Banner, "Servizi digitali" | `Monitor` |
+| Phone handset | Signature | `Phone` |
+| Globe | Signature, website | `Globe` |
+| LinkedIn mark | Signature | `Linkedin` if the installed lucide version still ships it (brand icons are deprecated there), otherwise a text link |
+| Leaf | Signature, privacy notice | `Leaf` |
+| "AI" in a rounded square | Signature, AI notice | `Bot` |
+| Four-point star bullet (✦) | Slide 4 | `Sparkle` |
+| Network of nodes | Slides 1, 2, 7 | `Waypoints` |
+| Address (no icon in the source) | Contatti | `MapPin` |
+| Email (no icon in the source) | Contatti | `Mail` |
+
+Proposed icons for the six areas of assistance, which have no icon in the source:
+
+| Area | lucide icon |
+| --- | --- |
+| Consulenza aziendale | `BriefcaseBusiness` |
+| Servizi societari | `Building2` |
+| Documentazione | `FileText` |
+| Rapporti con enti | `Landmark` |
+| Servizi digitali | `Fingerprint` |
+| Servizi integrati | `Handshake` |
+
+The company logo is the one exception to "icons from lucide": it is a brand asset and is used as an image file supplied by the client.
+
+## 7. Type, size and shape
+
+The presentation uses Aptos and the banner a geometric sans. The site uses Noto Sans from the preset. Sizes come from the Tailwind scale only.
+
+| Found in the documents | Tailwind classes |
+| --- | --- |
+| Cover headline, 39pt bold | `text-4xl md:text-6xl font-bold tracking-tight` |
+| Slide titles, 29 to 31pt bold | `text-3xl md:text-4xl font-bold tracking-tight` |
+| Lead paragraph, 22pt | `text-lg md:text-xl` |
+| Card titles, 17pt bold | `text-lg font-semibold` |
+| Body in cards, 13pt | `text-sm` or `text-base` |
+| Eyebrow, 11 to 12pt bold uppercase, spaced | `text-xs font-semibold uppercase tracking-widest` |
+| Footer and captions, 8pt | `text-xs text-muted-foreground` |
+| Rounded card corners | The `Card` default radius from the preset |
+| Hairline rules | `Separator` default, `h-px` |
+| Page width and gutters | `container mx-auto px-4 md:px-6`, sections `py-16 md:py-24` |
+| Grids of 2, 3 and 4 cards | `grid gap-6 md:grid-cols-2`, `lg:grid-cols-3`, `lg:grid-cols-4` |
+
+## 8. Usage summary
 
 | Element | Light | Dark |
 | --- | --- | --- |
-| Page background | `background` | `background` |
-| Headings and body | `foreground` | `foreground` |
-| Highlighted half of a headline | `brand` (large bold text only) | `brand` |
-| Eyebrow labels, step numbers | `brand-strong` | `brand` |
-| Links in text | `brand-strong` | `brand` |
-| Primary button | `primary` (navy) | `primary` (cyan, navy label) |
-| Cards | White with `border`, or `secondary` (ice), or solid `primary` for a featured card | `card`, no border |
-| Short rule under an eyebrow | `brand-teal` | `brand-teal` |
-| Footer rule, dividers | `brand` at 1px | `brand` at 1px |
-| Decorative dots | `brand-teal`, `brand-mint` | Same |
-| Network graphic nodes | `brand` and `brand-gold`, lines in `chart-5` | Same |
-| Logo arc watermark in cards | `brand` at 10 to 20 percent opacity | Same |
-| Hero and final call to action | A navy panel (`primary`) is appropriate even in light theme, as in the banner | `background` |
+| Page | `bg-background text-foreground` | Same |
+| Highlighted half of a headline | `text-sky-500` (large bold text only) | `text-sky-400` |
+| Eyebrow, step numbers | `text-sky-700` | `text-sky-400` |
+| Links | `text-sky-700` | `text-sky-400` |
+| Primary button | `Button` default (navy) | `Button` default (cyan with navy label) |
+| Cards | `Card` default, or `bg-secondary` | `Card` default |
+| Short rule under an eyebrow | `bg-cyan-500` | `bg-cyan-500` |
+| Hero and final call to action | `bg-primary text-primary-foreground`, as in the banner | `bg-background` |
 
-Do not use `brand`, `brand-teal`, `brand-mint` or `brand-gold` for small text on white. None of them reaches a contrast of 4.5 to 1.
-
-## 8. Typography note
-
-The presentation uses Aptos and the banner uses a geometric sans similar to Montserrat. The site uses Noto Sans as decided. The brand's typographic habits are worth keeping: bold headings, uppercase eyebrows with wide letter spacing, and the widely spaced "G E N E S" wordmark (which should come from the logo file, not be typeset).
+Do not use `sky-400`, `sky-500`, `cyan-500`, `teal-200` or `yellow-600` for small text on white.
 
 ## 9. Open points
 
-1. Is there an official brand manual with exact color values? The light-theme navy and cyan here are sampled from images.
-2. A vector logo is needed, in a version for light backgrounds and one for dark backgrounds.
-3. Approval is needed for the three colors that do not come from the brand: the deeper azure for links, and the two reds for errors.
-4. Should the site open in light or dark by default when the visitor has no system preference? The presentation is dark, the banner and signature are light. The recommendation is to follow the system setting and fall back to light.
+1. **Gold.** Tailwind has no muted gold. `yellow-600` is brighter than the brand's `#B49E6F`. Since gold appears only in the network graphic, the simplest option is to drop it.
+2. **Network graphic.** With no custom elements, it becomes a lucide icon or disappears. It is the most recognisable visual in the presentation, so this is worth a decision.
+3. **Dark background.** `slate-900` is slightly less blue than the brand navy. The alternative is `sky-950` for the page and `sky-900` for cards, which is bluer but lighter overall.
+4. **Logo.** A vector logo is needed for light and dark backgrounds.
+5. **Default theme** when the visitor has no system preference: recommended light.
