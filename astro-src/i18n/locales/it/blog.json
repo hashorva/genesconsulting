@@ -1,0 +1,12 @@
+{
+  "title": "Aggiornamenti",
+  "description": "Novità normative, guide pratiche e notizie da Genes Consulting.",
+  "empty": "Non ci sono ancora aggiornamenti pubblicati.",
+  "publishedOn": "Pubblicato il {{date}}",
+  "lastUpdated": "Ultimo aggiornamento: {{date}}",
+  "pagination": {
+    "label": "Paginazione",
+    "first": "Prima pagina",
+    "next": "Pagina successiva"
+  }
+}

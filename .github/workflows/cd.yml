@@ -1,7 +1,7 @@
 # Based on hashorva/cd-kit (pinned to v0). Public repo: GitHub-hosted runners only.
 #
 # - PR / push to main : CI only (lint, typecheck, test, build).
-# - PR (same repo)    : preview = new Worker version uploaded, NOT live.
+# - PR (same repo)    : preview = deploy to the separate preview Worker (own data).
 # - tag vX.Y.Z        : production deploy (release). Merging to main never deploys.
 # Deploy/preview jobs stay off until repo variable CD_DEPLOY_ENABLED = true.
 name: cd
@@ -58,7 +58,11 @@ jobs:
     with:
       runs-on: '"ubuntu-latest"'
       environment: preview
-      wrangler-command: versions upload
+      # Separate preview Worker (wrangler.jsonc env.preview) with its own D1/R2/KV,
+      # so PR code never runs EmDash migrations against production content.
+      # The Astro Cloudflare adapter picks the environment at build time.
+      build-command: CLOUDFLARE_ENV=preview bun run build
+      wrangler-command: deploy
     secrets:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

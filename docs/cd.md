@@ -6,7 +6,7 @@ Built on [hashorva/cd-kit](https://github.com/hashorva/cd-kit) (pinned `@v0`). G
 
 | Event | What runs |
 | --- | --- |
-| Pull request | CI. If `CD_DEPLOY_ENABLED=true` and the PR is from this repo: a **preview** (new Worker version uploaded, not live). |
+| Pull request | CI. If `CD_DEPLOY_ENABLED=true` and the PR is from this repo: deploy to the **preview Worker** `genesconsulting-preview`, which has its own D1/R2/KV (never production content). Shared by all PRs: the last one deployed wins. |
 | Merge to `main` | CI only. Nothing deploys. |
 | Tag `vX.Y.Z` | CI, then **production deploy** of the Worker (the client's preview site). |
 
@@ -33,8 +33,4 @@ Italian only for now (no language switcher), but built i18next-style: no hardcod
 
 ## One-time setup (owner)
 
-1. Add secrets `CLOUDFLARE_API_TOKEN` (Workers edit permission) and `CLOUDFLARE_ACCOUNT_ID`, on environments `production` and `preview` (Settings → Environments).
-2. Add secret `CLAUDE_CODE_OAUTH_TOKEN` (repository level) to enable AI review.
-3. Protect `production` (required reviewer: owner).
-4. Branch protection on `main`: require PR and the `cd / ci` check.
-5. After the Astro app and `wrangler.jsonc` exist: set repo variable `CD_DEPLOY_ENABLED=true`.
+Step by step, with exact token permissions: [`docs/cloudflare-setup.md`](cloudflare-setup.md). In short: API token + account ID as secrets on the `production` and `preview` environments, `production` protected by a required reviewer, `main` protected with the `cd / ci` check, repository variable `CD_DEPLOY_ENABLED=true`, tag `v0.1.0`, then finish the EmDash admin setup right away and set `EMDASH_ENCRYPTION_KEY` as a Worker secret. AI review needs the repository secret `CLAUDE_CODE_OAUTH_TOKEN`.

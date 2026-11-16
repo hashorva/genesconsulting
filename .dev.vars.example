@@ -1,0 +1,4 @@
+# Copy to .dev.vars for local development (never commit .dev.vars).
+CD_ENV=preview
+# Generate with: bunx emdash secrets generate
+EMDASH_ENCRYPTION_KEY=

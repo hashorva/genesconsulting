@@ -1,0 +1,62 @@
+{
+	"$schema": "https://emdashcms.com/seed.schema.json",
+	"version": "1",
+	"meta": {
+		"name": "Genes Consulting",
+		"description": "Base schema: pages and the Aggiornamenti blog. The full content model (services, audiences, FAQ, legal pages) comes in a later, additive change.",
+		"author": "Genes Consulting"
+	},
+	"settings": {
+		"title": "Genes Consulting",
+		"tagline": "Meno complessità. Più impresa."
+	},
+	"collections": [
+		{
+			"slug": "pages",
+			"label": "Pagine",
+			"labelSingular": "Pagina",
+			"urlPattern": "/{slug}/",
+			"supports": ["drafts", "revisions", "preview", "search", "seo"],
+			"fields": [
+				{ "slug": "title", "label": "Titolo", "type": "string", "required": true, "searchable": true },
+				{ "slug": "content", "label": "Contenuto", "type": "portableText", "searchable": true }
+			]
+		},
+		{
+			"slug": "posts",
+			"label": "Aggiornamenti",
+			"labelSingular": "Aggiornamento",
+			"urlPattern": "/aggiornamenti/{slug}/",
+			"supports": ["drafts", "revisions", "preview", "scheduling", "search", "seo"],
+			"fields": [
+				{ "slug": "title", "label": "Titolo", "type": "string", "required": true, "searchable": true },
+				{ "slug": "excerpt", "label": "Estratto (max 160 caratteri, usato come meta description)", "type": "text" },
+				{ "slug": "featured_image", "label": "Immagine di copertina", "type": "image" },
+				{ "slug": "content", "label": "Contenuto", "type": "portableText", "searchable": true }
+			]
+		}
+	],
+	"taxonomies": [
+		{
+			"name": "category",
+			"label": "Categorie",
+			"labelSingular": "Categoria",
+			"hierarchical": true,
+			"collections": ["posts"],
+			"terms": [
+				{ "slug": "novita-normative", "label": "Novità normative" },
+				{ "slug": "guide-pratiche", "label": "Guide pratiche" },
+				{ "slug": "digitale", "label": "Digitale" },
+				{ "slug": "genes", "label": "Vita di Genes" }
+			]
+		},
+		{
+			"name": "tag",
+			"label": "Tag",
+			"labelSingular": "Tag",
+			"hierarchical": false,
+			"collections": ["posts"],
+			"terms": []
+		}
+	]
+}
