@@ -18,4 +18,6 @@ Public showcase site: Astro + EmDash (content/copy/blog) + Tailwind v4 + shadcn/
 - **Haiku**: tiny edits (a button color, copy typo, class tweak, rename).
 - **Sonnet**: normal work (a component, a page, a workflow change, tests).
 - **Opus / Fable**: heavy work (architecture, EmDash schema design, SEO/AI-SEO content map, copy improvement, tricky debugging).
+- AI review runs on every non-draft PR (Sonnet by default, Opus for risky paths or the `risky` label); address its findings before asking for merge.
+- UI strings go through an i18n layer (i18next style), Italian default and only language for now; no hardcoded strings in components.
 - Parallel agents only on independent files/areas, each with its own branch and PR.
