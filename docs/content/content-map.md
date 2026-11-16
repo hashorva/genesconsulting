@@ -143,7 +143,7 @@ Each page lists: search intent, title and meta description, the single H1, the s
 - Lead [Source, banner]: Consulenza aziendale e servizi integrati per imprese e studi professionali.
 - Supporting line [Source]: L'esperienza che semplifica, le competenze che si integrano.
 - Primary button: Parliamone (to `/contatti/`). Secondary: Scopri i servizi (to `/servizi/`).
-- Visual: the hub-and-spoke "G" network from slides 1, 2 and 7, redrawn as SVG.
+- Visual: the lucide `Waypoints` icon at large size, standing in for the hub-and-spoke network of slides 1, 2 and 7. No custom drawing.
 
 **Section 2: Chi è Genes (short)**
 

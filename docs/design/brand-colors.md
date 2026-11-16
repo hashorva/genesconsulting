@@ -31,7 +31,7 @@ The brand colors were read from the three files in `docs/requirements/initial`: 
 | Darker end of the logo gradient | `#0098E8` | `sky-500` `#00A6F4` | 0.037 | `sky-500` | |
 | Teal decoration (short rules, dots) | `#24C0CB` | `cyan-500` `#00B8DB` | 0.044 | `cyan-500` | |
 | Mint decoration (small dot, tagline) | `#9ADFDA` | `teal-200` `#96F7E4` | 0.061 | `teal-200` | |
-| Gold nodes in the network graphic | `#B49E6F` | `olive-400` `#ABAB9C` | 0.058 | `yellow-600` `#D08700` | The nearest defaults are greys and lose the gold. `yellow-600` (0.099) is the nearest that still reads as gold. Tailwind has no muted gold |
+| Gold nodes in the network graphic | `#B49E6F` | `olive-400` `#ABAB9C` | 0.058 | `yellow-600` `#D08700` | The nearest defaults are greys and lose the gold. `yellow-600` (0.099) is the nearest that still reads as gold. Approved by Zam |
 | Connector lines in the graphic | `#347091` | `cyan-700` `#007595` | 0.031 | `sky-800` `#00598A` | Used for borders on dark, kept in the sky family |
 | Text on dark | `#F7FAFC` | `slate-50` `#F8FAFC` | 0.001 | `slate-50` | Exact |
 | Secondary text on dark | `#A9C1D0` | `slate-300` `#CAD5E2` | 0.073 | `slate-300` | |
@@ -190,7 +190,7 @@ Each visual element found in the documents, and the default shadcn/ui component 
 | Two-column blocks ("Per le imprese" / "Per gli studi") | Slide 10 | Two `Card`s in `grid md:grid-cols-2 gap-6` | Default |
 | Three dots at the top right of slides | Slides 2 to 12 | Not reproduced | Pure decoration with no default equivalent |
 | Faded arcs in card corners and backgrounds | Banner | Not reproduced, or the logo image at `opacity-10` | No default equivalent |
-| Hub-and-spoke "G" network graphic | Slides 1, 2, 7 | lucide `Waypoints` icon at large size in `text-sky-400`, or left out | A custom drawing would break the rule. To decide with the client |
+| Hub-and-spoke "G" network graphic | Slides 1, 2, 7 | lucide `Waypoints` icon at large size in `text-sky-400` | Approved by Zam. A custom drawing would break the rule |
 
 Exact component names (`Item`, `Field`) are to be confirmed against the shadcn version installed by the preset. If one is not available, `Card` and the plain form primitives cover the same need.
 
@@ -259,10 +259,13 @@ The presentation uses Aptos and the banner a geometric sans. The site uses Noto 
 
 Do not use `sky-400`, `sky-500`, `cyan-500`, `teal-200` or `yellow-600` for small text on white.
 
-## 9. Open points
+## 9. Decided
 
-1. **Gold.** Tailwind has no muted gold. `yellow-600` is brighter than the brand's `#B49E6F`. Since gold appears only in the network graphic, the simplest option is to drop it.
-2. **Network graphic.** With no custom elements, it becomes a lucide icon or disappears. It is the most recognisable visual in the presentation, so this is worth a decision.
-3. **Dark background.** `slate-900` is slightly less blue than the brand navy. The alternative is `sky-950` for the page and `sky-900` for cards, which is bluer but lighter overall.
-4. **Logo.** A vector logo is needed for light and dark backgrounds.
-5. **Default theme** when the visitor has no system preference: recommended light.
+- Gold is `yellow-600`.
+- The network graphic is the lucide `Waypoints` icon.
+
+## 10. Open points
+
+1. **Dark background.** `slate-900` is slightly less blue than the brand navy. The alternative is `sky-950` for the page and `sky-900` for cards, which is bluer but lighter overall.
+2. **Logo.** A vector logo is needed for light and dark backgrounds.
+3. **Default theme** when the visitor has no system preference: recommended light.
