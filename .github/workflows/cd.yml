@@ -21,7 +21,29 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # cd-kit ci.yml needs a lockfile (npm cache). Until the Astro app exists there is none,
+  # so CI is skipped instead of failing. Remove this gate once package-lock.json is committed.
+  detect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      has-app: ${{ steps.d.outputs.has-app }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - id: d
+        run: |
+          if [[ -f package.json ]] && ls package-lock.json pnpm-lock.yaml yarn.lock bun.lock bun.lockb >/dev/null 2>&1; then
+            echo "has-app=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has-app=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=CI skipped::No package.json and lockfile yet."
+          fi
+
   ci:
+    needs: detect
+    if: needs.detect.outputs.has-app == 'true'
     uses: hashorva/cd-kit/.github/workflows/ci.yml@v0
     with:
       runs-on: '"ubuntu-latest"'
