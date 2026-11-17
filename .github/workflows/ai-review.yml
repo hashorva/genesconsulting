@@ -2,7 +2,7 @@
 # The review itself is advisory; job `review-gate` (required check) turns its verdict into a merge gate.
 # The review skips when secret CLAUDE_CODE_OAUTH_TOKEN is missing (also on forks).
 # Model: Sonnet for ordinary PRs; Opus for *critical* PRs: labelled `risky`, >400 lines changed,
-# or touching security/deploy/rules paths (RISKY_PATHS below). Docs-only and draft PRs are not reviewed.
+# or touching security/deploy/rules paths (RISKY_PATHS below). Docs-only PRs (docs/, README.md) and drafts are not reviewed.
 # Job `review-gate` (required check) blocks merging until the review of the head SHA is clean,
 # and, on critical PRs, until the owner adds the label `owner-ok` (AGENTS.md).
 # pull_request only (never pull_request_target); no job runs PR code; GitHub-hosted runner.
@@ -44,7 +44,7 @@ jobs:
           REPO: ${{ github.repository }}
           LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
           # Edit here (data, not logic). Extended regex on file paths.
-          RISKY_PATHS: '^\.github/|^(AGENTS|CLAUDE)\.md$|(^|/)wrangler[^/]*\.(jsonc|toml)$|^astro\.config\.|^package(-lock)?\.json$|^bun\.lockb?$|^flags\.json$|^seed/|migrations?/|emdash-migrate|(^|/)(auth|session|middleware)[^/]*\.(ts|js|mjs|astro)$'
+          RISKY_PATHS: '^\.github/|^(AGENTS|CLAUDE)\.md$|^\.agents/|^\.claude/|^\.mcp\.json$|(^|/)wrangler[^/]*\.(jsonc|toml)$|^astro\.config\.|^package(-lock)?\.json$|^bun\.lockb?$|^flags\.json$|^seed/|migrations?/|emdash-migrate|(^|/)(auth|session|middleware)[^/]*\.(ts|js|mjs|astro)$'
           MAX_LINES: "400"
           SONNET: claude-sonnet-5-5
           OPUS: claude-opus-5-5
@@ -65,9 +65,10 @@ jobs:
           elif (( lines > MAX_LINES )); then critical=true; why="$lines lines"
           else why="$lines lines"; fi
           model=$SONNET; [[ "$critical" == true ]] && model=$OPUS
-          # Docs-only: every file is markdown or under docs/ (and none is critical, e.g. AGENTS.md)
+          # Docs-only (no review needed, passes review-gate): every file is under docs/ or is README.md.
+          # Not any .md: Astro renders .md under astro-src/ as pages.
           docs_only=false
-          if [[ "$critical" == false ]] && ! echo "$files" | cut -f1 | grep -qvE '\.md$|^docs/'; then docs_only=true; fi
+          if [[ "$critical" == false ]] && ! echo "$files" | cut -f1 | grep -qvE '^docs/|^README\.md$'; then docs_only=true; fi
           if [[ "$DRAFT" == "true" ]]; then out false "$model" "$critical" draft; exit 0; fi
           if [[ "$EVENT_ACTION" == "auto_merge_enabled" ]]; then out false "$model" "$critical" "auto-merge toggled"; exit 0; fi
           if [[ "$EVENT_ACTION" == "labeled" && "$LABEL_ADDED" != "risky" ]]; then out false "$model" "$critical" "label ignored"; exit 0; fi
