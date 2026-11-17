@@ -2,7 +2,8 @@
 #
 # - PR / push to main : CI only (lint, typecheck, test, build).
 # - PR (same repo)    : preview = deploy to the separate preview Worker (own data).
-# - tag vX.Y.Z        : production deploy (release). Merging to main never deploys.
+# - push to main      : production deploy after CI passes. Unfinished features ship OFF (flags.json).
+# - tag vX.Y.Z        : marks a release / re-deploys that exact commit (rollback).
 # Deploy/preview jobs stay off until repo variable CD_DEPLOY_ENABLED = true.
 name: cd
 
@@ -48,6 +49,29 @@ jobs:
     with:
       runs-on: '"ubuntu-latest"'
 
+  # Single required status check for branch protection. A skipped reusable-workflow job
+  # reports as "ci", not "ci / ci", so requiring "ci / ci" would wait forever while CI is
+  # skipped (no app yet). This job always runs and reports one stable name: gate.
+  gate:
+    if: always()
+    needs: [detect, ci]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check CI result
+        env:
+          DETECT: ${{ needs.detect.result }}
+          CI: ${{ needs.ci.result }}
+          HAS_APP: ${{ needs.detect.outputs.has-app }}
+        run: |
+          echo "detect=$DETECT ci=$CI has-app=$HAS_APP"
+          [[ "$DETECT" == "success" ]] || { echo "::error::detect did not succeed"; exit 1; }
+          if [[ "$HAS_APP" == "true" ]]; then
+            [[ "$CI" == "success" ]] || { echo "::error::ci must succeed (got $CI)"; exit 1; }
+          else
+            echo "No app yet: CI skipped by design."
+          fi
+
   preview:
     needs: ci
     if: >-
@@ -67,6 +91,19 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
+  # Every merge to main goes live; hidden features stay off via flags.json.
+  deploy:
+    needs: ci
+    if: vars.CD_DEPLOY_ENABLED == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: hashorva/cd-kit/.github/workflows/deploy-cloudflare.yml@v0
+    with:
+      runs-on: '"ubuntu-latest"'
+      environment: production
+    secrets:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+  # Tag vX.Y.Z = a release. Pushing an older tag re-deploys it (rollback).
   release:
     needs: ci
     if: vars.CD_DEPLOY_ENABLED == 'true' && startsWith(github.ref, 'refs/tags/v')

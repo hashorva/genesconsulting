@@ -6,11 +6,19 @@ Built on [hashorva/cd-kit](https://github.com/hashorva/cd-kit) (pinned `@v0`). G
 
 | Event | What runs |
 | --- | --- |
-| Pull request | CI. If `CD_DEPLOY_ENABLED=true` and the PR is from this repo: deploy to the **preview Worker** `genesconsulting-preview`, which has its own D1/R2/KV (never production content). Shared by all PRs: the last one deployed wins. |
-| Merge to `main` | CI only. Nothing deploys. |
-| Tag `vX.Y.Z` | CI, then **production deploy** of the Worker (the client's preview site). |
+| Pull request | CI. If `CD_DEPLOY_ENABLED=true` and the PR is from this repo: a **preview** deploy to a separate preview Worker with its own D1/R2/KV (own data) and preview flags **on**. |
+| Merge to `main` | CI, then **automatic production deploy**. No manual approval. New features ship hidden (flag off in production). |
+| Release (tag `vX.Y.Z`) | Marks the release; pushing an older tag re-deploys it (**rollback**). |
 
-Release: create a tag/GitHub release `vX.Y.Z` on `main` (semver: patch = fixes, minor = new components/flags, major = breaking). Rollback: re-run the deploy for an older tag.
+### Ship hidden, then release
+1. A feature PR adds code behind a flag in `flags.json` (`production: false`, `preview: true`). Reviewers see it on the PR preview.
+2. Merge: it goes live in production but visitors cannot see it. Test it there with the flag override (below).
+3. **Release** = a small PR that sets `production: true` for that flag; merging deploys it and a `vX.Y.Z` tag is cut on that commit. Everyone sees it.
+4. Later, delete the flag from code and `flags.json`.
+
+Semver: patch = fixes, minor = newly released features, major = breaking.
+
+Previews have their own D1/R2/KV (`env.preview` in `wrangler.jsonc`), so PR code never runs migrations against, or edits, production content. Preview data is throwaway test content; real content is edited only on production's admin.
 
 ## EmDash content safety (hard rules)
 
@@ -21,7 +29,12 @@ Release: create a tag/GitHub release `vX.Y.Z` on `main` (semver: patch = fixes, 
 
 ## Feature flags
 
-`flags.json` holds per-environment defaults; a Worker var `FLAG_<NAME>=true|false` overrides without a redeploy. New components ship behind a flag (off in production), are enabled in preview, then switched on, and the flag is removed once stable.
+`flags.json` holds per-environment defaults (`production`, `preview`); git history is the audit trail. Resolution order at runtime: Worker var `FLAG_<NAME>=true|false` (override) > `flags.json` default for the current environment (`ENVIRONMENT` var, `preview` or `production`).
+
+How to toggle:
+- **Release for everyone:** PR changing `production` to `true` in `flags.json`, merge (auto-deploys).
+- **Instant kill switch / staged test:** set the `FLAG_<NAME>` var in the Cloudflare dashboard (Workers → genesconsulting → Settings → Variables) with no redeploy. `wrangler.jsonc` must set `keep_vars: true` so deploys never wipe dashboard overrides. Fold the final value back into `flags.json` afterwards.
+- Flags only gate code. They never create, change or delete EmDash content; a flagged-off feature must not require content that does not exist yet.
 
 ## AI review (advisory, not a required check)
 
@@ -33,4 +46,6 @@ Italian only for now (no language switcher), but built i18next-style: no hardcod
 
 ## One-time setup (owner)
 
-Step by step, with exact token permissions: [`docs/cloudflare-setup.md`](cloudflare-setup.md). In short: API token + account ID as secrets on the `production` and `preview` environments, `production` protected by a required reviewer, `main` protected with the `cd / ci` check, repository variable `CD_DEPLOY_ENABLED=true`, tag `v0.1.0`, then finish the EmDash admin setup right away and set `EMDASH_ENCRYPTION_KEY` as a Worker secret. AI review needs the repository secret `CLAUDE_CODE_OAUTH_TOKEN`.
+Step by step, with exact token permissions: [`docs/cloudflare-setup.md`](cloudflare-setup.md). In short: API token + account ID as secrets on the `production` and `preview` environments (no required reviewers), `main` protected with the `gate` check, repository variable `CD_DEPLOY_ENABLED=true`, then finish the EmDash admin setup right after the first deploy and set `EMDASH_ENCRYPTION_KEY` as a Worker secret. AI review needs the repository secret `CLAUDE_CODE_OAUTH_TOKEN`.
+
+`wrangler.jsonc` already has `env.preview` with its own D1/R2/KV, `ENVIRONMENT` set per environment, and `keep_vars: true`.

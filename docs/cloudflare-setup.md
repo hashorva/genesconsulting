@@ -6,7 +6,7 @@ What exists after this: two Workers on your Cloudflare account.
 
 | Worker | URL | Deployed by | Data |
 | --- | --- | --- | --- |
-| `genesconsulting` | `https://genesconsulting.<your-subdomain>.workers.dev` | a `vX.Y.Z` tag on `main` | D1 `genesconsulting`, R2 `genesconsulting-media`, KV for sessions |
+| `genesconsulting` | `https://genesconsulting.<your-subdomain>.workers.dev` | every merge to `main` (and `vX.Y.Z` tags, for rollback) | D1 `genesconsulting`, R2 `genesconsulting-media`, KV for sessions |
 | `genesconsulting-preview` | `https://genesconsulting-preview.<your-subdomain>.workers.dev` | every pull request from this repo | D1 `genesconsulting-preview`, R2 `genesconsulting-media-preview`, its own KV |
 
 The first deploy of each Worker creates its database, bucket and KV namespace automatically. You never create them by hand, and you never rename or delete them (that is where the content lives).
@@ -41,23 +41,22 @@ In https://github.com/hashorva/genesconsulting/settings/environments:
 1. Create (or open) the environment **`production`**:
    - **Add environment secret** `CLOUDFLARE_API_TOKEN` = the token from step 3.
    - **Add environment secret** `CLOUDFLARE_ACCOUNT_ID` = the ID from step 2.
-   - **Required reviewers**: tick it and add yourself. Every production deploy then waits for your click.
-   - **Deployment branches and tags**: Selected branches and tags → add a **tag** rule `v*`.
-2. Create the environment **`preview`** with the same two secrets (no reviewer needed).
+   - No required reviewers: production deploys automatically after CI passes on `main` (unfinished features stay hidden behind flags, see `docs/cd.md`).
+2. Create the environment **`preview`** with the same two secrets.
 
-Then in **Settings → Secrets and variables → Actions → Variables**, add the repository variable **`CD_DEPLOY_ENABLED`** = `true`. Until it exists, CI runs but nothing deploys.
+Then in **Settings → Secrets and variables → Actions → Variables**, add the repository variable **`CD_DEPLOY_ENABLED`** = `true`. Until it exists, CI runs but nothing deploys. Set it when you are ready for the first deploy (step 6), because from then on every merge to `main` goes live.
 
 (Optional, for the AI reviewer: repository secret `CLAUDE_CODE_OAUTH_TOKEN`, see `docs/cd.md`.)
 
 ## 5. Protect `main`
 
-**Settings → Branches → Add branch ruleset** (or classic rule) for `main`: require a pull request, and require the status check **`cd / ci`**.
+**Settings → Branches → Add branch ruleset** (or classic rule) for `main`: require a pull request, and require the status check **`gate`**.
 
-## 6. First production release
+## 6. First production deploy
 
-1. Merge the PRs (CD setup first, then the scaffold).
-2. **Releases → Draft a new release → Choose a tag** → type `v0.1.0` → **Create new tag on publish**, target `main` → **Publish release**.
-3. **Actions** → the `cd` run for `v0.1.0` → approve the `production` deployment. When it finishes, the job summary shows the Worker URL.
+1. With `CD_DEPLOY_ENABLED=true` set, merge the scaffold PR (or re-run the latest `cd` workflow on `main` from **Actions** if it is already merged).
+2. **Actions** → the `cd` run on `main` → the `deploy` job. When it finishes, its summary shows the Worker URL.
+3. Optionally mark it as a release: **Releases → Draft a new release → tag `v0.1.0`** on `main` → **Publish**. Pushing an older tag later re-deploys that version (rollback).
 
 ## 7. Finish the EmDash setup immediately
 
@@ -85,7 +84,7 @@ EmDash encrypts plugin secrets (for example SMTP passwords) with `EMDASH_ENCRYPT
 Passkeys only work on the hostname where they were created. The admin passkey you make on `workers.dev` stops working when the site moves to the real domain, so when the domain is ready:
 
 1. The domain must be an active zone on the **same** Cloudflare account.
-2. A PR adds to `wrangler.jsonc`: `"routes": [{ "pattern": "www.genesconsulting.it", "custom_domain": true }]` and `"EMDASH_SITE_URL": "https://www.genesconsulting.it"` under `vars`. Release it with a new tag.
+2. A PR adds to `wrangler.jsonc`: `"routes": [{ "pattern": "www.genesconsulting.it", "custom_domain": true }]` and `"EMDASH_SITE_URL": "https://www.genesconsulting.it"` under `vars`. Merging it deploys.
 3. In EmDash, **Settings → General → Change domain**, then register a new passkey on the new domain (keep an admin able to sign in by another method during the switch).
 
 Never put `siteUrl` in `astro.config.mjs`: it would be baked into preview builds too.
