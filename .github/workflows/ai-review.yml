@@ -128,7 +128,7 @@ jobs:
 
   # Required check (branch protection on main, next to `gate`): a PR can merge, by hand
   # or by auto-merge, only once the AI review of its current head SHA said "No blocking
-  # findings." (docs-only PRs and runs without the Claude token need no review).
+  # findings." (docs-only PRs need no review; without a Claude token it fails closed).
   # Critical PRs also need the label `owner-ok`, which only the owner adds (AGENTS.md);
   # a new push removes it, so the owner's OK covers exactly the commit they saw.
   # Always runs, also on ignored-label and auto-merge events, so the latest result
@@ -151,6 +151,8 @@ jobs:
       CRITICAL: ${{ needs.scope.outputs.critical }}
       DOCS_ONLY: ${{ needs.scope.outputs.docs_only }}
       HAS_CLAUDE_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+      FROM_FORK: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
+      AI_REVIEW_OPTIONAL: ${{ vars.AI_REVIEW_OPTIONAL }}
     steps:
       - name: Critical PRs need the owner's OK; every PR needs a clean review of this head
         run: |
@@ -170,7 +172,15 @@ jobs:
               exit 1
             fi
           fi
-          if [[ "$DOCS_ONLY" == "true" || "$HAS_CLAUDE_TOKEN" != "true" ]]; then echo "No AI review expected."; exit 0; fi
+          if [[ "$DOCS_ONLY" == "true" ]]; then echo "Docs-only PR: no AI review needed."; exit 0; fi
+          # Fail closed when no review can run (fork PRs get no secrets; a missing or expired
+          # token). Deliberate opt-out for same-repo PRs: repo variable AI_REVIEW_OPTIONAL=true.
+          if [[ "$HAS_CLAUDE_TOKEN" != "true" ]]; then
+            if [[ "$AI_REVIEW_OPTIONAL" == "true" && "$FROM_FORK" != "true" ]]; then
+              echo "::warning title=No AI review::CLAUDE_CODE_OAUTH_TOKEN missing; AI_REVIEW_OPTIONAL=true lets this pass."; exit 0
+            fi
+            echo "::error title=No AI review possible::No CLAUDE_CODE_OAUTH_TOKEN for this run (fork PR, or missing secret)."; exit 1
+          fi
           # Match the reviewed SHA, not timestamps (committer dates are client-set).
           ok=$(gh api --paginate "repos/$REPO/issues/$PR/comments" \
             --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"No blocking findings\")) and (.body | contains(\"Reviewed: $SHA\"))) | .id" | wc -l)
