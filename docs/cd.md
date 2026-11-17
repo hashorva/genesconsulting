@@ -6,7 +6,7 @@ Built on [hashorva/cd-kit](https://github.com/hashorva/cd-kit) (pinned `@v0`). G
 
 | Event | What runs |
 | --- | --- |
-| Pull request | CI. If `CD_DEPLOY_ENABLED=true` and the PR is from this repo: a **preview** Worker version (not live) with preview flags **on**. |
+| Pull request | CI. If `CD_DEPLOY_ENABLED=true` and the PR is from this repo: a **preview** deploy to a separate preview Worker with its own D1/R2/KV (own data) and preview flags **on**. |
 | Merge to `main` | CI, then **automatic production deploy**. No manual approval. New features ship hidden (flag off in production). |
 | Release (tag `vX.Y.Z`) | Marks the release; pushing an older tag re-deploys it (**rollback**). |
 
@@ -18,7 +18,7 @@ Built on [hashorva/cd-kit](https://github.com/hashorva/cd-kit) (pinned `@v0`). G
 
 Semver: patch = fixes, minor = newly released features, major = breaking.
 
-Previews and production share the same D1/R2 content. Do **not** edit EmDash content through a preview URL; edit content only on production's admin.
+Previews have their own D1/R2/KV (`env.preview` in `wrangler.jsonc`), so PR code never runs migrations against, or edits, production content. Preview data is throwaway test content; real content is edited only on production's admin.
 
 ## EmDash content safety (hard rules)
 
@@ -50,5 +50,5 @@ Italian only for now (no language switcher), but built i18next-style: no hardcod
 2. Add secret `CLAUDE_CODE_OAUTH_TOKEN` (repository level) to enable AI review.
 3. Create environments `production` and `preview` with no required reviewers (production deploys automatically after CI passes).
 4. Branch protection on `main`: require PR and the `cd / ci` check.
-5. `wrangler.jsonc` needs an `env.preview` that reuses the same D1/R2 bindings and sets `ENVIRONMENT=preview`, plus `keep_vars: true`.
+5. `wrangler.jsonc` needs an `env.preview` with its **own** D1/R2/KV (never production's ids) and `ENVIRONMENT=preview`, plus `keep_vars: true`.
 6. After the Astro app and `wrangler.jsonc` exist: set repo variable `CD_DEPLOY_ENABLED=true`.
