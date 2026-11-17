@@ -1,0 +1,15 @@
+---
+interface Props {
+	/** "full" = mark + wordmark, "mark" = arcs only */
+	variant?: "full" | "mark";
+	alt: string;
+	class?: string;
+}
+
+const { variant = "full", alt, class: className } = Astro.props;
+const base = variant === "mark" ? "/brand/mark" : "/brand/logo";
+---
+
+{/* Light and dark artwork: Tailwind's dark variant swaps them, no JS (follows the footer toggle too). */}
+<img src={`${base}-light.svg`} alt={alt} class:list={["dark:hidden", className]} />
+<img src={`${base}-dark.svg`} alt={alt} class:list={["hidden dark:block", className]} />
