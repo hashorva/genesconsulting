@@ -170,6 +170,8 @@ jobs:
       REPO: ${{ github.repository }}
       SHA: ${{ github.event.pull_request.head.sha }}
       SCOPE_RESULT: ${{ needs.scope.result }}
+      REVOKE_RESULT: ${{ needs.revoke-owner-ok.result }}
+      EVENT_ACTION: ${{ github.event.action }}
       CRITICAL: ${{ needs.scope.outputs.critical }}
       DOCS_ONLY: ${{ needs.scope.outputs.docs_only }}
       HAS_CLAUDE_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
@@ -180,6 +182,10 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "$SCOPE_RESULT" != "success" ]]; then echo "::error::scope job did not succeed"; exit 1; fi
+          # Fail closed if a push did not get its owner-ok revoked.
+          if [[ "$EVENT_ACTION" == "synchronize" && "$REVOKE_RESULT" != "success" ]]; then
+            echo "::error::revoke-owner-ok did not succeed ($REVOKE_RESULT)"; exit 1
+          fi
           if [[ "$CRITICAL" == "true" ]]; then
             # Read labels live: the event payload can be stale.
             owner_ok=false
