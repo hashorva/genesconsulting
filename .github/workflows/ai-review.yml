@@ -157,7 +157,7 @@ jobs:
   # Always runs, also on ignored-label and auto-merge events, so the latest result
   # reflects the current labels and comments.
   review-gate:
-    needs: [scope, review]
+    needs: [scope, review, revoke-owner-ok]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -199,9 +199,16 @@ jobs:
             fi
             echo "::error title=No AI review possible::No CLAUDE_CODE_OAUTH_TOKEN for this run (fork PR, or missing secret)."; exit 1
           fi
-          # Match the reviewed SHA, not timestamps (committer dates are client-set).
-          ok=$(gh api --paginate "repos/$REPO/issues/$PR/comments" \
-            --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"No blocking findings\")) and (.body | contains(\"Reviewed: $SHA\"))) | .id" | wc -l)
+          # Match the reviewed SHA, not timestamps (committer dates are client-set), and accept
+          # the comment only if the bot wrote it and nobody else edited it since.
+          OWNER=${REPO%/*}; NAME=${REPO#*/}
+          ok=$(gh api graphql -F o="$OWNER" -F r="$NAME" -F n="$PR" -f query='
+            query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){pullRequest(number:$n){
+              comments(last:100){nodes{author{login} editor{login} body}}}}}' \
+            --jq ".data.repository.pullRequest.comments.nodes[]
+              | select(.author.login == \"github-actions\" and (.editor == null or .editor.login == \"github-actions\")
+                and (.body | startswith(\"No blocking findings\")) and (.body | contains(\"Reviewed: $SHA\")))
+              | .body" | grep -c '^No blocking findings' || true)
           if (( ok == 0 )); then
             echo "::error title=No clean AI review of $SHA::Fix the findings (or wait for the review); a new push is reviewed again."
             exit 1
