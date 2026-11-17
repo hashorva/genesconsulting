@@ -5,15 +5,8 @@
   },
   "nav": {
     "label": "Navigazione principale",
-    "home": "Home",
-    "about": "Chi siamo",
-    "services": "Servizi",
-    "forBusinesses": "Per le imprese",
-    "forFirms": "Per gli studi",
-    "updates": "Aggiornamenti",
     "cta": "Parliamone",
-    "openMenu": "Apri il menu",
-    "closeMenu": "Chiudi il menu"
+    "openMenu": "Apri il menu"
   },
   "actions": {
     "discoverServices": "Scopri i servizi",
@@ -23,10 +16,6 @@
   },
   "footer": {
     "legal": "Informazioni legali",
-    "privacy": "Privacy",
-    "cookies": "Cookie",
-    "notes": "Note legali",
-    "vat": "P.IVA {{vat}}",
     "copyright": "© {{year}} {{name}}"
   },
   "theme": {

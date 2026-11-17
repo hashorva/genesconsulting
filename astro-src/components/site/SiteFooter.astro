@@ -2,7 +2,7 @@
 import SiteLogo from "@/components/site/SiteLogo.astro";
 import ThemeToggle from "@/components/site/ThemeToggle";
 import { resolveLocale, useTranslations } from "@/i18n";
-import { routePath } from "@/i18n/routes";
+import { menuItems } from "@/lib/content-links";
 
 interface Props {
 	siteTitle: string;
@@ -13,6 +13,8 @@ const { siteTitle, siteTagline } = Astro.props;
 const locale = resolveLocale(Astro.currentLocale);
 const t = useTranslations(locale);
 const year = new Date().getFullYear();
+// Legal links come from the EmDash "footer" menu, added once those pages are published.
+const items = await menuItems(Astro, "footer", locale);
 ---
 
 <footer class="border-t text-muted-foreground">
@@ -21,11 +23,17 @@ const year = new Date().getFullYear();
 			<SiteLogo alt={siteTitle} class="h-12 w-auto" />
 			<p class="text-sm">{siteTagline}</p>
 		</div>
-		<nav aria-label={t("footer.legal")} class="flex flex-wrap gap-x-6 gap-y-2 text-sm md:justify-end">
-			<a class="hover:text-foreground" href={routePath("legal.privacy", locale)}>{t("footer.privacy")}</a>
-			<a class="hover:text-foreground" href={routePath("legal.cookies", locale)}>{t("footer.cookies")}</a>
-			<a class="hover:text-foreground" href={routePath("legal.notes", locale)}>{t("footer.notes")}</a>
-		</nav>
+		{
+			items.length > 0 && (
+				<nav aria-label={t("footer.legal")} class="flex flex-wrap gap-x-6 gap-y-2 text-sm md:justify-end">
+					{items.map((item) => (
+						<a class="hover:text-foreground" href={item.url}>
+							{item.label}
+						</a>
+					))}
+				</nav>
+			)
+		}
 	</div>
 	<div class="container mx-auto flex flex-wrap items-center justify-between gap-4 px-4 pb-8 text-xs md:px-6">
 		<p>{t("footer.copyright", { year, name: siteTitle })}</p>

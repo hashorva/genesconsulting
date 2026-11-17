@@ -27,6 +27,12 @@ Previews have their own D1/R2/KV (`env.preview` in `wrangler.jsonc`), so PR code
 - Schema changes to EmDash collections are additive and called out in the PR; reset/seed scripts must never run against production.
 - Content releases (EmDash) and code releases (tags) are independent: a code release must work with whatever content exists, and flagged-off features must not require new content.
 
+## EmDash database migrations
+
+EmDash's own core migrations (additive schema, never content) run from CI right after every deploy: jobs `migrate-preview` and `migrate-production` call `scripts/emdash-migrate.sh <d1-name>`, which runs `emdash migrate` against the remote D1 with the environment's Cloudflare token. Deployed Workers run EmDash with `migrations.runtime: "check"` (`astro.config.mjs`), so they never migrate inside a request: that used to leave the lock held when a request was cut off, with every page on 503 "Database migrations are required". Between a deploy and its migrate job (seconds) a deploy that brings new migrations answers 503. The script takes over a lock only when it is older than 2 minutes, and refuses to touch a database that has migrations this build does not know.
+
+Manual recovery (from a machine with the token): `CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ACCOUNT_ID=... scripts/emdash-migrate.sh genesconsulting` (or `genesconsulting-preview`), or re-run the failed `cd` workflow.
+
 ## Feature flags
 
 `flags.json` holds per-environment defaults (`production`, `preview`); git history is the audit trail. Resolution order at runtime: Worker var `FLAG_<NAME>=true|false` (override) > `flags.json` default for the current environment (`ENVIRONMENT` var, `preview` or `production`).
