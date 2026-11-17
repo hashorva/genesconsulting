@@ -22,8 +22,8 @@ The brand colors were read from the three files in `docs/requirements/initial`: 
 
 | Role in the documents | Found in the documents | Closest Tailwind | Distance | Used on the site | Note |
 | --- | --- | --- | --- | --- | --- |
-| Dark background (slides) | `#071F37` | `slate-900` `#0F172B` | 0.033 | `slate-900` | Tailwind has no navy this dark with the same blue tint. `slate-900` is the nearest and keeps cards visibly lighter than the page |
-| Dark cards and panels (slides) | `#0C314D` | `sky-950` `#052F4A` | 0.010 | `sky-950` | Almost exact |
+| Dark background (slides) | `#071F37` | `slate-900` `#0F172B` | 0.033 | `sky-950` `#052F4A` | Decided by Zam: the bluer `sky-950` (0.059) instead of the nearest, to keep the brand's blue tint. Slightly lighter than the slides |
+| Dark cards and panels (slides) | `#0C314D` | `sky-950` `#052F4A` | 0.010 | `sky-900` `#024A70` | The nearest is now the page background, so cards move one step lighter, as in the slides |
 | Navy panel and dark cards (banner) | `#043D66` | `sky-900` `#024A70` | 0.042 | `sky-900` | |
 | Navy text on white (banner, signature) | `#002C6C` | `blue-950` `#162456` | 0.045 | `sky-950` | Second nearest (0.063). Chosen so that all navy stays in one family |
 | Cyan accent (slides) | `#14B5EB` | `sky-400` `#00BCFF` | 0.032 | `sky-400` | |
@@ -60,22 +60,22 @@ shadcn components read semantic tokens (`bg-primary`, `text-muted-foreground`). 
 
 | Token | Light | Dark |
 | --- | --- | --- |
-| `background` | `white` | `slate-900` |
+| `background` | `white` | `sky-950` |
 | `foreground` | `sky-950` | `slate-50` |
-| `card` | `white` | `sky-950` |
+| `card` | `white` | `sky-900` |
 | `card-foreground` | `sky-950` | `slate-50` |
-| `popover` | `white` | `sky-950` |
+| `popover` | `white` | `sky-900` |
 | `popover-foreground` | `sky-950` | `slate-50` |
 | `primary` | `sky-900` | `sky-400` |
 | `primary-foreground` | `slate-50` | `sky-950` |
-| `secondary` | `sky-50` | `sky-900` |
+| `secondary` | `sky-50` | `sky-800` |
 | `secondary-foreground` | `sky-900` | `slate-50` |
-| `muted` | `sky-50` | `sky-950` |
+| `muted` | `sky-50` | `sky-900` |
 | `muted-foreground` | `slate-600` | `slate-300` |
-| `accent` | `sky-100` | `sky-900` |
+| `accent` | `sky-100` | `sky-800` |
 | `accent-foreground` | `sky-900` | `slate-50` |
-| `border` | `slate-200` | `sky-900` |
-| `input` | `slate-200` | `sky-800` |
+| `border` | `slate-200` | `sky-800` |
+| `input` | `slate-200` | `sky-700` |
 | `ring` | `sky-400` | `sky-400` |
 | `destructive` | `red-600` | `red-400` |
 | `chart-1` | `sky-400` | `sky-400` |
@@ -96,11 +96,14 @@ Measured with the Tailwind values. 4.5 to 1 is the minimum for normal text.
 | `sky-700` link on `white` | 5.9 | Pass |
 | `red-600` on `white` | 4.8 | Pass |
 | `sky-400` on `white` | about 2.2 | Fail. Decoration and large headline words only |
-| `slate-50` text on `slate-900` / on `sky-950` | 17.0 / 13.3 | Pass |
-| `sky-400` on `slate-900` / on `sky-950` | 8.2 / 6.4 | Pass |
+| `slate-50` text on `sky-950` page / on `sky-900` card | 13.3 / 9.1 | Pass |
+| `sky-400` on `sky-950` page | 6.4 | Pass |
+| `sky-400` on `sky-900` card | 4.4 | Just under. Large or bold text only |
+| `sky-300` on `sky-900` card | 5.7 | Pass. Use for small cyan text inside cards |
 | `sky-950` label on `sky-400` button (dark primary) | 6.4 | Pass |
-| `slate-300` secondary text on `slate-900` / on `sky-950` | 12.0 / 9.3 | Pass |
-| `red-400` on `slate-900` | 6.2 | Pass |
+| `slate-300` secondary text on `sky-950` page / on `sky-900` card | 9.3 / 6.4 | Pass |
+| `red-400` on `sky-950` page | 4.8 | Pass |
+| `red-300` on `sky-900` card | 4.9 | Pass. Use for error text inside cards |
 
 This is why the light theme uses navy (`sky-900`) for buttons and `sky-700` for links: cyan on white is not readable as text. The client's own banner does the same, with navy text and cyan only as a highlight.
 
@@ -136,23 +139,23 @@ Replaces the blue and emerald values that preset `b2DcSAJ7K` writes into the glo
 }
 
 .dark {
-  --background: var(--color-slate-900);
+  --background: var(--color-sky-950);
   --foreground: var(--color-slate-50);
-  --card: var(--color-sky-950);
+  --card: var(--color-sky-900);
   --card-foreground: var(--color-slate-50);
-  --popover: var(--color-sky-950);
+  --popover: var(--color-sky-900);
   --popover-foreground: var(--color-slate-50);
   --primary: var(--color-sky-400);
   --primary-foreground: var(--color-sky-950);
-  --secondary: var(--color-sky-900);
+  --secondary: var(--color-sky-800);
   --secondary-foreground: var(--color-slate-50);
-  --muted: var(--color-sky-950);
+  --muted: var(--color-sky-900);
   --muted-foreground: var(--color-slate-300);
-  --accent: var(--color-sky-900);
+  --accent: var(--color-sky-800);
   --accent-foreground: var(--color-slate-50);
   --destructive: var(--color-red-400);
-  --border: var(--color-sky-900);
-  --input: var(--color-sky-800);
+  --border: var(--color-sky-800);
+  --input: var(--color-sky-700);
   --chart-2: var(--color-teal-200);
 }
 ```
@@ -167,7 +170,7 @@ Each visual element found in the documents, and the default shadcn/ui component 
 
 | Found in the documents | Where | shadcn/ui component | Variant and classes |
 | --- | --- | --- | --- |
-| Rounded navy cards with title and one line of text | Slides 3 to 12 | `Card` with `CardHeader`, `CardTitle`, `CardDescription`, `CardContent` | Default. Title in `text-primary` on dark |
+| Rounded navy cards with title and one line of text | Slides 3 to 12 | `Card` with `CardHeader`, `CardTitle`, `CardDescription`, `CardContent` | Default. Title in `text-sky-300` on dark |
 | Numbered step cards (01 to 04) | Slides 3, 6 | `Card` | Number as text: `text-2xl font-bold text-sky-400` |
 | Full-width list rows | Slide 5 | `Item` inside `ItemGroup`, or `Card` with `size="sm"` | Default |
 | Eyebrow label above titles ("AREA 01") | All slides | `Badge` | `variant="outline"` or plain text with `text-xs font-semibold uppercase tracking-widest` |
@@ -177,7 +180,7 @@ Each visual element found in the documents, and the default shadcn/ui component 
 | Text links | | `Button` | `variant="link"` |
 | Top navigation with services dropdown | Site | `NavigationMenu` | Default |
 | Mobile menu | Site | `Sheet` | `side="right"` |
-| Light and dark switch | Site | `Button` `variant="ghost" size="icon"` with `DropdownMenu` | Light, dark, system |
+| Theme switch `[ light | system | dark ]` in the footer | Site | `ToggleGroup` with three `ToggleGroupItem`s | `type="single" variant="outline" size="sm"`, icons `Sun`, `Monitor`, `Moon`. Default value: system |
 | Breadcrumbs | Site | `Breadcrumb` | Default |
 | FAQ | Site | `Accordion` | `type="single" collapsible` |
 | Contact form | Site | `Field`, `Input`, `Textarea`, `Checkbox`, `Label`, `Button` | Default |
@@ -211,6 +214,8 @@ All icons from lucide, which is the icon library the shadcn preset installs. Def
 | Four-point star bullet (✦) | Slide 4 | `Sparkle` |
 | Network of nodes | Slides 1, 2, 7 | `Waypoints` |
 | Address (no icon in the source) | Contatti | `MapPin` |
+| Theme switch (not in the source) | Footer | `Sun`, `Monitor`, `Moon` |
+| Company logo, placeholder | Header, footer | `Rss`, next to the name set as text |
 | Email (no icon in the source) | Contatti | `Mail` |
 
 Proposed icons for the six areas of assistance, which have no icon in the source:
@@ -224,7 +229,7 @@ Proposed icons for the six areas of assistance, which have no icon in the source
 | Servizi digitali | `Fingerprint` |
 | Servizi integrati | `Handshake` |
 
-The company logo is the one exception to "icons from lucide": it is a brand asset and is used as an image file supplied by the client.
+**Logo placeholder.** Until a vector logo exists, the header and footer show the lucide `Rss` icon in `text-sky-400` (its quarter-circle arcs are the closest default to the Genes mark) next to "GENES CONSULTING" set as text. The final logo will be the one exception to "icons from lucide": a brand asset used as an image file. It has to be built, because the repository only has it inside raster images.
 
 ## 7. Type, size and shape
 
@@ -250,7 +255,7 @@ The presentation uses Aptos and the banner a geometric sans. The site uses Noto 
 | --- | --- | --- |
 | Page | `bg-background text-foreground` | Same |
 | Highlighted half of a headline | `text-sky-500` (large bold text only) | `text-sky-400` |
-| Eyebrow, step numbers | `text-sky-700` | `text-sky-400` |
+| Eyebrow, step numbers | `text-sky-700` | `text-sky-400` on the page, `text-sky-300` inside cards |
 | Links | `text-sky-700` | `text-sky-400` |
 | Primary button | `Button` default (navy) | `Button` default (cyan with navy label) |
 | Cards | `Card` default, or `bg-secondary` | `Card` default |
@@ -259,13 +264,21 @@ The presentation uses Aptos and the banner a geometric sans. The site uses Noto 
 
 Do not use `sky-400`, `sky-500`, `cyan-500`, `teal-200` or `yellow-600` for small text on white.
 
-## 9. Decided
+## 9. Theme behaviour
+
+- The site follows the visitor's system setting (`prefers-color-scheme`) by default.
+- The footer has a three-way switch, `[ light | system | dark ]`, built with the shadcn `ToggleGroup`.
+- The choice is stored in the browser. "System" removes the stored choice and follows the device again.
+- A small inline script in the page head applies the `dark` class before first paint, so the page does not flash the wrong theme.
+
+## 10. Decided
 
 - Gold is `yellow-600`.
 - The network graphic is the lucide `Waypoints` icon.
+- The dark background is `sky-950`, with cards on `sky-900`.
+- The theme follows the system, with a light, system and dark switch in the footer.
+- The logo is the lucide `Rss` icon as a placeholder until a vector logo is built.
 
-## 10. Open points
+## 11. Open points
 
-1. **Dark background.** `slate-900` is slightly less blue than the brand navy. The alternative is `sky-950` for the page and `sky-900` for cards, which is bluer but lighter overall.
-2. **Logo.** A vector logo is needed for light and dark backgrounds.
-3. **Default theme** when the visitor has no system preference: recommended light.
+1. **Logo.** A vector logo for light and dark backgrounds still has to be built. The cleanest source is the transparent logo image embedded in the presentation, which can be traced to SVG with Inkscape.
