@@ -15,7 +15,10 @@ export default defineConfig({
 	srcDir: "./astro-src",
 	output: "server",
 	adapter: cloudflare(),
-	trailingSlash: "always",
+	// "ignore", not "always": EmDash's admin and API live under /_emdash/ and
+	// use paths without a trailing slash (e.g. /_emdash/admin/setup), which
+	// "always" turns into 404s. Site links still end in "/" (i18n/routes.ts).
+	trailingSlash: "ignore",
 	i18n: {
 		defaultLocale: DEFAULT_LOCALE,
 		locales: [...LOCALES],
