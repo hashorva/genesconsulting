@@ -28,8 +28,10 @@ Everything visual uses defaults only. Humans and agents alike.
 - Code releases never overwrite or break EmDash content or its own releases.
 
 ## Git and PR flow
-- Never push to `main`. One branch per agent/task (`claude/<topic>`), one PR per task, opened as **draft**, small and focused.
-- A PR needs green `gate` and a human review/merge. Agents never merge or tag releases unless the owner asks.
+- Never push to `main`. One branch per agent/task (`claude/<topic>`), one PR per task, small and focused. Open it **ready for review** (not draft) once its checks pass locally.
+- **Critical** PRs are the ones the AI review sends to Opus: the `risky` label, more than 400 changed lines, or touching workflows (`.github/`), `AGENTS.md`/`CLAUDE.md`, wrangler or Astro config, package/lock files, `flags.json`, `seed/`, migrations, or auth/session/middleware code (`RISKY_PATHS` in `.github/workflows/ai-review.yml`). They never auto-merge: they wait for the owner's merge.
+- **Non-critical** PRs: once `gate` is green and the AI review of the current head has posted "No blocking findings.", the agent enables **auto-merge (squash)**. Fix any findings first. A new push restarts this: the `merge-policy` job turns auto-merge off until the new head is reviewed. Docs-only PRs get no AI review and may auto-merge on green `gate`.
+- Otherwise agents never merge or tag releases unless the owner asks.
 - Never rewrite history on shared branches; never skip tests or disable checks to get green.
 
 ## Code vs content
@@ -43,6 +45,6 @@ Everything visual uses defaults only. Humans and agents alike.
 - **Haiku**: tiny edits (a button color, copy typo, class tweak, rename).
 - **Sonnet**: normal work (a component, a page, a workflow change, tests).
 - **Opus / Fable**: heavy work (architecture, EmDash schema design, SEO/AI-SEO content map, copy improvement, tricky debugging).
-- AI review runs on every non-draft PR (Sonnet by default, Opus for risky paths or the `risky` label); address its findings before asking for merge.
+- AI review runs on every non-draft, non-docs-only PR (Sonnet by default, Opus for critical PRs); address its findings before auto-merge or asking for merge.
 - UI strings go through an i18n layer (i18next style), Italian default and only language for now; no hardcoded strings in components.
 - Parallel agents only on independent files/areas, each with its own branch and PR.

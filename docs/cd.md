@@ -44,7 +44,9 @@ How to toggle:
 
 ## AI review (advisory, not a required check)
 
-`ai-review.yml` (adapted from finduck) reviews non-draft, non-docs-only PRs with the Claude Code Action. **Sonnet** for ordinary PRs; **Opus** when the PR is labelled `risky`, changes more than 400 lines, or touches workflows, wrangler config, package files, `flags.json`, migrations, or auth/session/middleware code (edit `RISKY_PATHS` in the workflow). It skips without the `CLAUDE_CODE_OAUTH_TOKEN` secret and on forks, and never blocks a merge.
+`ai-review.yml` (adapted from finduck) reviews non-draft, non-docs-only PRs with the Claude Code Action. **Sonnet** for ordinary PRs; **Opus** when the PR is labelled `risky`, changes more than 400 lines, or touches workflows, `AGENTS.md`/`CLAUDE.md`, wrangler or Astro config, package/lock files, `flags.json`, `seed/`, migrations, or auth/session/middleware code (edit `RISKY_PATHS` in the workflow). It skips without the `CLAUDE_CODE_OAUTH_TOKEN` secret and on forks, and never blocks a merge.
+
+**Auto-merge.** Those Opus-scope PRs are *critical* and always wait for the owner's merge. Agents enable auto-merge (squash) on a non-critical PR only after the review of its current head says "No blocking findings."; GitHub then merges it when `gate` is green, and the merge deploys to production as usual. Job `merge-policy` enforces this whenever auto-merge is on: it turns auto-merge off on a critical PR, and on a non-critical one whose current head has no clean review yet (for example right after a new push). Without the `CLAUDE_CODE_OAUTH_TOKEN` secret, or for docs-only PRs, no review is expected and auto-merge stays on. Requires *Allow auto-merge* in the repository settings.
 
 ## i18n
 

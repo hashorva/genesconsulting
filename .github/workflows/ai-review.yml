@@ -1,16 +1,18 @@
 # Advisory AI review of pull requests (adapted from hashorva/finduck's ai-review).
 # Never a required check. Skips when secret CLAUDE_CODE_OAUTH_TOKEN is missing (also on forks).
-# Model: Sonnet for ordinary PRs; Opus when the PR is labelled `risky`, changes >400 lines,
-# or touches security/deploy paths (RISKY_PATHS below). Docs-only and draft PRs are not reviewed.
-# pull_request only (never pull_request_target); the job runs no PR code; GitHub-hosted runner.
+# Model: Sonnet for ordinary PRs; Opus for *critical* PRs: labelled `risky`, >400 lines changed,
+# or touching security/deploy/rules paths (RISKY_PATHS below). Docs-only and draft PRs are not reviewed.
+# Critical PRs never auto-merge: job `merge-policy` turns auto-merge off on them (AGENTS.md).
+# pull_request only (never pull_request_target); no job runs PR code; GitHub-hosted runner.
 name: AI review
 
 on:
   pull_request:
-    types: [opened, synchronize, ready_for_review, labeled]
+    types: [opened, synchronize, ready_for_review, labeled, auto_merge_enabled]
 
 concurrency:
-  group: ${{ github.event.action == 'labeled' && github.event.label.name != 'risky' && format('ai-review-ignored-{0}', github.run_id) || format('ai-review-{0}', github.event.pull_request.number) }}
+  # Ignored labels and auto-merge toggles get their own group so they never cancel a running review.
+  group: ${{ ((github.event.action == 'labeled' && github.event.label.name != 'risky') || github.event.action == 'auto_merge_enabled') && format('ai-review-ignored-{0}', github.run_id) || format('ai-review-{0}', github.event.pull_request.number) }}
   cancel-in-progress: true
 
 permissions:
@@ -26,6 +28,8 @@ jobs:
     outputs:
       review: ${{ steps.scope.outputs.review }}
       model: ${{ steps.scope.outputs.model }}
+      critical: ${{ steps.scope.outputs.critical }}
+      docs_only: ${{ steps.scope.outputs.docs_only }}
     steps:
       - name: Review or not, and which model
         id: scope
@@ -38,25 +42,68 @@ jobs:
           REPO: ${{ github.repository }}
           LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
           # Edit here (data, not logic). Extended regex on file paths.
-          RISKY_PATHS: '^\.github/|(^|/)wrangler[^/]*\.(jsonc|toml)$|^package(-lock)?\.json$|^flags\.json$|migrations?/|(^|/)(auth|session|middleware)[^/]*\.(ts|js|mjs|astro)$'
+          RISKY_PATHS: '^\.github/|^(AGENTS|CLAUDE)\.md$|(^|/)wrangler[^/]*\.(jsonc|toml)$|^astro\.config\.|^package(-lock)?\.json$|^bun\.lockb?$|^flags\.json$|^seed/|migrations?/|emdash-migrate|(^|/)(auth|session|middleware)[^/]*\.(ts|js|mjs|astro)$'
           MAX_LINES: "400"
           SONNET: claude-sonnet-5-5
           OPUS: claude-opus-5-5
         run: |
           set -euo pipefail
-          out() { echo "review=$1" >> "$GITHUB_OUTPUT"; echo "model=$2" >> "$GITHUB_OUTPUT"; echo "review=$1 model=$2 reason=$3"; }
-          if [[ "$DRAFT" == "true" ]]; then out false "$SONNET" draft; exit 0; fi
-          if [[ "$EVENT_ACTION" == "labeled" && "$LABEL_ADDED" != "risky" ]]; then out false "$SONNET" "label ignored"; exit 0; fi
+          out() {
+            { echo "review=$1"; echo "model=$2"; echo "critical=$3"; echo "docs_only=${docs_only:-false}"; } >> "$GITHUB_OUTPUT"
+            echo "review=$1 model=$2 critical=$3 docs_only=${docs_only:-false} reason=$4"
+          }
+          # Critical (Opus, never auto-merged): risky label, risky path, or too many lines.
+          critical=false; why=""
           if ! files=$(gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[] | [.filename, (.additions+.deletions)] | @tsv'); then
-            out true "$OPUS" "cannot list files (fail safe)"; exit 0
+            out true "$OPUS" true "cannot list files (fail safe)"; exit 0
           fi
-          # Docs-only: every file is markdown or under docs/
-          if ! echo "$files" | cut -f1 | grep -qvE '\.md$|^docs/'; then out false "$SONNET" "docs only"; exit 0; fi
           lines=$(echo "$files" | awk -F'\t' '{s+=$2} END{print s+0}')
-          if [[ ",$LABELS," == *",risky,"* ]]; then out true "$OPUS" "labelled risky"
-          elif echo "$files" | cut -f1 | grep -qE "$RISKY_PATHS"; then out true "$OPUS" "risky path"
-          elif (( lines > MAX_LINES )); then out true "$OPUS" "$lines lines"
-          else out true "$SONNET" "$lines lines"; fi
+          if [[ ",$LABELS," == *",risky,"* ]]; then critical=true; why="labelled risky"
+          elif echo "$files" | cut -f1 | grep -qE "$RISKY_PATHS"; then critical=true; why="risky path"
+          elif (( lines > MAX_LINES )); then critical=true; why="$lines lines"
+          else why="$lines lines"; fi
+          model=$SONNET; [[ "$critical" == true ]] && model=$OPUS
+          # Docs-only: every file is markdown or under docs/ (and none is critical, e.g. AGENTS.md)
+          docs_only=false
+          if [[ "$critical" == false ]] && ! echo "$files" | cut -f1 | grep -qvE '\.md$|^docs/'; then docs_only=true; fi
+          if [[ "$DRAFT" == "true" ]]; then out false "$model" "$critical" draft; exit 0; fi
+          if [[ "$EVENT_ACTION" == "auto_merge_enabled" ]]; then out false "$model" "$critical" "auto-merge toggled"; exit 0; fi
+          if [[ "$EVENT_ACTION" == "labeled" && "$LABEL_ADDED" != "risky" ]]; then out false "$model" "$critical" "label ignored"; exit 0; fi
+          if [[ "$docs_only" == true ]]; then out false "$model" "$critical" "docs only"; exit 0; fi
+          out true "$model" "$critical" "$why"
+
+  # Auto-merge policy (AGENTS.md): critical PRs wait for the owner's click, and a
+  # non-critical PR may auto-merge only after the AI review of its current head said
+  # "No blocking findings". Otherwise auto-merge is turned off; the agent re-enables it
+  # once the review has posted. Runs only when auto-merge is on.
+  merge-policy:
+    needs: scope
+    if: github.event.pull_request.auto_merge != null
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR: ${{ github.event.pull_request.number }}
+      REPO: ${{ github.repository }}
+      SHA: ${{ github.event.pull_request.head.sha }}
+      CRITICAL: ${{ needs.scope.outputs.critical }}
+      DOCS_ONLY: ${{ needs.scope.outputs.docs_only }}
+      HAS_CLAUDE_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+    steps:
+      - name: Keep auto-merge only where allowed
+        run: |
+          set -euo pipefail
+          off() { gh pr merge "$PR" --repo "$REPO" --disable-auto; echo "::notice title=Auto-merge disabled::$1"; }
+          if [[ "$CRITICAL" == "true" ]]; then off "Critical PR: it waits for the owner to merge."; exit 0; fi
+          if [[ "$DOCS_ONLY" == "true" || "$HAS_CLAUDE_TOKEN" != "true" ]]; then echo "No AI review expected; auto-merge stays on."; exit 0; fi
+          head_date=$(gh api "repos/$REPO/commits/$SHA" --jq .commit.committer.date)
+          ok=$(gh api --paginate "repos/$REPO/issues/$PR/comments" \
+            --jq ".[] | select(.user.login == \"github-actions[bot]\" and .updated_at > \"$head_date\" and (.body | startswith(\"No blocking findings\"))) | .id" | wc -l)
+          if (( ok == 0 )); then off "No clean AI review of the current head yet: re-enable auto-merge after it posts \"No blocking findings.\""; exit 0; fi
+          echo "AI review of the current head is clean; auto-merge stays on."
 
   review:
     needs: scope
