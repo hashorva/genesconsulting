@@ -1,6 +1,7 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	// Production Worker = the client's preview site. Their domain is attached later (see docs/cloudflare-setup.md).
+	// The only Worker: production. Code PRs get CI and AI review, merges deploy here, and unfinished
+	// components stay hidden behind flags (docs/cd.md). The client's domain is attached later.
 	"name": "genesconsulting",
 	"main": "./astro-src/worker.ts",
 	"compatibility_date": "2026-11-01",
@@ -19,22 +20,8 @@
 	"triggers": { "crons": ["* * * * *"] },
 
 	"vars": {
-		"ENVIRONMENT": "production"
 		// After the client's domain is live, add: "EMDASH_SITE_URL": "https://www.genesconsulting.it"
 		// (passkeys only work on the origin recorded at setup; read docs/cloudflare-setup.md first).
-	},
-	// Secret (never in this file): EMDASH_ENCRYPTION_KEY, set with `wrangler secret put` per environment.
-
-	"env": {
-		// Shared preview Worker for pull requests: its own database, bucket and KV.
-		// Never points at production content. Built with CLOUDFLARE_ENV=preview.
-		"preview": {
-			"name": "genesconsulting-preview",
-			"d1_databases": [{ "binding": "DB", "database_name": "genesconsulting-preview" }],
-			"r2_buckets": [{ "binding": "MEDIA", "bucket_name": "genesconsulting-media-preview" }],
-			"kv_namespaces": [{ "binding": "SESSION" }],
-			"triggers": { "crons": [] },
-			"vars": { "ENVIRONMENT": "preview" }
-		}
 	}
+	// Secret (never in this file): EMDASH_ENCRYPTION_KEY, set in the Cloudflare dashboard (docs/cloudflare-setup.md).
 }

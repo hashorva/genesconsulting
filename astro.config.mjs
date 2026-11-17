@@ -9,7 +9,7 @@ import emdash from "emdash/astro";
 import { DEFAULT_LOCALE, LOCALES } from "./astro-src/i18n/config.ts";
 
 // Source lives in astro-src/ (not the default src/).
-// Do not hardcode `siteUrl` here: it would be baked into preview builds.
+// Do not hardcode `siteUrl` here: it is set per deployment.
 // The public URL comes from the EMDASH_SITE_URL Worker variable (see wrangler.jsonc).
 export default defineConfig({
 	srcDir: "./astro-src",

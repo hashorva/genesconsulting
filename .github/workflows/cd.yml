@@ -1,10 +1,11 @@
 # Based on hashorva/cd-kit (pinned to v0). Public repo: GitHub-hosted runners only.
 #
-# - PR / push to main : CI only (lint, typecheck, test, build).
-# - PR (same repo)    : preview = deploy to the separate preview Worker (own data).
-# - push to main      : production deploy after CI passes. Unfinished features ship OFF (flags.json).
+# - PR / push to main : CI only (lint, typecheck, test, build). PRs also get the AI review.
+# - push to main      : production deploy after CI passes. Unfinished components ship hidden
+#                       behind flags (flags.json): only signed-in EmDash editors see them.
 # - tag vX.Y.Z        : marks a release / re-deploys that exact commit (rollback).
-# Deploy/preview jobs stay off until repo variable CD_DEPLOY_ENABLED = true.
+# No preview site: EmDash owns content and the database; code PRs only change components.
+# Deploy jobs stay off until repo variable CD_DEPLOY_ENABLED = true.
 name: cd
 
 on:
@@ -72,26 +73,7 @@ jobs:
             echo "No app yet: CI skipped by design."
           fi
 
-  preview:
-    needs: ci
-    if: >-
-      vars.CD_DEPLOY_ENABLED == 'true' &&
-      github.event_name == 'pull_request' &&
-      github.event.pull_request.head.repo.full_name == github.repository
-    uses: hashorva/cd-kit/.github/workflows/deploy-cloudflare.yml@v0
-    with:
-      runs-on: '"ubuntu-latest"'
-      environment: preview
-      # Separate preview Worker (wrangler.jsonc env.preview) with its own D1/R2/KV,
-      # so PR code never runs EmDash migrations against production content.
-      # The Astro Cloudflare adapter picks the environment at build time.
-      build-command: CLOUDFLARE_ENV=preview bun run build
-      wrangler-command: deploy
-    secrets:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
-  # Every merge to main goes live; hidden features stay off via flags.json.
+  # Every merge to main goes live; unfinished components stay hidden via flags.json.
   deploy:
     needs: ci
     if: vars.CD_DEPLOY_ENABLED == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -118,26 +100,6 @@ jobs:
   # EmDash core migrations, applied from CI right after each deploy instead of inside the
   # first visitor request (which Workers can cut off, leaving a stuck lock and a 503).
   # Additive schema only; never touches content. See scripts/emdash-migrate.sh.
-  migrate-preview:
-    needs: preview
-    if: needs.preview.result == 'success'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    environment: preview
-    concurrency:
-      group: emdash-migrate-preview
-      cancel-in-progress: false
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install --frozen-lockfile
-      - run: scripts/emdash-migrate.sh genesconsulting-preview
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
   migrate-production:
     needs: [deploy, release]
     if: always() && (needs.deploy.result == 'success' || needs.release.result == 'success')

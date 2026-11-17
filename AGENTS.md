@@ -21,10 +21,9 @@ Everything visual uses defaults only. Humans and agents alike.
 ## Trunk-based workflow
 - `main` is the trunk: always releasable, protected, changed only by PR.
 - Short-lived branches (hours to a day or two) cut from the latest `main`, small PRs, merged to `main` often. No long-lived feature or release branches.
-- Unfinished work merges to `main` **dark behind a flag** (`flags.json`, off in production) instead of living on a branch.
-- Merging to `main` runs CI, then **auto-deploys to production** (no manual gate). New features therefore ship **hidden behind a flag** (`production: false`) and are tested on the PR preview (flags on in preview).
-- A **release** turns a feature on for everyone: a small PR flipping its flag to `production: true`, then a `vX.Y.Z` tag. Rollback = deploy an earlier tag, or set the `FLAG_<NAME>` Worker var to `false` as a kill switch. See `docs/cd.md`.
-- Previews run on a separate preview Worker with its own D1/R2/KV: never point `env.preview` at production's database or bucket ids.
+- Unfinished work merges to `main` **dark behind a flag** (`flags.json`, `public: false`) instead of living on a branch.
+- Merging to `main` runs CI, then **auto-deploys to production** (no manual gate). There is no preview or staging site: EmDash owns the content and the database, and code PRs only change components. Unfinished components are checked on the live site, where only signed-in EmDash editors and admins see them.
+- A **release** turns a feature on for everyone: a small PR flipping its flag to `public: true`, then a `vX.Y.Z` tag. Rollback = deploy an earlier tag, or set the `FLAG_<NAME>` Worker var to `false` as a kill switch. See `docs/cd.md`.
 - Code releases never overwrite or break EmDash content or its own releases.
 
 ## Git and PR flow
