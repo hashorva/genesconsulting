@@ -32,6 +32,10 @@ export default defineConfig({
 			// Binding names must never change: they point at the live content (see docs/cd.md).
 			database: d1({ binding: "DB", session: "auto", coalesce: true }),
 			storage: r2({ binding: "MEDIA" }),
+			// Deployed Workers never migrate D1 inside a request (a cut-off request leaves the
+			// migration lock stuck and the site on 503). CI applies migrations right after each
+			// deploy (scripts/emdash-migrate.sh). Local dev still migrates automatically.
+			migrations: { runtime: "check", dev: "auto" },
 		}),
 	],
 	vite: {

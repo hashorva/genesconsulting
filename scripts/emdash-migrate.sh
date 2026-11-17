@@ -15,8 +15,11 @@
 set -euo pipefail
 
 DB="${1:?usage: emdash-migrate.sh <d1-database-name>}"
-# A lock older than this cannot belong to a migration that is still running.
-STALE_LOCK_SECONDS="${STALE_LOCK_SECONDS:-600}"
+# A lock older than this cannot belong to a migration that is still running: Workers
+# run in "check" mode (no in-request migrations) and CI migrations are serialized per
+# environment, so a held lock is left over from an interrupted run. EmDash itself treats
+# locks older than 60s as abandoned.
+STALE_LOCK_SECONDS="${STALE_LOCK_SECONDS:-120}"
 
 migrate() { bunx emdash migrate --from-config --d1 "$DB" "$@"; }
 
