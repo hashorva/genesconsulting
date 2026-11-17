@@ -1,0 +1,36 @@
+---
+import ThemeToggle from "@/components/site/ThemeToggle";
+import { resolveLocale, useTranslations } from "@/i18n";
+import { routePath } from "@/i18n/routes";
+
+interface Props {
+	siteTitle: string;
+	siteTagline: string;
+}
+
+const { siteTitle, siteTagline } = Astro.props;
+const locale = resolveLocale(Astro.currentLocale);
+const t = useTranslations(locale);
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t text-muted-foreground">
+	<div class="container mx-auto grid gap-8 px-4 py-12 md:grid-cols-2 md:px-6">
+		<div class="space-y-2">
+			<p class="font-semibold text-foreground">{siteTitle}</p>
+			<p class="text-sm">{siteTagline}</p>
+		</div>
+		<nav aria-label={t("footer.legal")} class="flex flex-wrap gap-x-6 gap-y-2 text-sm md:justify-end">
+			<a class="hover:text-foreground" href={routePath("legal.privacy", locale)}>{t("footer.privacy")}</a>
+			<a class="hover:text-foreground" href={routePath("legal.cookies", locale)}>{t("footer.cookies")}</a>
+			<a class="hover:text-foreground" href={routePath("legal.notes", locale)}>{t("footer.notes")}</a>
+		</nav>
+	</div>
+	<div class="container mx-auto flex flex-wrap items-center justify-between gap-4 px-4 pb-8 text-xs md:px-6">
+		<p>{t("footer.copyright", { year, name: siteTitle })}</p>
+		<ThemeToggle
+			client:idle
+			labels={{ group: t("theme.label"), light: t("theme.light"), system: t("theme.system"), dark: t("theme.dark") }}
+		/>
+	</div>
+</footer>

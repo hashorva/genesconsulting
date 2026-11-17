@@ -1,0 +1,6 @@
+{
+  "_doc": "Feature flags for code. Defaults per environment; a Worker var FLAG_<NAME>=true|false overrides at runtime. Never store content or secrets here. Remove a flag once its feature is fully released.",
+  "flags": {
+    "example_new_component": { "production": false, "preview": true, "description": "Template flag; delete when real flags exist." }
+  }
+}

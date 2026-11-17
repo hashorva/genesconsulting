@@ -1,0 +1,60 @@
+---
+import { decodeSlug, getEmDashEntry, getSeoMeta, getSiteSettings } from "emdash";
+import { Image, PortableText } from "emdash/ui";
+
+import { formatDate, resolveLocale, useTranslations } from "@/i18n";
+import Base from "@/layouts/Base.astro";
+import { resolveSiteIdentity } from "@/utils/site-identity";
+
+const slug = decodeSlug(Astro.params.slug);
+if (!slug) return Astro.rewrite("/404/");
+
+const locale = resolveLocale(Astro.currentLocale);
+const t = useTranslations(locale);
+const { entry: post, cacheHint } = await getEmDashEntry("posts", slug, { locale });
+if (!post) return Astro.rewrite("/404/");
+if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+
+const { siteTitle } = resolveSiteIdentity(await getSiteSettings(), {
+	title: t("site.name"),
+	tagline: t("seo:defaultDescription"),
+});
+const seo = getSeoMeta(post, { siteTitle, siteUrl: Astro.url.origin, path: Astro.url.pathname });
+const categories = post.data.terms?.category ?? [];
+const published: Date | null = post.data.publishedAt ?? null;
+const updated: Date | null = post.data.updatedAt ?? null;
+---
+
+<Base
+	title={seo.title}
+	pageTitle={seo.ogTitle}
+	description={seo.description}
+	canonical={seo.canonical}
+	image={seo.ogImage}
+	content={{ collection: "posts", id: post.data.id, slug }}
+>
+	<article class="container mx-auto max-w-3xl space-y-6 px-4 py-16 md:px-6 md:py-24">
+		{
+			categories.length > 0 && (
+				<p class="text-xs font-semibold tracking-widest text-sky-700 uppercase dark:text-sky-400">
+					{categories.map((c) => c.label).join(" · ")}
+				</p>
+			)
+		}
+		<h1 class="text-3xl font-bold tracking-tight md:text-4xl" {...post.edit.title}>{post.data.title}</h1>
+		<div class="flex flex-wrap gap-x-4 text-sm text-muted-foreground">
+			{published && <time datetime={published.toISOString()}>{t("blog:publishedOn", { date: formatDate(published, locale) })}</time>}
+			{updated && <span>{t("blog:lastUpdated", { date: formatDate(updated, locale) })}</span>}
+		</div>
+		{
+			post.data.featured_image && (
+				<div class="overflow-hidden rounded-xl" {...post.edit.featured_image}>
+					<Image image={post.data.featured_image} />
+				</div>
+			)
+		}
+		<div class="space-y-4 leading-relaxed">
+			<PortableText value={post.data.content} />
+		</div>
+	</article>
+</Base>

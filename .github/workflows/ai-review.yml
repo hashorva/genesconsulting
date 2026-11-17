@@ -1,0 +1,109 @@
+# Advisory AI review of pull requests (adapted from hashorva/finduck's ai-review).
+# Never a required check. Skips when secret CLAUDE_CODE_OAUTH_TOKEN is missing (also on forks).
+# Model: Sonnet for ordinary PRs; Opus when the PR is labelled `risky`, changes >400 lines,
+# or touches security/deploy paths (RISKY_PATHS below). Docs-only and draft PRs are not reviewed.
+# pull_request only (never pull_request_target); the job runs no PR code; GitHub-hosted runner.
+name: AI review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, labeled]
+
+concurrency:
+  group: ${{ github.event.action == 'labeled' && github.event.label.name != 'risky' && format('ai-review-ignored-{0}', github.run_id) || format('ai-review-{0}', github.event.pull_request.number) }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  scope:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      review: ${{ steps.scope.outputs.review }}
+      model: ${{ steps.scope.outputs.model }}
+    steps:
+      - name: Review or not, and which model
+        id: scope
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_ACTION: ${{ github.event.action }}
+          LABEL_ADDED: ${{ github.event.label.name }}
+          DRAFT: ${{ github.event.pull_request.draft }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          # Edit here (data, not logic). Extended regex on file paths.
+          RISKY_PATHS: '^\.github/|(^|/)wrangler[^/]*\.(jsonc|toml)$|^package(-lock)?\.json$|^flags\.json$|migrations?/|(^|/)(auth|session|middleware)[^/]*\.(ts|js|mjs|astro)$'
+          MAX_LINES: "400"
+          SONNET: claude-sonnet-5-5
+          OPUS: claude-opus-5-5
+        run: |
+          set -euo pipefail
+          out() { echo "review=$1" >> "$GITHUB_OUTPUT"; echo "model=$2" >> "$GITHUB_OUTPUT"; echo "review=$1 model=$2 reason=$3"; }
+          if [[ "$DRAFT" == "true" ]]; then out false "$SONNET" draft; exit 0; fi
+          if [[ "$EVENT_ACTION" == "labeled" && "$LABEL_ADDED" != "risky" ]]; then out false "$SONNET" "label ignored"; exit 0; fi
+          if ! files=$(gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[] | [.filename, (.additions+.deletions)] | @tsv'); then
+            out true "$OPUS" "cannot list files (fail safe)"; exit 0
+          fi
+          # Docs-only: every file is markdown or under docs/
+          if ! echo "$files" | cut -f1 | grep -qvE '\.md$|^docs/'; then out false "$SONNET" "docs only"; exit 0; fi
+          lines=$(echo "$files" | awk -F'\t' '{s+=$2} END{print s+0}')
+          if [[ ",$LABELS," == *",risky,"* ]]; then out true "$OPUS" "labelled risky"
+          elif echo "$files" | cut -f1 | grep -qE "$RISKY_PATHS"; then out true "$OPUS" "risky path"
+          elif (( lines > MAX_LINES )); then out true "$OPUS" "$lines lines"
+          else out true "$SONNET" "$lines lines"; fi
+
+  review:
+    needs: scope
+    if: needs.scope.outputs.review == 'true'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      HAS_CLAUDE_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+    steps:
+      - name: No Claude token
+        if: env.HAS_CLAUDE_TOKEN != 'true'
+        run: echo "::notice title=AI review skipped::CLAUDE_CODE_OAUTH_TOKEN is not set (or this is a fork)."
+
+      - uses: actions/checkout@v4
+        if: env.HAS_CLAUDE_TOKEN == 'true'
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Read the review prompt
+        id: prompt
+        if: env.HAS_CLAUDE_TOKEN == 'true'
+        run: |
+          {
+            echo "text<<REVIEW_PROMPT_EOF"
+            cat .github/ai-review-prompt.md
+            echo
+            echo "Repository: ${{ github.repository }}"
+            echo "Pull request number: ${{ github.event.pull_request.number }}"
+            echo "REVIEW_PROMPT_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      # Pin to a full commit SHA (as finduck does) when enabling; v1 shown for readability.
+      - uses: anthropics/claude-code-action@v1
+        if: env.HAS_CLAUDE_TOKEN == 'true'
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ github.token }}
+          prompt: ${{ steps.prompt.outputs.text }}
+          claude_args: |
+            --model ${{ needs.scope.outputs.model }}
+            --max-turns 30
+            --setting-sources user
+            --strict-mcp-config
+            --allowedTools "Read,Grep,Glob,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*),mcp__github_inline_comment__create_inline_comment"
