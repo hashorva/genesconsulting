@@ -48,6 +48,8 @@ How to toggle:
 
 **Auto-merge.** Those Opus-scope PRs are *critical*: `review-gate` fails on them until the owner adds the label **`owner-ok`** (a new push removes it, so the OK covers exactly the commit the owner saw). Agents never add it. On a non-critical PR agents enable auto-merge (squash) right away. Job `review-gate` is a **required check**: it passes only when the review comment for the current head ends with `Reviewed: <head sha>` and starts with "No blocking findings." (docs-only PRs pass directly; with no `CLAUDE_CODE_OAUTH_TOKEN`, e.g. fork PRs, it fails closed unless the repo variable `AI_REVIEW_OPTIONAL=true` is set as a deliberate, same-repo-only opt-out). So nothing merges, by hand or automatically, before a clean review of the exact commit, and a new push needs a new review. The merge deploys to production as usual (auto-merge runs as the user who enabled it, so the push to `main` triggers `cd`). Owner setup: *Allow auto-merge* in the repository settings, and `review-gate` required on `main` next to `gate`.
 
+**Known limit.** `review-gate` runs from the PR's own copy of `ai-review.yml`, so a PR that edits that workflow can weaken its own gate. Such a PR touches `.github/`, so it is critical and needs `owner-ok`: when you add that label, read the workflow diff first. Agents and the owner share one GitHub account, so GitHub cannot enforce this part any further. Real enforcement would need a separate bot account (or GitHub App) for agents, plus required owner review via CODEOWNERS.
+
 ## i18n
 
 Italian only for now (no language switcher), but built i18next-style: no hardcoded UI strings, locale-keyed resources, Italian as default locale at `/`. Languages can be added later without restructuring. Page content stays in EmDash.
