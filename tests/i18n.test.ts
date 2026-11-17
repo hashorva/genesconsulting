@@ -20,7 +20,7 @@ describe("i18n", () => {
 
 	it("translates with namespaces and interpolation", () => {
 		const t = useTranslations("it");
-		expect(t("nav.about")).toBe("Chi siamo");
+		expect(t("nav.cta")).toBe("Parliamone");
 		expect(t("blog:title")).toBe("Aggiornamenti");
 		expect(t("footer.copyright", { year: 2026, name: "Genes" })).toBe("© 2026 Genes");
 	});

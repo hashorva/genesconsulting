@@ -3,7 +3,8 @@ import { Menu, Waypoints, X } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
 import { resolveLocale, useTranslations } from "@/i18n";
-import { routePath, type RouteKey } from "@/i18n/routes";
+import { routePath } from "@/i18n/routes";
+import { menuItems, pageLink } from "@/lib/content-links";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -15,16 +16,15 @@ const { siteTitle, siteLogo } = Astro.props;
 const locale = resolveLocale(Astro.currentLocale);
 const t = useTranslations(locale);
 
-// Labels are interface strings (i18n); the pages behind them are EmDash content.
-const items: { key: RouteKey; label: string }[] = [
-	{ key: "page.about", label: t("nav.about") },
-	{ key: "page.services", label: t("nav.services") },
-	{ key: "audience.businesses", label: t("nav.forBusinesses") },
-	{ key: "audience.firms", label: t("nav.forFirms") },
-	{ key: "page.updates", label: t("nav.updates") },
-];
+// Navigation is the EmDash "primary" menu: editors add an item once its page is published,
+// so production never links to pages that do not exist yet.
+const [items, contactHref] = await Promise.all([
+	menuItems(Astro, "primary", locale),
+	pageLink(Astro, "page.contact", locale),
+]);
 const current = Astro.url.pathname;
 const isCurrent = (href: string) => current === href || (href !== "/" && current.startsWith(href));
+const hasNav = items.length > 0 || contactHref !== null;
 ---
 
 <header class="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
@@ -43,53 +43,63 @@ const isCurrent = (href: string) => current === href || (href !== "/" && current
 			}
 		</a>
 
-		<nav aria-label={t("nav.label")} class="hidden items-center gap-1 lg:flex">
-			{
-				items.map(({ key, label }) => {
-					const href = routePath(key, locale);
-					return (
+		{
+			hasNav && (
+				<nav aria-label={t("nav.label")} class="hidden items-center gap-1 lg:flex">
+					{items.map((item) => (
 						<a
-							href={href}
-							aria-current={isCurrent(href) ? "page" : undefined}
+							href={item.url}
+							target={item.target}
+							rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
+							aria-current={isCurrent(item.url) ? "page" : undefined}
 							class={cn(buttonVariants({ variant: "ghost" }), "aria-[current=page]:text-primary")}
 						>
-							{label}
+							{item.label}
 						</a>
-					);
-				})
-			}
-			<a href={routePath("page.contact", locale)} class={cn(buttonVariants(), "ml-2")}>{t("nav.cta")}</a>
-		</nav>
+					))}
+					{contactHref && (
+						<a href={contactHref} class={cn(buttonVariants(), "ml-2")}>
+							{t("nav.cta")}
+						</a>
+					)}
+				</nav>
+			)
+		}
 
-		<!-- Mobile menu: native disclosure, no JS. To be replaced by shadcn Sheet (side="right"). -->
-		<details class="group lg:hidden">
-			<summary
-				class={cn(buttonVariants({ variant: "ghost", size: "icon" }), "list-none [&::-webkit-details-marker]:hidden")}
-				aria-label={t("nav.openMenu")}
-			>
-				<Menu className="group-open:hidden" />
-				<X className="hidden group-open:block" />
-			</summary>
-			<nav
-				aria-label={t("nav.label")}
-				class="absolute inset-x-0 top-16 flex flex-col gap-1 border-b bg-background p-4 shadow-lg"
-			>
-				{
-					items.map(({ key, label }) => {
-						const href = routePath(key, locale);
-						return (
+		{
+			hasNav && (
+				<details class="group lg:hidden">
+					{/* Mobile menu: native disclosure, no JS. To be replaced by shadcn Sheet (side="right"). */}
+					<summary
+						class={cn(buttonVariants({ variant: "ghost", size: "icon" }), "list-none [&::-webkit-details-marker]:hidden")}
+						aria-label={t("nav.openMenu")}
+					>
+						<Menu className="group-open:hidden" />
+						<X className="hidden group-open:block" />
+					</summary>
+					<nav
+						aria-label={t("nav.label")}
+						class="absolute inset-x-0 top-16 flex flex-col gap-1 border-b bg-background p-4 shadow-lg"
+					>
+						{items.map((item) => (
 							<a
-								href={href}
-								aria-current={isCurrent(href) ? "page" : undefined}
+								href={item.url}
+								target={item.target}
+								rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
+								aria-current={isCurrent(item.url) ? "page" : undefined}
 								class={cn(buttonVariants({ variant: "ghost", size: "lg" }), "justify-start")}
 							>
-								{label}
+								{item.label}
 							</a>
-						);
-					})
-				}
-				<a href={routePath("page.contact", locale)} class={cn(buttonVariants({ size: "lg" }), "mt-2")}>{t("nav.cta")}</a>
-			</nav>
-		</details>
+						))}
+						{contactHref && (
+							<a href={contactHref} class={cn(buttonVariants({ size: "lg" }), "mt-2")}>
+								{t("nav.cta")}
+							</a>
+						)}
+					</nav>
+				</details>
+			)
+		}
 	</div>
 </header>

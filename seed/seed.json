@@ -16,10 +16,27 @@
 			"label": "Pagine",
 			"labelSingular": "Pagina",
 			"urlPattern": "/{slug}/",
-			"supports": ["drafts", "revisions", "preview", "search", "seo"],
+			"supports": [
+				"drafts",
+				"revisions",
+				"preview",
+				"search",
+				"seo"
+			],
 			"fields": [
-				{ "slug": "title", "label": "Titolo", "type": "string", "required": true, "searchable": true },
-				{ "slug": "content", "label": "Contenuto", "type": "portableText", "searchable": true }
+				{
+					"slug": "title",
+					"label": "Titolo",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "content",
+					"label": "Contenuto",
+					"type": "portableText",
+					"searchable": true
+				}
 			]
 		},
 		{
@@ -27,12 +44,38 @@
 			"label": "Aggiornamenti",
 			"labelSingular": "Aggiornamento",
 			"urlPattern": "/aggiornamenti/{slug}/",
-			"supports": ["drafts", "revisions", "preview", "scheduling", "search", "seo"],
+			"supports": [
+				"drafts",
+				"revisions",
+				"preview",
+				"scheduling",
+				"search",
+				"seo"
+			],
 			"fields": [
-				{ "slug": "title", "label": "Titolo", "type": "string", "required": true, "searchable": true },
-				{ "slug": "excerpt", "label": "Estratto (max 160 caratteri, usato come meta description)", "type": "text" },
-				{ "slug": "featured_image", "label": "Immagine di copertina", "type": "image" },
-				{ "slug": "content", "label": "Contenuto", "type": "portableText", "searchable": true }
+				{
+					"slug": "title",
+					"label": "Titolo",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "excerpt",
+					"label": "Estratto (max 160 caratteri, usato come meta description)",
+					"type": "text"
+				},
+				{
+					"slug": "featured_image",
+					"label": "Immagine di copertina",
+					"type": "image"
+				},
+				{
+					"slug": "content",
+					"label": "Contenuto",
+					"type": "portableText",
+					"searchable": true
+				}
 			]
 		}
 	],
@@ -42,12 +85,26 @@
 			"label": "Categorie",
 			"labelSingular": "Categoria",
 			"hierarchical": true,
-			"collections": ["posts"],
+			"collections": [
+				"posts"
+			],
 			"terms": [
-				{ "slug": "novita-normative", "label": "Novità normative" },
-				{ "slug": "guide-pratiche", "label": "Guide pratiche" },
-				{ "slug": "digitale", "label": "Digitale" },
-				{ "slug": "genes", "label": "Vita di Genes" }
+				{
+					"slug": "novita-normative",
+					"label": "Novità normative"
+				},
+				{
+					"slug": "guide-pratiche",
+					"label": "Guide pratiche"
+				},
+				{
+					"slug": "digitale",
+					"label": "Digitale"
+				},
+				{
+					"slug": "genes",
+					"label": "Vita di Genes"
+				}
 			]
 		},
 		{
@@ -55,8 +112,22 @@
 			"label": "Tag",
 			"labelSingular": "Tag",
 			"hierarchical": false,
-			"collections": ["posts"],
+			"collections": [
+				"posts"
+			],
 			"terms": []
+		}
+	],
+	"menus": [
+		{
+			"name": "primary",
+			"label": "Navigazione principale",
+			"items": []
+		},
+		{
+			"name": "footer",
+			"label": "Link legali (footer)",
+			"items": []
 		}
 	]
 }
