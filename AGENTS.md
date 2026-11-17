@@ -14,7 +14,9 @@ Everything visual uses defaults only. Humans and agents alike.
 - `main` is the trunk: always releasable, protected, changed only by PR.
 - Short-lived branches (hours to a day or two) cut from the latest `main`, small PRs, merged to `main` often. No long-lived feature or release branches.
 - Unfinished work merges to `main` **dark behind a flag** (`flags.json`, off in production) instead of living on a branch.
-- Merging to `main` runs CI only and never deploys. A release is a `vX.Y.Z` tag on `main`, which deploys the Worker; rollback is deploying an earlier tag. See `docs/cd.md`.
+- Merging to `main` runs CI, then **auto-deploys to production** (no manual gate). New features therefore ship **hidden behind a flag** (`production: false`) and are tested on the PR preview (flags on in preview).
+- A **release** turns a feature on for everyone: a small PR flipping its flag to `production: true`, then a `vX.Y.Z` tag. Rollback = deploy an earlier tag, or set the `FLAG_<NAME>` Worker var to `false` as a kill switch. See `docs/cd.md`.
+- Previews share production's D1/R2: never edit EmDash content through a preview.
 - Code releases never overwrite or break EmDash content or its own releases.
 
 ## Git and PR flow
@@ -23,7 +25,7 @@ Everything visual uses defaults only. Humans and agents alike.
 - Never rewrite history on shared branches; never skip tests or disable checks to get green.
 
 ## Code vs content
-- Code goes through PRs and tags. Content/copy lives in EmDash; do not hardcode page copy in components, and never touch production content from CI or scripts.
+- Code goes through PRs. Content/copy lives in EmDash; do not hardcode page copy in components, and never touch production content from CI or scripts.
 - New components/behaviour ship behind a flag in `flags.json` (off in production). See `docs/cd.md` for the EmDash safety rules.
 - UI: shadcn/ui components, Tailwind v4, Noto fonts, preset `b2DcSAJ7K` with the Genes Consulting brand colors (from the PDFs/docs), mobile-first, automatic light/dark.
 - Runners: GitHub-hosted only (public repo). Never add self-hosted/Mac mini runners.

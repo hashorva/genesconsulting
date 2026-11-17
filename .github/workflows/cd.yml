@@ -2,7 +2,8 @@
 #
 # - PR / push to main : CI only (lint, typecheck, test, build).
 # - PR (same repo)    : preview = new Worker version uploaded, NOT live.
-# - tag vX.Y.Z        : production deploy (release). Merging to main never deploys.
+# - push to main      : production deploy after CI passes. Unfinished features ship OFF (flags.json).
+# - tag vX.Y.Z        : marks a release / re-deploys that exact commit (rollback).
 # Deploy/preview jobs stay off until repo variable CD_DEPLOY_ENABLED = true.
 name: cd
 
@@ -58,11 +59,25 @@ jobs:
     with:
       runs-on: '"ubuntu-latest"'
       environment: preview
+      wrangler-environment: preview
       wrangler-command: versions upload
     secrets:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
+  # Every merge to main goes live; hidden features stay off via flags.json.
+  deploy:
+    needs: ci
+    if: vars.CD_DEPLOY_ENABLED == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: hashorva/cd-kit/.github/workflows/deploy-cloudflare.yml@v0
+    with:
+      runs-on: '"ubuntu-latest"'
+      environment: production
+    secrets:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+  # Tag vX.Y.Z = a release. Pushing an older tag re-deploys it (rollback).
   release:
     needs: ci
     if: vars.CD_DEPLOY_ENABLED == 'true' && startsWith(github.ref, 'refs/tags/v')

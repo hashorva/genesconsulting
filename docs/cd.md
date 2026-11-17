@@ -6,11 +6,19 @@ Built on [hashorva/cd-kit](https://github.com/hashorva/cd-kit) (pinned `@v0`). G
 
 | Event | What runs |
 | --- | --- |
-| Pull request | CI. If `CD_DEPLOY_ENABLED=true` and the PR is from this repo: a **preview** (new Worker version uploaded, not live). |
-| Merge to `main` | CI only. Nothing deploys. |
-| Tag `vX.Y.Z` | CI, then **production deploy** of the Worker (the client's preview site). |
+| Pull request | CI. If `CD_DEPLOY_ENABLED=true` and the PR is from this repo: a **preview** Worker version (not live) with preview flags **on**. |
+| Merge to `main` | CI, then **automatic production deploy**. No manual approval. New features ship hidden (flag off in production). |
+| Release (tag `vX.Y.Z`) | Marks the release; pushing an older tag re-deploys it (**rollback**). |
 
-Release: create a tag/GitHub release `vX.Y.Z` on `main` (semver: patch = fixes, minor = new components/flags, major = breaking). Rollback: re-run the deploy for an older tag.
+### Ship hidden, then release
+1. A feature PR adds code behind a flag in `flags.json` (`production: false`, `preview: true`). Reviewers see it on the PR preview.
+2. Merge: it goes live in production but visitors cannot see it. Test it there with the flag override (below).
+3. **Release** = a small PR that sets `production: true` for that flag; merging deploys it and a `vX.Y.Z` tag is cut on that commit. Everyone sees it.
+4. Later, delete the flag from code and `flags.json`.
+
+Semver: patch = fixes, minor = newly released features, major = breaking.
+
+Previews and production share the same D1/R2 content. Do **not** edit EmDash content through a preview URL; edit content only on production's admin.
 
 ## EmDash content safety (hard rules)
 
@@ -21,7 +29,12 @@ Release: create a tag/GitHub release `vX.Y.Z` on `main` (semver: patch = fixes, 
 
 ## Feature flags
 
-`flags.json` holds per-environment defaults; a Worker var `FLAG_<NAME>=true|false` overrides without a redeploy. New components ship behind a flag (off in production), are enabled in preview, then switched on, and the flag is removed once stable.
+`flags.json` holds per-environment defaults (`production`, `preview`); git history is the audit trail. Resolution order at runtime: Worker var `FLAG_<NAME>=true|false` (override) > `flags.json` default for the current environment (`ENVIRONMENT` var, `preview` or `production`).
+
+How to toggle:
+- **Release for everyone:** PR changing `production` to `true` in `flags.json`, merge (auto-deploys).
+- **Instant kill switch / staged test:** set the `FLAG_<NAME>` var in the Cloudflare dashboard (Workers → genesconsulting → Settings → Variables) with no redeploy. `wrangler.jsonc` must set `keep_vars: true` so deploys never wipe dashboard overrides. Fold the final value back into `flags.json` afterwards.
+- Flags only gate code. They never create, change or delete EmDash content; a flagged-off feature must not require content that does not exist yet.
 
 ## AI review (advisory, not a required check)
 
@@ -35,6 +48,7 @@ Italian only for now (no language switcher), but built i18next-style: no hardcod
 
 1. Add secrets `CLOUDFLARE_API_TOKEN` (Workers edit permission) and `CLOUDFLARE_ACCOUNT_ID`, on environments `production` and `preview` (Settings → Environments).
 2. Add secret `CLAUDE_CODE_OAUTH_TOKEN` (repository level) to enable AI review.
-3. Protect `production` (required reviewer: owner).
+3. Create environments `production` and `preview` with no required reviewers (production deploys automatically after CI passes).
 4. Branch protection on `main`: require PR and the `cd / ci` check.
-5. After the Astro app and `wrangler.jsonc` exist: set repo variable `CD_DEPLOY_ENABLED=true`.
+5. `wrangler.jsonc` needs an `env.preview` that reuses the same D1/R2 bindings and sets `ENVIRONMENT=preview`, plus `keep_vars: true`.
+6. After the Astro app and `wrangler.jsonc` exist: set repo variable `CD_DEPLOY_ENABLED=true`.
