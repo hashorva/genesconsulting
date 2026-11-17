@@ -21,7 +21,7 @@ Repository rulesets on a personal account offer *Require review from Code Owners
 
 ## Owner steps (once)
 
-Do them in this order. Steps 1 to 3 can happen before PR merges; step 5 must come after this PR is merged (it needs `.github/CODEOWNERS` on `main`).
+Do them in this order. Steps 1 to 3 can happen before the PR is merged; step 5 must come after it is merged (it needs `.github/CODEOWNERS` on `main`).
 
 ### 1. Create the machine account
 1. Open a private browser window and sign up at github.com with a username such as `genes-agent`. Use an email you control (a `+bot` plus address of your own email works).
@@ -38,8 +38,8 @@ Do them in this order. Steps 1 to 3 can happen before PR merges; step 5 must com
 2. Open https://claude.ai/connect-github and authorize the bot's GitHub account. If it asks where to install the Claude GitHub App, it is already installed on your hashorva repos; the bot uses it there through its collaborator access, so no new installation is needed.
 3. Check: the next PR an agent opens shows the bot as its author. Agents are told (AGENTS.md) to say so if they find they still push as hashorva.
 
-### 4. Merge the PRs
-Merge the "Auto-merge" PR, then this one (it is stacked on it). Both are critical, so you merge them by hand.
+### 4. Merge the PR
+Merge the PR that adds this file (it also adds auto-merge and removes the preview site). It is critical, so you merge it by hand with the admin bypass.
 
 ### 5. Ruleset on `main`
 **Settings → Rules → Rulesets** → edit your existing `main` ruleset (or **New ruleset → New branch ruleset**):
