@@ -55,8 +55,9 @@ jobs:
             echo "review=$1 model=$2 critical=$3 docs_only=${docs_only:-false} reason=$4"
           }
           # Critical (Opus, never auto-merged): risky label, risky path, or too many lines.
+          # Renamed files count under both their old and new path.
           critical=false; why=""
-          if ! files=$(gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[] | [.filename, (.additions+.deletions)] | @tsv'); then
+          if ! files=$(gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[] | ([.filename, (.additions+.deletions)] | @tsv), (select(.previous_filename) | [.previous_filename, 0] | @tsv)'); then
             out true "$OPUS" true "cannot list files (fail safe)"; exit 0
           fi
           lines=$(echo "$files" | awk -F'\t' '{s+=$2} END{print s+0}')
