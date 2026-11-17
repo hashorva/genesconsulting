@@ -21,7 +21,7 @@ Everything visual uses defaults only. Humans and agents alike.
 
 ## Git and PR flow
 - Never push to `main`. One branch per agent/task (`claude/<topic>`), one PR per task, opened as **draft**, small and focused.
-- A PR needs green `cd / ci` and a human review/merge. Agents never merge or tag releases unless the owner asks.
+- A PR needs green `ci / ci` and a human review/merge. Agents never merge or tag releases unless the owner asks.
 - Never rewrite history on shared branches; never skip tests or disable checks to get green.
 
 ## Code vs content
