@@ -44,7 +44,7 @@ jobs:
           REPO: ${{ github.repository }}
           LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
           # Edit here (data, not logic). Extended regex on file paths.
-          RISKY_PATHS: '^\.github/|^(AGENTS|CLAUDE)\.md$|^docs/(cd|design/brand-colors)\.md$|^\.agents/|^\.claude/|^\.mcp\.json$|(^|/)wrangler[^/]*\.(jsonc|toml)$|^astro\.config\.|^package(-lock)?\.json$|^bun\.lockb?$|^flags\.json$|^seed/|migrations?/|emdash-migrate|(^|/)(auth|session|middleware)[^/]*\.(ts|js|mjs|astro)$'
+          RISKY_PATHS: '^\.github/|^(AGENTS|CLAUDE)\.md$|^docs/(cd|design/brand-colors)\.md$|^\.agents/|^\.claude/|^\.mcp\.json$|(^|/)wrangler[^/]*\.(jsonc|toml)$|^astro\.config\.|^package(-lock)?\.json$|^bun\.lockb?$|^flags\.json$|^seed/|migrations?/|emdash-migrate|^astro-src/(flags|worker)\.ts$|(^|/)(auth|session|middleware)([^/]*\.(ts|js|mjs|astro)$|/)'
           MAX_LINES: "400"
           SONNET: claude-sonnet-5-5
           OPUS: claude-opus-5-5
