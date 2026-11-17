@@ -50,7 +50,7 @@ Then in **Settings → Secrets and variables → Actions → Variables**, add th
 
 ## 5. Protect `main`
 
-**Settings → Branches → Add branch ruleset** (or classic rule) for `main`: require a pull request, and require the status check **`gate`**.
+**Settings → Branches → Add branch ruleset** (or classic rule) for `main`: require a pull request, and require the status checks **`gate`** and **`review-gate`**. Then **Settings → General → Pull Requests**: tick **Allow auto-merge** (non-critical PRs merge themselves once both checks pass; see `docs/cd.md`).
 
 ## 6. First production deploy
 
