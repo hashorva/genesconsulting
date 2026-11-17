@@ -99,9 +99,9 @@ jobs:
           off() { gh pr merge "$PR" --repo "$REPO" --disable-auto; echo "::notice title=Auto-merge disabled::$1"; }
           if [[ "$CRITICAL" == "true" ]]; then off "Critical PR: it waits for the owner to merge."; exit 0; fi
           if [[ "$DOCS_ONLY" == "true" || "$HAS_CLAUDE_TOKEN" != "true" ]]; then echo "No AI review expected; auto-merge stays on."; exit 0; fi
-          head_date=$(gh api "repos/$REPO/commits/$SHA" --jq .commit.committer.date)
+          # Match the reviewed SHA, not timestamps (committer dates are client-set).
           ok=$(gh api --paginate "repos/$REPO/issues/$PR/comments" \
-            --jq ".[] | select(.user.login == \"github-actions[bot]\" and .updated_at > \"$head_date\" and (.body | startswith(\"No blocking findings\"))) | .id" | wc -l)
+            --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"No blocking findings\")) and (.body | contains(\"Reviewed: $SHA\"))) | .id" | wc -l)
           if (( ok == 0 )); then off "No clean AI review of the current head yet: re-enable auto-merge after it posts \"No blocking findings.\""; exit 0; fi
           echo "AI review of the current head is clean; auto-merge stays on."
 
@@ -138,6 +138,7 @@ jobs:
             echo
             echo "Repository: ${{ github.repository }}"
             echo "Pull request number: ${{ github.event.pull_request.number }}"
+            echo "Head commit: ${{ github.event.pull_request.head.sha }}"
             echo "REVIEW_PROMPT_EOF"
           } >> "$GITHUB_OUTPUT"
 

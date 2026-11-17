@@ -30,7 +30,7 @@ Everything visual uses defaults only. Humans and agents alike.
 ## Git and PR flow
 - Never push to `main`. One branch per agent/task (`claude/<topic>`), one PR per task, small and focused. Open it **ready for review** (not draft) once its checks pass locally.
 - **Critical** PRs are the ones the AI review sends to Opus: the `risky` label, more than 400 changed lines, or touching workflows (`.github/`), `AGENTS.md`/`CLAUDE.md`, wrangler or Astro config, package/lock files, `flags.json`, `seed/`, migrations, or auth/session/middleware code (`RISKY_PATHS` in `.github/workflows/ai-review.yml`). They never auto-merge: they wait for the owner's merge.
-- **Non-critical** PRs: once `gate` is green and the AI review of the current head has posted "No blocking findings.", the agent enables **auto-merge (squash)**. Fix any findings first. A new push restarts this: the `merge-policy` job turns auto-merge off until the new head is reviewed. Docs-only PRs get no AI review and may auto-merge on green `gate`.
+- **Non-critical** PRs: once `gate` is green and the AI review of the current head has posted "No blocking findings." (its comment names the reviewed SHA), the agent enables **auto-merge (squash)**. Fix any findings first. A new push restarts this: the `merge-policy` job turns auto-merge off until the new head is reviewed. Docs-only PRs get no AI review and may auto-merge on green `gate`.
 - Otherwise agents never merge or tag releases unless the owner asks.
 - Never rewrite history on shared branches; never skip tests or disable checks to get green.
 
