@@ -4,7 +4,7 @@
 # Model: Sonnet for ordinary PRs; Opus for *critical* PRs: labelled `risky`, >400 lines changed,
 # or touching security/deploy/rules paths (RISKY_PATHS below). Docs-only and draft PRs are not reviewed.
 # Job `review-gate` (required check) blocks merging until the review of the head SHA is clean,
-# and turns auto-merge off on critical PRs, which wait for the owner (AGENTS.md).
+# and, on critical PRs, until the owner adds the label `owner-ok` (AGENTS.md).
 # pull_request only (never pull_request_target); no job runs PR code; GitHub-hosted runner.
 name: AI review
 
@@ -127,36 +127,46 @@ jobs:
 
   # Required check (branch protection on main, next to `gate`): a PR can merge, by hand
   # or by auto-merge, only once the AI review of its current head SHA said "No blocking
-  # findings." (docs-only PRs and runs without the Claude token need no review). It also
-  # turns auto-merge off on critical PRs: those wait for the owner's click (AGENTS.md).
+  # findings." (docs-only PRs and runs without the Claude token need no review).
+  # Critical PRs also need the label `owner-ok`, which only the owner adds (AGENTS.md);
+  # a new push removes it, so the owner's OK covers exactly the commit they saw.
   # Always runs, also on ignored-label and auto-merge events, so the latest result
-  # reflects the current comments.
+  # reflects the current labels and comments.
   review-gate:
     needs: [scope, review]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
-      contents: write
+      contents: read
       pull-requests: write
     env:
       GH_TOKEN: ${{ github.token }}
       PR: ${{ github.event.pull_request.number }}
       REPO: ${{ github.repository }}
       SHA: ${{ github.event.pull_request.head.sha }}
+      EVENT_ACTION: ${{ github.event.action }}
+      LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
       SCOPE_RESULT: ${{ needs.scope.result }}
       CRITICAL: ${{ needs.scope.outputs.critical }}
       DOCS_ONLY: ${{ needs.scope.outputs.docs_only }}
-      AUTO_MERGE_ON: ${{ github.event.pull_request.auto_merge != null }}
       HAS_CLAUDE_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
     steps:
-      - name: Critical PRs never auto-merge; merge only after a clean review of this head
+      - name: Critical PRs need the owner's OK; every PR needs a clean review of this head
         run: |
           set -euo pipefail
           if [[ "$SCOPE_RESULT" != "success" ]]; then echo "::error::scope job did not succeed"; exit 1; fi
-          if [[ "$CRITICAL" == "true" && "$AUTO_MERGE_ON" == "true" ]]; then
-            gh pr merge "$PR" --repo "$REPO" --disable-auto
-            echo "::notice title=Auto-merge disabled::Critical PR: it waits for the owner to merge."
+          if [[ "$CRITICAL" == "true" ]]; then
+            owner_ok=false; [[ ",$LABELS," == *",owner-ok,"* ]] && owner_ok=true
+            if [[ "$owner_ok" == true && "$EVENT_ACTION" == "synchronize" ]]; then
+              gh api -X DELETE "repos/$REPO/issues/$PR/labels/owner-ok" > /dev/null
+              owner_ok=false
+              echo "::notice title=owner-ok removed::New commits on a critical PR need the owner's OK again."
+            fi
+            if [[ "$owner_ok" != true ]]; then
+              echo "::error title=Critical PR::Waiting for the owner: they add the label owner-ok to allow merging this commit."
+              exit 1
+            fi
           fi
           if [[ "$DOCS_ONLY" == "true" || "$HAS_CLAUDE_TOKEN" != "true" ]]; then echo "No AI review expected."; exit 0; fi
           # Match the reviewed SHA, not timestamps (committer dates are client-set).
