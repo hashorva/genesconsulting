@@ -114,3 +114,46 @@ jobs:
     secrets:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+  # EmDash core migrations, applied from CI right after each deploy instead of inside the
+  # first visitor request (which Workers can cut off, leaving a stuck lock and a 503).
+  # Additive schema only; never touches content. See scripts/emdash-migrate.sh.
+  migrate-preview:
+    needs: preview
+    if: needs.preview.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: preview
+    concurrency:
+      group: emdash-migrate-preview
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: scripts/emdash-migrate.sh genesconsulting-preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+  migrate-production:
+    needs: [deploy, release]
+    if: always() && (needs.deploy.result == 'success' || needs.release.result == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    concurrency:
+      group: emdash-migrate-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: scripts/emdash-migrate.sh genesconsulting
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
