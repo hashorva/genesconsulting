@@ -127,11 +127,33 @@ jobs:
             --strict-mcp-config
             --allowedTools "Read,Grep,Glob,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*),mcp__github_inline_comment__create_inline_comment"
 
+  # A new push revokes the owner's OK, right away (before the review runs), so `owner-ok`
+  # always refers to a commit the owner saw.
+  revoke-owner-ok:
+    if: github.event.action == 'synchronize'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Remove owner-ok after new commits
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          labels=$(gh api "repos/$REPO/issues/$PR/labels" --jq '.[].name')
+          if grep -qx 'owner-ok' <<< "$labels"; then
+            gh api -X DELETE "repos/$REPO/issues/$PR/labels/owner-ok" > /dev/null
+            echo "::notice title=owner-ok removed::New commits need the owner's OK again."
+          fi
+
   # Required check (branch protection on main, next to `gate`): a PR can merge, by hand
   # or by auto-merge, only once the AI review of its current head SHA said "No blocking
   # findings." (docs-only PRs need no review; without a Claude token it fails closed).
   # Critical PRs also need the label `owner-ok`, which only the owner adds (AGENTS.md);
-  # a new push removes it, so the owner's OK covers exactly the commit they saw.
+  # job revoke-owner-ok removes it on every push, so the OK covers the commit they saw.
   # Always runs, also on ignored-label and auto-merge events, so the latest result
   # reflects the current labels and comments.
   review-gate:
@@ -141,13 +163,12 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read
-      pull-requests: write
+      pull-requests: read
     env:
       GH_TOKEN: ${{ github.token }}
       PR: ${{ github.event.pull_request.number }}
       REPO: ${{ github.repository }}
       SHA: ${{ github.event.pull_request.head.sha }}
-      EVENT_ACTION: ${{ github.event.action }}
       SCOPE_RESULT: ${{ needs.scope.result }}
       CRITICAL: ${{ needs.scope.outputs.critical }}
       DOCS_ONLY: ${{ needs.scope.outputs.docs_only }}
@@ -162,12 +183,8 @@ jobs:
           if [[ "$CRITICAL" == "true" ]]; then
             # Read labels live: the event payload can be stale.
             owner_ok=false
-            if gh api "repos/$REPO/issues/$PR/labels" --jq '.[].name' | grep -qx 'owner-ok'; then owner_ok=true; fi
-            if [[ "$owner_ok" == true && "$EVENT_ACTION" == "synchronize" ]]; then
-              gh api -X DELETE "repos/$REPO/issues/$PR/labels/owner-ok" > /dev/null
-              owner_ok=false
-              echo "::notice title=owner-ok removed::New commits on a critical PR need the owner's OK again."
-            fi
+            labels=$(gh api "repos/$REPO/issues/$PR/labels" --jq '.[].name')
+            if grep -qx 'owner-ok' <<< "$labels"; then owner_ok=true; fi
             if [[ "$owner_ok" != true ]]; then
               echo "::error title=Critical PR::Waiting for the owner: they add the label owner-ok to allow merging this commit."
               exit 1
