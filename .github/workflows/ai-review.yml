@@ -1,8 +1,10 @@
 # Advisory AI review of pull requests (adapted from hashorva/finduck's ai-review).
-# Never a required check. Skips when secret CLAUDE_CODE_OAUTH_TOKEN is missing (also on forks).
+# The review itself is advisory; job `review-gate` (required check) turns its verdict into a merge gate.
+# The review skips when secret CLAUDE_CODE_OAUTH_TOKEN is missing (also on forks).
 # Model: Sonnet for ordinary PRs; Opus for *critical* PRs: labelled `risky`, >400 lines changed,
 # or touching security/deploy/rules paths (RISKY_PATHS below). Docs-only and draft PRs are not reviewed.
-# Critical PRs never auto-merge: job `merge-policy` turns auto-merge off on them (AGENTS.md).
+# Job `review-gate` (required check) blocks merging until the review of the head SHA is clean,
+# and turns auto-merge off on critical PRs, which wait for the owner (AGENTS.md).
 # pull_request only (never pull_request_target); no job runs PR code; GitHub-hosted runner.
 name: AI review
 
@@ -72,39 +74,6 @@ jobs:
           if [[ "$docs_only" == true ]]; then out false "$model" "$critical" "docs only"; exit 0; fi
           out true "$model" "$critical" "$why"
 
-  # Auto-merge policy (AGENTS.md): critical PRs wait for the owner's click, and a
-  # non-critical PR may auto-merge only after the AI review of its current head said
-  # "No blocking findings". Otherwise auto-merge is turned off; the agent re-enables it
-  # once the review has posted. Runs only when auto-merge is on.
-  merge-policy:
-    needs: scope
-    if: github.event.pull_request.auto_merge != null
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: write
-      pull-requests: write
-    env:
-      GH_TOKEN: ${{ github.token }}
-      PR: ${{ github.event.pull_request.number }}
-      REPO: ${{ github.repository }}
-      SHA: ${{ github.event.pull_request.head.sha }}
-      CRITICAL: ${{ needs.scope.outputs.critical }}
-      DOCS_ONLY: ${{ needs.scope.outputs.docs_only }}
-      HAS_CLAUDE_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
-    steps:
-      - name: Keep auto-merge only where allowed
-        run: |
-          set -euo pipefail
-          off() { gh pr merge "$PR" --repo "$REPO" --disable-auto; echo "::notice title=Auto-merge disabled::$1"; }
-          if [[ "$CRITICAL" == "true" ]]; then off "Critical PR: it waits for the owner to merge."; exit 0; fi
-          if [[ "$DOCS_ONLY" == "true" || "$HAS_CLAUDE_TOKEN" != "true" ]]; then echo "No AI review expected; auto-merge stays on."; exit 0; fi
-          # Match the reviewed SHA, not timestamps (committer dates are client-set).
-          ok=$(gh api --paginate "repos/$REPO/issues/$PR/comments" \
-            --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"No blocking findings\")) and (.body | contains(\"Reviewed: $SHA\"))) | .id" | wc -l)
-          if (( ok == 0 )); then off "No clean AI review of the current head yet: re-enable auto-merge after it posts \"No blocking findings.\""; exit 0; fi
-          echo "AI review of the current head is clean; auto-merge stays on."
-
   review:
     needs: scope
     if: needs.scope.outputs.review == 'true'
@@ -155,3 +124,46 @@ jobs:
             --setting-sources user
             --strict-mcp-config
             --allowedTools "Read,Grep,Glob,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*),mcp__github_inline_comment__create_inline_comment"
+
+  # Required check (branch protection on main, next to `gate`): a PR can merge, by hand
+  # or by auto-merge, only once the AI review of its current head SHA said "No blocking
+  # findings." (docs-only PRs and runs without the Claude token need no review). It also
+  # turns auto-merge off on critical PRs: those wait for the owner's click (AGENTS.md).
+  # Always runs, also on ignored-label and auto-merge events, so the latest result
+  # reflects the current comments.
+  review-gate:
+    needs: [scope, review]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR: ${{ github.event.pull_request.number }}
+      REPO: ${{ github.repository }}
+      SHA: ${{ github.event.pull_request.head.sha }}
+      SCOPE_RESULT: ${{ needs.scope.result }}
+      CRITICAL: ${{ needs.scope.outputs.critical }}
+      DOCS_ONLY: ${{ needs.scope.outputs.docs_only }}
+      AUTO_MERGE_ON: ${{ github.event.pull_request.auto_merge != null }}
+      HAS_CLAUDE_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+    steps:
+      - name: Critical PRs never auto-merge; merge only after a clean review of this head
+        run: |
+          set -euo pipefail
+          if [[ "$SCOPE_RESULT" != "success" ]]; then echo "::error::scope job did not succeed"; exit 1; fi
+          if [[ "$CRITICAL" == "true" && "$AUTO_MERGE_ON" == "true" ]]; then
+            gh pr merge "$PR" --repo "$REPO" --disable-auto
+            echo "::notice title=Auto-merge disabled::Critical PR: it waits for the owner to merge."
+          fi
+          if [[ "$DOCS_ONLY" == "true" || "$HAS_CLAUDE_TOKEN" != "true" ]]; then echo "No AI review expected."; exit 0; fi
+          # Match the reviewed SHA, not timestamps (committer dates are client-set).
+          ok=$(gh api --paginate "repos/$REPO/issues/$PR/comments" \
+            --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"No blocking findings\")) and (.body | contains(\"Reviewed: $SHA\"))) | .id" | wc -l)
+          if (( ok == 0 )); then
+            echo "::error title=No clean AI review of $SHA::Fix the findings (or wait for the review); a new push is reviewed again."
+            exit 1
+          fi
+          echo "AI review of $SHA: no blocking findings."

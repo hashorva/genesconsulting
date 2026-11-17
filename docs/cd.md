@@ -42,11 +42,11 @@ How to toggle:
 - **Instant kill switch / staged test:** set the `FLAG_<NAME>` var in the Cloudflare dashboard (Workers → genesconsulting → Settings → Variables) with no redeploy. `wrangler.jsonc` must set `keep_vars: true` so deploys never wipe dashboard overrides. Fold the final value back into `flags.json` afterwards.
 - Flags only gate code. They never create, change or delete EmDash content; a flagged-off feature must not require content that does not exist yet.
 
-## AI review (advisory, not a required check)
+## AI review and auto-merge
 
-`ai-review.yml` (adapted from finduck) reviews non-draft, non-docs-only PRs with the Claude Code Action. **Sonnet** for ordinary PRs; **Opus** when the PR is labelled `risky`, changes more than 400 lines, or touches workflows, `AGENTS.md`/`CLAUDE.md`, wrangler or Astro config, package/lock files, `flags.json`, `seed/`, migrations, or auth/session/middleware code (edit `RISKY_PATHS` in the workflow). It skips without the `CLAUDE_CODE_OAUTH_TOKEN` secret and on forks, and never blocks a merge.
+`ai-review.yml` (adapted from finduck) reviews non-draft, non-docs-only PRs with the Claude Code Action. **Sonnet** for ordinary PRs; **Opus** when the PR is labelled `risky`, changes more than 400 lines, or touches workflows, `AGENTS.md`/`CLAUDE.md`, wrangler or Astro config, package/lock files, `flags.json`, `seed/`, migrations, or auth/session/middleware code (edit `RISKY_PATHS` in the workflow). It skips without the `CLAUDE_CODE_OAUTH_TOKEN` secret and on forks. The review only comments; `review-gate` (below) makes its verdict a merge requirement.
 
-**Auto-merge.** Those Opus-scope PRs are *critical* and always wait for the owner's merge. Agents enable auto-merge (squash) on a non-critical PR only after the review of its current head says "No blocking findings."; GitHub then merges it when `gate` is green, and the merge deploys to production as usual. Job `merge-policy` enforces this whenever auto-merge is on: it turns auto-merge off on a critical PR, and on a non-critical one whose current head SHA has no clean review yet (for example right after a new push; the review comment ends with `Reviewed: <sha>`). Without the `CLAUDE_CODE_OAUTH_TOKEN` secret, or for docs-only PRs, no review is expected and auto-merge stays on. Requires *Allow auto-merge* in the repository settings.
+**Auto-merge.** Those Opus-scope PRs are *critical* and always wait for the owner's merge. On a non-critical PR agents enable auto-merge (squash) right away. Job `review-gate` is a **required check**: it passes only when the review comment for the current head ends with `Reviewed: <head sha>` and starts with "No blocking findings." (docs-only PRs, or no `CLAUDE_CODE_OAUTH_TOKEN`, pass directly). So nothing merges, by hand or automatically, before a clean review of the exact commit, and a new push needs a new review. On a critical PR, `review-gate` also turns auto-merge off. The merge deploys to production as usual (auto-merge runs as the user who enabled it, so the push to `main` triggers `cd`). Owner setup: *Allow auto-merge* in the repository settings, and `review-gate` required on `main` next to `gate`.
 
 ## i18n
 
@@ -54,6 +54,6 @@ Italian only for now (no language switcher), but built i18next-style: no hardcod
 
 ## One-time setup (owner)
 
-Step by step, with exact token permissions: [`docs/cloudflare-setup.md`](cloudflare-setup.md). In short: API token + account ID as secrets on the `production` and `preview` environments (no required reviewers), `main` protected with the `gate` check, repository variable `CD_DEPLOY_ENABLED=true`, then finish the EmDash admin setup right after the first deploy and set `EMDASH_ENCRYPTION_KEY` as a Worker secret. AI review needs the repository secret `CLAUDE_CODE_OAUTH_TOKEN`.
+Step by step, with exact token permissions: [`docs/cloudflare-setup.md`](cloudflare-setup.md). In short: API token + account ID as secrets on the `production` and `preview` environments (no required reviewers), `main` protected with the `gate` and `review-gate` checks (and *Allow auto-merge* on), repository variable `CD_DEPLOY_ENABLED=true`, then finish the EmDash admin setup right after the first deploy and set `EMDASH_ENCRYPTION_KEY` as a Worker secret. AI review needs the repository secret `CLAUDE_CODE_OAUTH_TOKEN`.
 
 `wrangler.jsonc` already has `env.preview` with its own D1/R2/KV, `ENVIRONMENT` set per environment, and `keep_vars: true`.
