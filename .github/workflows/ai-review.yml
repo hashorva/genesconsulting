@@ -74,7 +74,7 @@ jobs:
         if: env.HAS_CLAUDE_TOKEN != 'true'
         run: echo "::notice title=AI review skipped::CLAUDE_CODE_OAUTH_TOKEN is not set (or this is a fork)."
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: env.HAS_CLAUDE_TOKEN == 'true'
         with:
           ref: ${{ github.event.pull_request.head.sha }}
