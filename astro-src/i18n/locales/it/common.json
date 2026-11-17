@@ -1,0 +1,38 @@
+{
+  "site": {
+    "name": "Genes Consulting",
+    "skipToContent": "Vai al contenuto"
+  },
+  "nav": {
+    "label": "Navigazione principale",
+    "home": "Home",
+    "about": "Chi siamo",
+    "services": "Servizi",
+    "forBusinesses": "Per le imprese",
+    "forFirms": "Per gli studi",
+    "updates": "Aggiornamenti",
+    "cta": "Parliamone",
+    "openMenu": "Apri il menu",
+    "closeMenu": "Chiudi il menu"
+  },
+  "actions": {
+    "discoverServices": "Scopri i servizi",
+    "contactUs": "Contattaci",
+    "readMore": "Leggi tutto",
+    "backHome": "Torna alla home"
+  },
+  "footer": {
+    "legal": "Informazioni legali",
+    "privacy": "Privacy",
+    "cookies": "Cookie",
+    "notes": "Note legali",
+    "vat": "P.IVA {{vat}}",
+    "copyright": "© {{year}} {{name}}"
+  },
+  "theme": {
+    "label": "Tema",
+    "light": "Chiaro",
+    "system": "Sistema",
+    "dark": "Scuro"
+  }
+}

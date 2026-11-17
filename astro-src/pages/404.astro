@@ -1,0 +1,17 @@
+---
+import { buttonVariants } from "@/components/ui/button";
+import { resolveLocale, useTranslations } from "@/i18n";
+import { routePath } from "@/i18n/routes";
+import Base from "@/layouts/Base.astro";
+
+const locale = resolveLocale(Astro.currentLocale);
+const t = useTranslations(locale);
+---
+
+<Base title={t("errors:notFound.title")}>
+	<section class="container mx-auto max-w-3xl space-y-6 px-4 py-24 md:px-6">
+		<h1 class="text-3xl font-bold tracking-tight md:text-4xl">{t("errors:notFound.title")}</h1>
+		<p class="text-lg text-muted-foreground">{t("errors:notFound.description")}</p>
+		<a href={routePath("page.home", locale)} class={buttonVariants()}>{t("actions.backHome")}</a>
+	</section>
+</Base>
