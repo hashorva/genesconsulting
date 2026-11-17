@@ -10,11 +10,11 @@ name: AI review
 
 on:
   pull_request:
-    types: [opened, synchronize, ready_for_review, labeled, auto_merge_enabled]
+    types: [opened, synchronize, ready_for_review, labeled, unlabeled, auto_merge_enabled]
 
 concurrency:
-  # Ignored labels and auto-merge toggles get their own group so they never cancel a running review.
-  group: ${{ ((github.event.action == 'labeled' && github.event.label.name != 'risky') || github.event.action == 'auto_merge_enabled') && format('ai-review-ignored-{0}', github.run_id) || format('ai-review-{0}', github.event.pull_request.number) }}
+  # Ignored labels, label removals and auto-merge toggles get their own group so they never cancel a running review.
+  group: ${{ ((github.event.action == 'labeled' && github.event.label.name != 'risky') || github.event.action == 'unlabeled' || github.event.action == 'auto_merge_enabled') && format('ai-review-ignored-{0}', github.run_id) || format('ai-review-{0}', github.event.pull_request.number) }}
   cancel-in-progress: true
 
 permissions:
@@ -70,7 +70,7 @@ jobs:
           docs_only=false
           if [[ "$critical" == false ]] && ! echo "$files" | cut -f1 | grep -qvE '^docs/|^README\.md$'; then docs_only=true; fi
           if [[ "$DRAFT" == "true" ]]; then out false "$model" "$critical" draft; exit 0; fi
-          if [[ "$EVENT_ACTION" == "auto_merge_enabled" ]]; then out false "$model" "$critical" "auto-merge toggled"; exit 0; fi
+          if [[ "$EVENT_ACTION" == "auto_merge_enabled" || "$EVENT_ACTION" == "unlabeled" ]]; then out false "$model" "$critical" "$EVENT_ACTION"; exit 0; fi
           if [[ "$EVENT_ACTION" == "labeled" && "$LABEL_ADDED" != "risky" ]]; then out false "$model" "$critical" "label ignored"; exit 0; fi
           if [[ "$docs_only" == true ]]; then out false "$model" "$critical" "docs only"; exit 0; fi
           out true "$model" "$critical" "$why"
@@ -147,7 +147,6 @@ jobs:
       REPO: ${{ github.repository }}
       SHA: ${{ github.event.pull_request.head.sha }}
       EVENT_ACTION: ${{ github.event.action }}
-      LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
       SCOPE_RESULT: ${{ needs.scope.result }}
       CRITICAL: ${{ needs.scope.outputs.critical }}
       DOCS_ONLY: ${{ needs.scope.outputs.docs_only }}
@@ -158,7 +157,9 @@ jobs:
           set -euo pipefail
           if [[ "$SCOPE_RESULT" != "success" ]]; then echo "::error::scope job did not succeed"; exit 1; fi
           if [[ "$CRITICAL" == "true" ]]; then
-            owner_ok=false; [[ ",$LABELS," == *",owner-ok,"* ]] && owner_ok=true
+            # Read labels live: the event payload can be stale.
+            owner_ok=false
+            if gh api "repos/$REPO/issues/$PR/labels" --jq '.[].name' | grep -qx 'owner-ok'; then owner_ok=true; fi
             if [[ "$owner_ok" == true && "$EVENT_ACTION" == "synchronize" ]]; then
               gh api -X DELETE "repos/$REPO/issues/$PR/labels/owner-ok" > /dev/null
               owner_ok=false
