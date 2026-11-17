@@ -48,7 +48,7 @@ Then in **Settings → Secrets and variables → Actions → Variables**, add th
 
 ## 5. Protect `main`
 
-**Settings → Branches → Add branch ruleset** (or classic rule) for `main`: require a pull request, and require the status checks **`gate`** and **`review-gate`**. Then **Settings → General → Pull Requests**: tick **Allow auto-merge** (non-critical PRs merge themselves once both checks pass; see `docs/cd.md`). Finally **Issues → Labels → New label** `owner-ok`: adding it to a critical PR is your OK to merge that commit.
+Follow [`docs/github-bot-setup.md`](github-bot-setup.md): the agents' bot account, the ruleset on `main` (checks **`gate`** and **`review-gate`**, code-owner review) and **Allow auto-merge**.
 
 ## 6. First production deploy
 
