@@ -1,0 +1,92 @@
+---
+import { getSiteSettingsWithCacheHint } from "emdash";
+import { createPublicPageContext } from "emdash/page";
+import { EmDashBodyEnd, EmDashBodyStart, EmDashHead } from "emdash/ui";
+
+import SiteFooter from "@/components/site/SiteFooter.astro";
+import SiteHeader from "@/components/site/SiteHeader.astro";
+import { LOCALE_META, resolveLocale, useTranslations } from "@/i18n";
+import { resolveSiteIdentity } from "@/utils/site-identity";
+import "@/styles/global.css";
+
+interface Props {
+	title: string;
+	pageTitle?: string | null;
+	description?: string | null;
+	image?: string | null;
+	canonical?: string | null;
+	/** Content reference for EmDash page contributions on content pages */
+	content?: { collection: string; id: string; slug?: string | null };
+}
+
+const { title, pageTitle, description, image, canonical, content } = Astro.props;
+const locale = resolveLocale(Astro.currentLocale);
+const t = useTranslations(locale);
+
+const settingsResult = await getSiteSettingsWithCacheHint();
+if (Astro.cache?.enabled) Astro.cache.set(settingsResult.cacheHint);
+
+const { siteTitle, siteTagline, siteLogo } = resolveSiteIdentity(settingsResult.data, {
+	title: t("site.name"),
+	tagline: t("seo:defaultDescription"),
+});
+const separator = t("seo:titleSeparator");
+const fullTitle = title === siteTitle || title.endsWith(`${separator}${siteTitle}`) ? title : `${title}${separator}${siteTitle}`;
+
+const pageCtx = createPublicPageContext({
+	Astro,
+	kind: content ? "content" : "custom",
+	pageType: "website",
+	title: fullTitle,
+	pageTitle: pageTitle ?? title,
+	description: description ?? siteTagline,
+	canonical,
+	image,
+	content,
+	siteName: siteTitle,
+});
+---
+
+<!doctype html>
+<html lang={LOCALE_META[locale].htmlLang}>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="color-scheme" content="light dark" />
+		<meta property="og:locale" content={LOCALE_META[locale].og} />
+		<title>{fullTitle}</title>
+		<!--
+			Light/dark: follows the system setting live unless the visitor picked
+			light or dark in the footer toggle (localStorage "theme", see lib/theme.ts).
+			Inline so the page never flashes the wrong theme.
+		-->
+		<script is:inline>
+			(() => {
+				const mq = window.matchMedia("(prefers-color-scheme: dark)");
+				const apply = () => {
+					let t = null;
+					try { t = localStorage.getItem("theme"); } catch {}
+					document.documentElement.classList.toggle("dark", t === "dark" || (t !== "light" && mq.matches));
+				};
+				apply();
+				mq.addEventListener("change", apply);
+			})();
+		</script>
+		<EmDashHead page={pageCtx} />
+	</head>
+	<body class="flex min-h-svh flex-col">
+		<EmDashBodyStart page={pageCtx} />
+		<a
+			href="#main"
+			class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-background focus:p-2"
+		>
+			{t("site.skipToContent")}
+		</a>
+		<SiteHeader siteTitle={siteTitle} siteLogo={siteLogo} />
+		<main id="main" class="flex-1">
+			<slot />
+		</main>
+		<SiteFooter siteTitle={siteTitle} siteTagline={siteTagline} />
+		<EmDashBodyEnd page={pageCtx} />
+	</body>
+</html>

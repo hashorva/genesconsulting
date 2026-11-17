@@ -2,6 +2,14 @@
 
 Public showcase site: Astro + EmDash (content/copy/blog) + Tailwind v4 + shadcn/ui, on a Cloudflare Worker. Content source: `docs/requirements/initial`. CD details: `docs/cd.md`.
 
+## Project layout
+- Bun + Astro (`output: "server"`) + EmDash on one Cloudflare Worker. Source in `astro-src/` (Astro `srcDir`), worker entry `astro-src/worker.ts`, config `astro.config.mjs` and `wrangler.jsonc` at the root.
+- EmDash schema: `seed/seed.json` (changes are additive only). After a schema change, regenerate `emdash-env.d.ts` with `bunx emdash types` and commit it.
+- EmDash agent skills live in `.agents/skills/` (querying content, schema, plugins); the EmDash docs MCP is in `.mcp.json`.
+- UI strings: `astro-src/i18n/locales/<locale>/<namespace>.json`, used via `useTranslations(Astro.currentLocale)`. Links by route key: `routePath("page.about")` from `astro-src/i18n/routes.ts`.
+- shadcn/ui components go in `astro-src/components/ui/` via `bunx shadcn@latest add <name>` (style `base-rhea`, icons lucide). Use them in `.astro` files through `buttonVariants()` etc., or as React islands (`client:idle`) only when they need interaction.
+- Commands: `bun run dev`, `bun run build`, `bun run typecheck`, `bun run test`. Local secrets in `.dev.vars` (copy `.dev.vars.example`).
+
 ## HARD RULE: no custom design values
 Everything visual uses defaults only. Humans and agents alike.
 - **Colors and sizes:** only Tailwind v4 default palette and scale, e.g. `bg-sky-100`, `text-lime-700`, `p-4`, `rounded-lg`. **Never** arbitrary values such as `bg-[#12ab34]`, `text-[13px]`, `w-[317px]`, or custom hex/rgb/oklch in CSS. Do not add custom colors to the theme.

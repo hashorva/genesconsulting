@@ -1,0 +1,39 @@
+---
+import type { ContentEntry } from "emdash";
+import { Image } from "emdash/ui";
+
+import { formatDate, resolveLocale } from "@/i18n";
+import { postPath } from "@/i18n/routes";
+
+interface Props {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	post: ContentEntry<any>;
+}
+
+const { post } = Astro.props;
+const locale = resolveLocale(Astro.currentLocale);
+const published: Date | null = post.data.publishedAt ?? null;
+---
+
+<article class="flex flex-col overflow-hidden rounded-xl border bg-card text-card-foreground">
+	{
+		post.data.featured_image && (
+			<div class="aspect-video overflow-hidden" {...post.edit.featured_image}>
+				<Image image={post.data.featured_image} class="size-full object-cover" />
+			</div>
+		)
+	}
+	<div class="flex flex-1 flex-col gap-2 p-6">
+		{
+			published && (
+				<time datetime={published.toISOString()} class="text-xs text-muted-foreground">
+					{formatDate(published, locale)}
+				</time>
+			)
+		}
+		<h2 class="text-lg font-semibold" {...post.edit.title}>
+			<a href={postPath(post.id, locale)} class="hover:underline">{post.data.title}</a>
+		</h2>
+		{post.data.excerpt && <p class="text-sm text-muted-foreground" {...post.edit.excerpt}>{post.data.excerpt}</p>}
+	</div>
+</article>

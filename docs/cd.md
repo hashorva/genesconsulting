@@ -46,9 +46,6 @@ Italian only for now (no language switcher), but built i18next-style: no hardcod
 
 ## One-time setup (owner)
 
-1. Add secrets `CLOUDFLARE_API_TOKEN` (Workers edit permission) and `CLOUDFLARE_ACCOUNT_ID`, on environments `production` and `preview` (Settings → Environments).
-2. Add secret `CLAUDE_CODE_OAUTH_TOKEN` (repository level) to enable AI review.
-3. Create environments `production` and `preview` with no required reviewers (production deploys automatically after CI passes).
-4. Branch protection on `main`: require PR and the `gate` check.
-5. `wrangler.jsonc` needs an `env.preview` with its **own** D1/R2/KV (never production's ids) and `ENVIRONMENT=preview`, plus `keep_vars: true`.
-6. After the Astro app and `wrangler.jsonc` exist: set repo variable `CD_DEPLOY_ENABLED=true`.
+Step by step, with exact token permissions: [`docs/cloudflare-setup.md`](cloudflare-setup.md). In short: API token + account ID as secrets on the `production` and `preview` environments (no required reviewers), `main` protected with the `gate` check, repository variable `CD_DEPLOY_ENABLED=true`, then finish the EmDash admin setup right after the first deploy and set `EMDASH_ENCRYPTION_KEY` as a Worker secret. AI review needs the repository secret `CLAUDE_CODE_OAUTH_TOKEN`.
+
+`wrangler.jsonc` already has `env.preview` with its own D1/R2/KV, `ENVIRONMENT` set per environment, and `keep_vars: true`.
