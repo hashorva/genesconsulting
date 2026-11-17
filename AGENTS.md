@@ -15,7 +15,7 @@ Everything visual uses defaults only. Humans and agents alike.
 - **Colors and sizes:** only Tailwind v4 default palette and scale, e.g. `bg-sky-100`, `text-lime-700`, `p-4`, `rounded-lg`. **Never** arbitrary values such as `bg-[#12ab34]`, `text-[13px]`, `w-[317px]`, or custom hex/rgb/oklch in CSS. Do not add custom colors to the theme.
 - **Components:** only default shadcn/ui components, unmodified in look (no restyled one-offs). Pick the closest default component to what the brand documents show.
 - **Icons:** only the default icon set that shadcn/ui uses (lucide). No custom SVGs or other icon packs.
-- The brand documents in `docs/requirements/initial` are a *reference*, not a spec to copy pixel-for-pixel: choose the **closest** Tailwind color / shadcn component. The mapping (brand color or element -> Tailwind class / shadcn component) lives in `docs/brand-colors.md`; use it, and add a row there instead of inventing a value. If nothing fits, ask the owner.
+- The brand documents in `docs/requirements/initial` are a *reference*, not a spec to copy pixel-for-pixel: choose the **closest** Tailwind color / shadcn component. The mapping (brand color or element -> Tailwind class / shadcn component) lives in `docs/design/brand-colors.md`; use it, and add a row there instead of inventing a value. If nothing fits, ask the owner.
 - Dark/light and mobile come from Tailwind variants (`dark:`, responsive prefixes) and the shadcn theme tokens, automatically.
 
 ## Trunk-based workflow

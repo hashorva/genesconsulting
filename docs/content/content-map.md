@@ -108,7 +108,9 @@ Do not rewrite these into stronger claims such as "consulenza fiscale" or "consu
 
 Main navigation: Chi siamo, Servizi (with the three areas as a dropdown), Per le imprese, Per gli studi, Aggiornamenti, and a "Parliamone" button that goes to Contatti.
 
-Footer: logo, payoff, full company facts, service links, legal links, LinkedIn.
+Footer: logo, payoff, full company facts, service links, legal links, LinkedIn, and the theme switch `[ light | system | dark ]`.
+
+Logo: until a vector logo is built, the header and footer use the lucide `Rss` icon next to the company name as text (see `docs/design/brand-colors.md`).
 
 ### How the "three areas" and the "six areas" fit together
 
@@ -603,6 +605,6 @@ Slugs are per locale. `site_settings` holds the translatable company strings (pa
 8. **Opening hours.**
 9. **Contact form.** Is a form wanted, and which inbox receives it? Otherwise the page shows phone and email only.
 10. **Privacy and cookie policy.** Who supplies the legal text?
-11. **Logo files.** The repository only has the logo inside images. A vector logo (SVG) in the light and dark versions is needed.
+11. **Logo files.** Decided: a lucide icon is the placeholder for now, and the vector logo will be built by us from the images. If the client has an original vector file, it would save that work.
 12. **Three areas or six.** Section 3 treats the six areas as sections of three service pages. Does the client prefer six separate pages?
 13. **Blog authorship.** Who writes and who approves posts, and how often?
