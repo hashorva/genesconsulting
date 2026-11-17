@@ -1,5 +1,7 @@
 ---
-import { Menu, Waypoints, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
+
+import SiteLogo from "@/components/site/SiteLogo.astro";
 
 import { buttonVariants } from "@/components/ui/button";
 import { resolveLocale, useTranslations } from "@/i18n";
@@ -34,11 +36,7 @@ const isCurrent = (href: string) => current === href || (href !== "/" && current
 				siteLogo ? (
 					<img src={siteLogo.url} alt={siteLogo.alt || siteTitle} class="h-8 w-auto" />
 				) : (
-					<>
-						{/* Placeholder until the real SVG logo exists (upload it in EmDash settings). */}
-						<Waypoints aria-hidden="true" className="size-6 text-sky-700 dark:text-sky-400" />
-						<span>{siteTitle}</span>
-					</>
+					<SiteLogo alt={siteTitle} class="h-10 w-auto" />
 				)
 			}
 		</a>
