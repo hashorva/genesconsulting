@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { parsePageFile } from "../scripts/content-file";
+import { isLoaderDraft, parsePageFile } from "../scripts/content-file";
 
 const dir = join(import.meta.dirname, "..", "content", "it", "pages");
 const files = readdirSync(dir).filter((name) => name.endsWith(".md"));
@@ -22,5 +22,21 @@ describe("starter content", () => {
 
 	it("rejects a file without frontmatter", () => {
 		expect(() => parsePageFile("# no frontmatter")).toThrow(/frontmatter/);
+	});
+});
+
+describe("isLoaderDraft", () => {
+	const file = { title: "Parliamone." };
+	const draft = { status: "draft", publishedAt: null, liveRevisionId: null, scheduledAt: null, title: "Parliamone." };
+
+	it("accepts a never-published draft with the file's title", () => {
+		expect(isLoaderDraft(draft, file)).toBe(true);
+	});
+
+	it("rejects pages that were published, unpublished, scheduled or retitled", () => {
+		expect(isLoaderDraft({ ...draft, status: "published", liveRevisionId: "r1" }, file)).toBe(false);
+		expect(isLoaderDraft({ ...draft, publishedAt: "2026-11-18T10:00:00Z" }, file)).toBe(false);
+		expect(isLoaderDraft({ ...draft, status: "scheduled", scheduledAt: "2026-12-01T09:00:00Z" }, file)).toBe(false);
+		expect(isLoaderDraft({ ...draft, title: "Contatti" }, file)).toBe(false);
 	});
 });

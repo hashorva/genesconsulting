@@ -9,8 +9,9 @@
  *   a page whose slug already exists is skipped, so edits made in the admin win.
  * - New pages are created as DRAFTS. Visitors see nothing until someone publishes them.
  * - `--publish` (run only after the owner approved the drafts) publishes the pages
- *   listed in content/ that are still drafts, replaces the seed's
- *   placeholder tagline, and fills the primary/footer menus only when empty.
+ *   listed in content/ that are still the loader's never-published drafts,
+ *   replaces the seed's placeholder tagline, and fills the primary/footer menus
+ *   (published pages only) when they are empty.
  * - `--dry-run` prints what would happen without writing.
  *
  * Auth: EMDASH_TOKEN, else the credentials saved by `bunx emdash login`.
@@ -23,7 +24,7 @@ import { parseArgs } from "node:util";
 
 import { EmDashClient } from "emdash/client";
 
-import { parsePageFile, type PageFile } from "./content-file";
+import { isLoaderDraft, parsePageFile, type PageFile, type PageState } from "./content-file";
 
 const CONTENT_DIR = join(import.meta.dirname, "..", "content", "it", "pages");
 const LOCALE = "it";
@@ -62,9 +63,11 @@ const pages = readdirSync(CONTENT_DIR)
 	.sort()
 	.map((name) => parsePageFile(readFileSync(join(CONTENT_DIR, name), "utf-8"), name));
 
-const existing = new Map<string, { id: string; status: string }>();
+const existing = new Map<string, PageState & { id: string }>();
 for await (const item of client.listAll("pages", { locale: LOCALE, limit: 100 })) {
-	if (item.slug) existing.set(item.slug, { id: item.id, status: item.status });
+	if (!item.slug) continue;
+	const { id, status, publishedAt, liveRevisionId, scheduledAt } = item;
+	existing.set(item.slug, { id, status, publishedAt, liveRevisionId, scheduledAt, title: item.data?.title });
 }
 
 if (args.publish) await publish(pages);
@@ -98,13 +101,14 @@ async function publish(files: PageFile[]) {
 			console.log(`missing  ${page.slug} (run without --publish first)`);
 			continue;
 		}
-		// Only plain drafts: scheduled, archived or already published pages are left alone.
-		// Running --publish is the owner's approval of these drafts; check with --dry-run first.
-		if (entry.status !== "draft") {
-			console.log(`skip     ${page.slug} (status ${entry.status})`);
+		// Only the loader's own, never-published drafts. A page that was ever published
+		// (then unpublished), scheduled, or retitled in the admin is left alone.
+		if (!isLoaderDraft(entry, page)) {
+			console.log(`skip     ${page.slug} (status ${entry.status}, changed in the admin or published before)`);
 			continue;
 		}
 		if (!dryRun) await client.publish("pages", entry.id);
+		entry.status = "published";
 		console.log(`${dryRun ? "would publish" : "published"} ${page.slug}`);
 	}
 
@@ -127,8 +131,12 @@ async function fillMenu(name: string, items: Array<[string, string]>) {
 		return;
 	}
 	for (const [index, [label, slug]] of items.entries()) {
+		// Link only pages visitors can open (published now or before).
 		const entry = existing.get(slug);
-		if (!entry) continue;
+		if (entry?.status !== "published") {
+			console.log(`skip     menu ${name}: ${label} (page not published)`);
+			continue;
+		}
 		if (!dryRun) {
 			await client.request("POST", `/menus/${encodeURIComponent(name)}/items`, {
 				type: "page",
