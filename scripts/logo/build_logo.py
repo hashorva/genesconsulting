@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the Genes Consulting logo: one transparent mark (SVG + PNG fallback) and the favicon set.
+"""Generate the Genes Consulting logo: one transparent mark as genes-consulting-logo.svg / .png / .ico (also the favicon).
 
 The name "Genes Consulting" is never part of the artwork: the site sets it as live text beside the mark.
 
@@ -76,28 +76,27 @@ def svg(w, h, body, bg=None, title="Genes Consulting"):
             f'role="img" aria-label="{title}"><title>{title}</title>{bgr}{body}</svg>\n')
 
 
+NAME = "genes-consulting-logo"
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     # One version only: C arc, G arc, bar and terminal (gold accent), transparent background.
     # sky-500 / sky-600 / yellow-600 read on both white and sky-950, so no light/dark variants are needed.
     cols = [C["sky500"], C["sky600"], C["yellow600"]]
     logo = svg(N, N, mark_group(cols))
-    pub = os.path.join(ROOT, "public")
-    open(os.path.join(OUT, "logo.svg"), "w").write(logo)
-    open(os.path.join(pub, "favicon.svg"), "w").write(logo)
+    open(os.path.join(OUT, f"{NAME}.svg"), "w").write(logo)
 
     def render(path, size):
         cairosvg.svg2png(bytestring=logo.encode(), write_to=path, output_width=size, output_height=size)
 
-    render(os.path.join(OUT, "logo.png"), 256)                      # PNG fallback for the site
-    for size, name in [(180, "apple-touch-icon.png"), (192, "icon-192.png"), (512, "icon-512.png")]:
-        render(os.path.join(pub, name), size)
+    render(os.path.join(OUT, f"{NAME}.png"), 256)                   # PNG fallback (also the touch icon)
     ims = []
     for sz in (16, 32, 48):
         p = os.path.join(OUT, f"_f{sz}.png")
         render(p, sz)
         ims.append(Image.open(p).convert("RGBA"))
-    ims[2].save(os.path.join(pub, "favicon.ico"), sizes=[(16, 16), (32, 32), (48, 48)], append_images=ims[:2])
+    ims[2].save(os.path.join(OUT, f"{NAME}.ico"), sizes=[(16, 16), (32, 32), (48, 48)], append_images=ims[:2])
     for sz in (16, 32, 48):
         os.remove(os.path.join(OUT, f"_f{sz}.png"))
     print("done")
