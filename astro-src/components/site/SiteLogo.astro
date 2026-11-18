@@ -4,16 +4,12 @@ interface Props {
 	class?: string;
 }
 
-// The mark stands alone; the site name is live text set beside it by the caller.
+// One logo for light and dark: the mark alone, transparent. The site name is live text set beside it by the caller.
 const { alt = "", class: className } = Astro.props;
 ---
 
-{/* SVG with a PNG fallback. Light and dark artwork swap with Tailwind's dark variant (follows the footer toggle). */}
-<picture class:list={["block dark:hidden", className]}>
-	<source srcset="/brand/mark-light.svg" type="image/svg+xml" />
-	<img src="/brand/mark-light.png" alt={alt} class="size-full" />
-</picture>
-<picture class:list={["hidden dark:block", className]}>
-	<source srcset="/brand/mark-dark.svg" type="image/svg+xml" />
-	<img src="/brand/mark-dark.png" alt={alt} class="size-full" />
+{/* SVG with a PNG fallback. */}
+<picture class:list={["block", className]}>
+	<source srcset="/brand/logo.svg" type="image/svg+xml" />
+	<img src="/brand/logo.png" alt={alt} class="size-full" />
 </picture>

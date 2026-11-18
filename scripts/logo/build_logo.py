@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the Genes Consulting logo: the mark alone (SVG + PNG fallback) and the favicon set.
+"""Generate the Genes Consulting logo: one transparent mark (SVG + PNG fallback) and the favicon set.
 
 The name "Genes Consulting" is never part of the artwork: the site sets it as live text beside the mark.
 
@@ -78,38 +78,24 @@ def svg(w, h, body, bg=None, title="Genes Consulting"):
 
 def main():
     os.makedirs(OUT, exist_ok=True)
-    # C arc, G arc, bar and terminal (gold accent)
-    cols_dark = [C["sky400"], C["sky500"], C["yellow600"]]
-    cols_light = [C["sky500"], C["sky600"], C["yellow600"]]
-    mark_dark = svg(N, N, mark_group(cols_dark))
-    mark_light = svg(N, N, mark_group(cols_light))
-
-    # favicon: the mark alone on a transparent background. Browsers that support it switch to the
-    # dark colours when the tab bar is dark; PNG and ICO use the light colours.
-    css = (f'<style>.c{{fill:{C["sky500"]}}}.g{{fill:{C["sky600"]}}}.t{{fill:{C["yellow600"]}}}'
-           f'@media (prefers-color-scheme:dark){{.c{{fill:{C["sky400"]}}}.g{{fill:{C["sky500"]}}}}}</style>')
-    fav_body = (f'<path class="c" d="{ring(R1o, R1i)}"/><path class="g" d="{ring(R2o, R2i)}"/>'
-                f'<path class="t" d="{bar_terminal()}"/>')
-    favicon = svg(N, N, css + fav_body)
-
-    for n, c in {"mark-dark.svg": mark_dark, "mark-light.svg": mark_light}.items():
-        open(os.path.join(OUT, n), "w").write(c)
-    open(os.path.join(ROOT, "public", "favicon.svg"), "w").write(favicon)
-
-    def render(svg_str, path, size):
-        cairosvg.svg2png(bytestring=svg_str.encode(), write_to=path, output_width=size, output_height=size)
-
-    # PNG fallbacks for the site (2x of the largest rendered size)
-    render(mark_light, os.path.join(OUT, "mark-light.png"), 256)
-    render(mark_dark, os.path.join(OUT, "mark-dark.png"), 256)
-    # favicon rasters, transparent
+    # One version only: C arc, G arc, bar and terminal (gold accent), transparent background.
+    # sky-500 / sky-600 / yellow-600 read on both white and sky-950, so no light/dark variants are needed.
+    cols = [C["sky500"], C["sky600"], C["yellow600"]]
+    logo = svg(N, N, mark_group(cols))
     pub = os.path.join(ROOT, "public")
+    open(os.path.join(OUT, "logo.svg"), "w").write(logo)
+    open(os.path.join(pub, "favicon.svg"), "w").write(logo)
+
+    def render(path, size):
+        cairosvg.svg2png(bytestring=logo.encode(), write_to=path, output_width=size, output_height=size)
+
+    render(os.path.join(OUT, "logo.png"), 256)                      # PNG fallback for the site
     for size, name in [(180, "apple-touch-icon.png"), (192, "icon-192.png"), (512, "icon-512.png")]:
-        render(mark_light, os.path.join(pub, name), size)
+        render(os.path.join(pub, name), size)
     ims = []
     for sz in (16, 32, 48):
         p = os.path.join(OUT, f"_f{sz}.png")
-        render(mark_light, p, sz)
+        render(p, sz)
         ims.append(Image.open(p).convert("RGBA"))
     ims[2].save(os.path.join(pub, "favicon.ico"), sizes=[(16, 16), (32, 32), (48, 48)], append_images=ims[:2])
     for sz in (16, 32, 48):
