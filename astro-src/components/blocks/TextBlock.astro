@@ -1,0 +1,12 @@
+---
+import RichText from "@/components/content/RichText.astro";
+import type { PageLayoutTextBlock } from "../../../emdash-env";
+
+/** "Testo": free rich text between other sections. */
+interface Props {
+	value: PageLayoutTextBlock;
+}
+const { value } = Astro.props;
+---
+
+<RichText value={value.content} class="max-w-3xl" />

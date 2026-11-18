@@ -1,6 +1,9 @@
 {
   "_doc": "Feature flags for code (see docs/cd.md). public=false: the feature is live in production but only signed-in EmDash editors and admins see it; visitors don't. public=true: everyone sees it (that is the release). A Worker var FLAG_<NAME>=true|false overrides at runtime for everyone (false = kill switch, also for editors). Never store content or secrets here. Remove a flag once its feature is fully released.",
   "flags": {
-    "example_new_component": { "public": false, "description": "Template flag; delete when real flags exist." }
+    "page_blocks": {
+      "public": false,
+      "description": "Reusable page sections (Sezioni field: card grid, steps, FAQ, CTA, text). Release once the pages use them."
+    }
   }
 }
