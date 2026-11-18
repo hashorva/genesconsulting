@@ -2,6 +2,10 @@
 node_modules
 # bun.lock is committed: CI installs with --frozen-lockfile
 bun.lockb
+# Bun only: lockfiles from npm/yarn/pnpm are never committed
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
 # Build output
 dist
