@@ -1,0 +1,88 @@
+---
+import TextBlock from "@/components/blocks/TextBlock.astro";
+import CardGrid from "@/components/refresh/CardGrid.astro";
+import Faq from "@/components/refresh/Faq.astro";
+import Cta from "@/components/refresh/Cta.astro";
+import Hero from "@/components/refresh/Hero.astro";
+import MediaText from "@/components/refresh/MediaText.astro";
+import Stats from "@/components/refresh/Stats.astro";
+import Steps from "@/components/refresh/Steps.astro";
+import { ordinal, refreshBand } from "@/lib/refresh-style";
+import { pick, sectionStyle } from "@/lib/section-style";
+import { cn } from "@/lib/utils";
+import type { PageLayoutBlock } from "../../../emdash-env";
+
+/**
+ * The "Sezioni" of a page in the redesign (flag design_refresh). Same blocks and fields
+ * as components/blocks/PageBlocks.astro (page_composer); only the look changes:
+ * full-width bands with the page rhythm (lib/refresh-style.ts), numbered eyebrows,
+ * and the redesigned card grid, steps, call to action and opening.
+ */
+interface Props {
+	value?: PageLayoutBlock[] | null;
+	leadHero?: boolean;
+	/** Number of the first section, so numbering continues after an intro on the homepage. */
+	start?: number;
+	class?: string;
+}
+const { value, leadHero = false, start = 0, class: className } = Astro.props;
+const blocks = value ?? [];
+// Only sections with a heading are numbered, like the deck's "AREA 01, 02...".
+let counter = start;
+const numbered = blocks.map((block) =>
+	block._type !== "hero" && block._type !== "cta" && "heading" in block && block.heading ? ordinal(counter++) : null,
+);
+---
+
+{
+	blocks.length > 0 && (
+		<div class={className}>
+			{blocks.map((block, index) => {
+				if (block._type === "hero") {
+					return (
+						<div id={sectionStyle(block).id} class="scroll-mt-20">
+							<Hero
+								heading={block.heading}
+								eyebrow={block.eyebrow}
+								text={block.text}
+								buttons={block.buttons}
+								illustration={pick("illustration", block.illustration, "Rete")}
+								image={block.image}
+								centered={pick("align", block.align, "Sinistra") === "Centrato"}
+								gold={pick("accent", block.accent, "Nessuno") === "Oro"}
+								level={leadHero && index === 0 ? "h1" : "h2"}
+							/>
+						</div>
+					);
+				}
+				const { band } = refreshBand(block);
+				const { inner, id } = sectionStyle(block);
+				return (
+					<div id={id} class={cn("scroll-mt-20", band)} data-section={block._type}>
+						<div class="container mx-auto px-4 md:px-6">
+							<div class={inner}>
+								{block._type === "card_grid" ? (
+									<CardGrid value={block} eyebrow={numbered[index]} />
+								) : block._type === "steps" ? (
+									<Steps value={block} eyebrow={numbered[index]} />
+								) : block._type === "media_text" ? (
+									<MediaText value={block} eyebrow={numbered[index]} />
+								) : block._type === "stats" ? (
+									<Stats value={block} eyebrow={numbered[index]} />
+								) : block._type === "faq" ? (
+									<Faq value={block} eyebrow={numbered[index]} />
+								) : block._type === "cta" ? (
+									<Cta value={block} />
+								) : block._type === "text" ? (
+									<div data-reveal>
+										<TextBlock value={block} />
+									</div>
+								) : null}
+							</div>
+						</div>
+					</div>
+				);
+			})}
+		</div>
+	)
+}

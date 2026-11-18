@@ -1,0 +1,41 @@
+---
+import SectionHeading from "@/components/refresh/SectionHeading.astro";
+import { ordinal, revealDelay } from "@/lib/refresh-style";
+import type { PageLayoutStepsBlock } from "../../../emdash-env";
+
+/**
+ * "Passaggi" in the redesign: a process line. On wide screens the steps sit on one
+ * horizontal line, each on a numbered node; on phones the line runs down the left.
+ * Steps appear one after the other as the line scrolls in.
+ */
+interface Props {
+	value: PageLayoutStepsBlock;
+	eyebrow?: string | null;
+}
+const { value, eyebrow } = Astro.props;
+---
+
+<section class="@container space-y-12 md:space-y-16">
+	<SectionHeading heading={value.heading} intro={value.intro} eyebrow={eyebrow} />
+	<div class="relative">
+	<div aria-hidden="true" class="absolute inset-x-0 top-5 hidden h-px bg-linear-to-r from-sky-400/60 via-sky-400/30 to-transparent @4xl:block"></div>
+	<ol class="relative ml-5 grid gap-10 border-l border-sky-400/30 @4xl:ml-0 @4xl:auto-cols-fr @4xl:grid-flow-col @4xl:gap-8 @4xl:border-l-0">
+		{
+			value.steps.map((step, index) => (
+				<li data-reveal class={`group relative pl-10 @4xl:pt-20 @4xl:pl-0 ${revealDelay(index)}`}>
+					<span
+						aria-hidden="true"
+						class="absolute top-0 -left-5 grid size-10 place-items-center rounded-full border border-sky-400/50 bg-background text-sm font-semibold text-sky-700 tabular-nums transition duration-300 group-hover:border-sky-400 group-hover:bg-sky-400 group-hover:text-sky-950 @4xl:left-0 dark:text-sky-300"
+					>
+						{ordinal(index)}
+					</span>
+					<div class="space-y-3">
+						<h3 class="text-xl font-semibold tracking-tight">{step.title}</h3>
+						{step.text && <p class="leading-relaxed text-muted-foreground">{step.text}</p>}
+					</div>
+				</li>
+			))
+		}
+	</ol>
+	</div>
+</section>

@@ -1,12 +1,16 @@
 {
   "site": {
     "name": "Genes Consulting",
-    "skipToContent": "Vai al contenuto"
+    "skipToContent": "Vai al contenuto",
+    "city": "Milano",
+    "line": "Consulenza aziendale e servizi integrati"
   },
   "nav": {
     "label": "Navigazione principale",
     "cta": "Parliamone",
-    "openMenu": "Apri il menu"
+    "openMenu": "Apri il menu",
+    "breadcrumb": "Percorso",
+    "home": "Home"
   },
   "actions": {
     "discoverServices": "Scopri i servizi",
@@ -16,12 +20,19 @@
   },
   "footer": {
     "legal": "Informazioni legali",
-    "copyright": "© {{year}} {{name}}"
+    "copyright": "© {{year}} {{name}}",
+    "explore": "Esplora"
   },
   "theme": {
     "label": "Tema",
     "light": "Chiaro",
     "system": "Sistema",
     "dark": "Scuro"
+  },
+  "aside": {
+    "onThisPage": "In questa pagina",
+    "title": "Parliamone.",
+    "text": "Raccontaci l'esigenza: ti indichiamo il percorso più adatto e chi se ne occupa.",
+    "cta": "Contattaci"
   }
 }

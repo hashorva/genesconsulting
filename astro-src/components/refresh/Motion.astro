@@ -1,0 +1,43 @@
+---
+/**
+ * The redesign's only script (no library): scroll reveals and the header's scrolled state.
+ *
+ * - Elements with `data-reveal` that start below the fold fade up as they enter the
+ *   viewport, with tw-animate-css classes (default durations and delays). Elements already
+ *   on screen are left alone, so nothing flashes, and without this script everything is
+ *   simply visible.
+ * - Visitors who ask for reduced motion get no reveal at all.
+ * - The header gets `data-scrolled` once the page moves, for its frosted look.
+ *
+ * Page-to-page transitions are native CSS (Base.astro), not Astro's ClientRouter.
+ */
+---
+
+<script>
+	const header = document.querySelector<HTMLElement>("[data-site-header]");
+	const onScroll = () => header?.toggleAttribute("data-scrolled", window.scrollY > 8);
+	onScroll();
+	window.addEventListener("scroll", onScroll, { passive: true });
+
+	const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+	if (!reduce && "IntersectionObserver" in window) {
+		const ENTER = ["animate-in", "fade-in", "slide-in-from-bottom-6", "duration-700", "ease-out", "fill-mode-both"];
+		const observer = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					if (!entry.isIntersecting) continue;
+					entry.target.classList.remove("opacity-0");
+					entry.target.classList.add(...ENTER);
+					observer.unobserve(entry.target);
+				}
+			},
+			{ rootMargin: "0px 0px -10% 0px" },
+		);
+		for (const element of document.querySelectorAll<HTMLElement>("[data-reveal]")) {
+			// Only what the visitor has not seen yet waits for its reveal.
+			if (element.getBoundingClientRect().top < window.innerHeight * 0.9) continue;
+			element.classList.add("opacity-0");
+			observer.observe(element);
+		}
+	}
+</script>

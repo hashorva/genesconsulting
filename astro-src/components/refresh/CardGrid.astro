@@ -1,0 +1,175 @@
+---
+import { ArrowRight, ArrowUpRight } from "lucide-react";
+
+import { cardIcon } from "@/components/blocks/icons";
+import SectionHeading from "@/components/refresh/SectionHeading.astro";
+import { Card } from "@/components/ui/card";
+import { ordinal, revealDelay } from "@/lib/refresh-style";
+import { safeHref } from "@/lib/safe-href";
+import { gridColumns, pick } from "@/lib/section-style";
+import { cn } from "@/lib/utils";
+import type { PageLayoutCardGridBlock } from "../../../emdash-env";
+
+/**
+ * "Griglia di schede" in the redesign. Three looks from the same fields:
+ * - two cards: the deck's two-audience split, one light and one dark panel;
+ * - "Semplice": the deck's list rows (slide 5), number, title, text, arrow;
+ * - otherwise numbered shadcn Cards; a card with a link is one link as a whole,
+ *   lifts and turns cyan on hover.
+ */
+interface Props {
+	value: PageLayoutCardGridBlock;
+	eyebrow?: string | null;
+}
+const { value, eyebrow } = Astro.props;
+const cards = value.cards.map((card, index) => ({
+	...card,
+	href: safeHref(card.link_url),
+	number: ordinal(index),
+	Icon: cardIcon(card.icon),
+}));
+const simple = pick("cardStyle", value.card_style, "Schede") === "Semplice";
+const split = !simple && cards.length === 2 && pick("columns", value.columns, "Automatiche") === "Automatiche";
+// Cards that lead nowhere (values, reasons) read as features, not as buttons: no box,
+// a cyan rule on top and a large number, so they do not look clickable.
+const features = !simple && !split && cards.every((card) => !card.href);
+const Tag = (href: string | null) => (href ? "a" : "div");
+---
+
+<section class="@container space-y-12 md:space-y-16">
+	<SectionHeading heading={value.heading} intro={value.intro} eyebrow={eyebrow} />
+	{
+		split ? (
+			<ul class="grid gap-4 @3xl:grid-cols-2 @3xl:gap-6">
+				{cards.map((card, index) => {
+					const El = Tag(card.href);
+					return (
+						<li data-reveal class={cn("flex", revealDelay(index))}>
+							<El
+								href={card.href ?? undefined}
+								class={cn(
+									"group relative isolate flex w-full flex-col gap-6 overflow-hidden rounded-3xl p-8 transition duration-300 md:p-12",
+									"outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+									index === 0
+										? "border bg-card text-card-foreground hover:border-sky-400"
+										: "dark bg-sky-950 text-foreground ring-1 ring-sky-400/20 hover:ring-sky-400/60",
+									card.href && "hover:-translate-y-1 hover:shadow-2xl hover:shadow-sky-950/20",
+								)}
+							>
+								<div
+									aria-hidden="true"
+									class={cn(
+										"absolute -top-24 -right-24 -z-10 size-72 rounded-full blur-3xl transition-opacity duration-500",
+										index === 0 ? "bg-sky-200/40 opacity-0 group-hover:opacity-100 dark:bg-sky-500/10" : "bg-sky-400/15",
+									)}
+								/>
+								{card.Icon ? (
+									<card.Icon aria-hidden="true" className="size-10 text-sky-600 md:size-12 dark:text-sky-400" />
+								) : (
+									<span class="text-5xl font-light tracking-tight text-sky-600 tabular-nums md:text-6xl dark:text-sky-400">
+										{card.number}
+									</span>
+								)}
+								<h3 class="text-2xl font-semibold tracking-tight md:text-3xl">{card.title}</h3>
+								{card.text && <p class="text-lg leading-relaxed text-muted-foreground">{card.text}</p>}
+								{card.href && (
+									<span class="mt-auto inline-flex items-center gap-2 pt-4 font-medium text-sky-700 dark:text-sky-300">
+										{card.link_label || card.title}
+										<ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+									</span>
+								)}
+							</El>
+						</li>
+					);
+				})}
+			</ul>
+		) : features ? (
+			<ul class={cn("grid gap-x-8 gap-y-12", gridColumns(value.columns, cards.length))}>
+				{cards.map((card, index) => (
+					<li data-reveal class={cn("group space-y-4 border-t border-border pt-6", revealDelay(index))}>
+						<div class="relative -mt-6 h-px">
+							<span class="absolute inset-y-0 left-0 w-12 bg-sky-500 transition-all duration-500 group-hover:w-full dark:bg-sky-400" />
+						</div>
+						{card.Icon ? (
+							<card.Icon aria-hidden="true" className="mt-2 size-8 text-sky-600 dark:text-sky-400" />
+						) : (
+							<span class="block pt-2 text-4xl font-light tracking-tight text-sky-600 tabular-nums dark:text-sky-400">
+								{card.number}
+							</span>
+						)}
+						<h3 class="text-xl font-semibold tracking-tight">{card.title}</h3>
+						{card.text && <p class="leading-relaxed text-muted-foreground">{card.text}</p>}
+					</li>
+				))}
+			</ul>
+		) : simple ? (
+			<ul class="divide-y border-y">
+				{cards.map((card, index) => {
+					const El = Tag(card.href);
+					return (
+						<li data-reveal class={revealDelay(index)}>
+							<El
+								href={card.href ?? undefined}
+								class={cn(
+									"group grid grid-cols-12 items-baseline gap-4 py-6 outline-none md:py-8",
+									card.href && "focus-visible:ring-3 focus-visible:ring-ring/50",
+								)}
+							>
+								<span class="col-span-2 text-sm font-semibold text-sky-700 tabular-nums md:col-span-1 dark:text-sky-400">
+									{card.Icon ? <card.Icon aria-hidden="true" className="size-5" /> : card.number}
+								</span>
+								<div class="col-span-9 grid gap-2 md:col-span-10 md:grid-cols-2 md:gap-8">
+									<h3 class="text-xl font-semibold tracking-tight transition-colors group-hover:text-sky-700 dark:group-hover:text-sky-300">
+										{card.title}
+									</h3>
+									{card.text && <p class="leading-relaxed text-muted-foreground">{card.text}</p>}
+								</div>
+								{card.href && (
+									<ArrowUpRight className="col-span-1 size-5 justify-self-end text-muted-foreground transition duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-sky-500" />
+								)}
+							</El>
+						</li>
+					);
+				})}
+			</ul>
+		) : (
+			<ul class={cn("grid gap-4 @3xl:gap-6", gridColumns(value.columns, cards.length))}>
+				{cards.map((card, index) => {
+					const El = Tag(card.href);
+					return (
+						<li data-reveal class={cn("flex", revealDelay(index))}>
+							<El href={card.href ?? undefined} class="group flex w-full rounded-2xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+								<Card
+									className={cn(
+										"relative w-full gap-4 overflow-hidden p-6 transition duration-300 md:p-8",
+										card.href && "group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-sky-950/10 group-hover:ring-sky-400",
+									)}
+								>
+									<span
+										aria-hidden="true"
+										class="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-linear-to-r from-sky-400 to-cyan-300 transition-transform duration-500 group-hover:scale-x-100"
+									/>
+									{card.Icon ? (
+										<span class="grid size-11 place-items-center rounded-xl bg-sky-100 text-sky-700 transition-colors duration-300 group-hover:bg-sky-400 group-hover:text-sky-950 dark:bg-sky-800 dark:text-sky-300">
+											<card.Icon aria-hidden="true" className="size-5" />
+										</span>
+									) : (
+										<span class="text-sm font-semibold text-sky-700 tabular-nums dark:text-sky-400">{card.number}</span>
+									)}
+									<h3 class="text-xl font-semibold tracking-tight">{card.title}</h3>
+									{card.text && <p class="text-base leading-relaxed text-muted-foreground">{card.text}</p>}
+									{card.href && (
+										<span class="mt-auto inline-flex items-center gap-2 pt-2 text-sm font-medium text-sky-700 dark:text-sky-300">
+											{card.link_label || card.title}
+											<ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+										</span>
+									)}
+								</Card>
+							</El>
+						</li>
+					);
+				})}
+			</ul>
+		)
+	}
+</section>

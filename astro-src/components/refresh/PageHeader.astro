@@ -1,0 +1,77 @@
+---
+import { ChevronRight, House } from "lucide-react";
+
+import Scene from "@/components/refresh/Scene.astro";
+import { resolveLocale, useTranslations } from "@/i18n";
+import { routePath } from "@/i18n/routes";
+import { menuItems } from "@/lib/content-links";
+import { sceneFor } from "@/lib/page-scenes";
+import { cn } from "@/lib/utils";
+
+/**
+ * Title band of a page that does not open with an Apertura block (redesign): the dark
+ * brand band with breadcrumbs, a short cyan bar, the h1, an optional lead, the page's
+ * illustration (lib/page-scenes.ts) and the deck's running line.
+ */
+interface Props {
+	title: string;
+	lead?: string | null;
+	/** EmDash inline-editing attributes for the title. */
+	edit?: Record<string, unknown>;
+}
+const { title, lead, edit = {} } = Astro.props;
+const locale = resolveLocale(Astro.currentLocale);
+const t = useTranslations(locale);
+const scene = sceneFor(Astro.url.pathname);
+
+// Breadcrumbs: home, then every parent path that is in the primary menu (e.g. Servizi).
+const menu = await menuItems(Astro, "primary", locale);
+const parts = Astro.url.pathname.split("/").filter(Boolean);
+const parents = parts
+	.slice(0, -1)
+	.map((_, index) => `/${parts.slice(0, index + 1).join("/")}/`)
+	.map((href) => menu.find((item) => (item.url.endsWith("/") ? item.url : `${item.url}/`) === href))
+	.filter((item): item is NonNullable<typeof item> => Boolean(item));
+---
+
+<div class="dark relative isolate overflow-hidden bg-sky-950 text-foreground">
+	<div aria-hidden="true" class="absolute inset-0 -z-10 bg-linear-to-b from-sky-950 to-sky-900"></div>
+	<div aria-hidden="true" class="absolute -right-32 -bottom-48 -z-10 size-96 rounded-full bg-cyan-400/10 blur-3xl"></div>
+	<div class="container mx-auto px-4 md:px-6">
+		<div class={cn("grid items-center gap-10 py-12 md:py-16", scene && "lg:grid-cols-5")}>
+			<div class="space-y-6 lg:col-span-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-700">
+				<nav aria-label={t("nav.breadcrumb")}>
+					<ol class="flex min-w-0 items-center overflow-hidden gap-1.5 text-sm text-slate-400">
+						<li>
+							<a href={routePath("page.home", locale)} class="inline-flex items-center gap-1.5 transition-colors hover:text-sky-300">
+								<House aria-hidden="true" className="size-3.5" />
+								{t("nav.home")}
+							</a>
+						</li>
+						{
+							parents.map((item) => (
+								<li class="inline-flex items-center gap-1.5">
+									<ChevronRight aria-hidden="true" className="size-3.5 text-slate-600" />
+									<a href={item.url} class="transition-colors hover:text-sky-300">
+										{item.label}
+									</a>
+								</li>
+							))
+						}
+						<li class="hidden min-w-0 items-center gap-1.5 sm:inline-flex">
+							<ChevronRight aria-hidden="true" className="size-3.5 shrink-0 text-slate-600" />
+							<span aria-current="page" class="truncate text-slate-200">{title}</span>
+						</li>
+					</ol>
+				</nav>
+				<div aria-hidden="true" class="h-0.5 w-8 rounded-full bg-sky-400"></div>
+				<h1 class="max-w-4xl text-4xl font-semibold tracking-tight text-balance md:text-5xl lg:text-6xl" {...edit}>{title}</h1>
+				{lead && <p class="max-w-2xl text-lg leading-relaxed text-pretty text-slate-300 md:text-xl">{lead}</p>}
+			</div>
+			{scene && <Scene scene={scene} class="mx-auto hidden w-full max-w-sm sm:block lg:col-span-2" />}
+		</div>
+		<div class="border-t border-sky-400/20 py-4 text-xs tracking-widest text-slate-400 uppercase">
+			{t("site.name")} <span aria-hidden="true" class="px-1 text-sky-400">•</span> {t("site.city")}
+		</div>
+	</div>
+</div>

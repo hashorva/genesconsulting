@@ -1,0 +1,81 @@
+---
+import { ArrowRight, MessageCircle } from "lucide-react";
+
+import RichText from "@/components/content/RichText.astro";
+import ProseHeading from "@/components/refresh/ProseHeading.astro";
+import { buttonVariants } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { resolveLocale, useTranslations } from "@/i18n";
+import { routeKeyFor } from "@/lib/page-scenes";
+import { headingAnchors } from "@/lib/refresh-style";
+import { cn } from "@/lib/utils";
+
+/**
+ * Body of a page in the redesign, in the reading layout content sites have used for years:
+ * the text in a comfortable column, and beside it (sticky on wide screens) an
+ * "In questa pagina" list of the body's h2 headings plus a contact card.
+ * The contact card is left out on the contact page itself.
+ */
+interface Props {
+	content: unknown[];
+	contactHref: string | null;
+	/** anchor_ids of the page's sections, so a body heading never reuses one. */
+	reserved?: (string | null | undefined)[];
+}
+const { content, contactHref, reserved = [] } = Astro.props;
+const t = useTranslations(resolveLocale(Astro.currentLocale));
+
+const { content: body, headings } = headingAnchors(content as unknown[], reserved);
+// trailingSlash is "ignore", so /contatti and /contatti/ are both the contact page.
+const onContactPage = routeKeyFor(Astro.url.pathname) === "page.contact";
+const showCard = contactHref !== null && !onContactPage;
+// A body that already links to the contact page keeps the card beside it on wide
+// screens, but drops it on narrow ones, where it would repeat that link below.
+type Linked = { markDefs?: { href?: string }[] };
+const linksContact =
+	contactHref !== null &&
+	(content as Linked[]).some((block) => block.markDefs?.some((def) => def.href !== undefined && routeKeyFor(def.href) === "page.contact"));
+const aside = headings.length >= 2 || showCard;
+---
+
+<div class="container mx-auto px-4 py-16 md:px-6 md:py-24">
+	<div class={cn("grid gap-12", aside && "lg:grid-cols-12 lg:gap-16")}>
+		<div data-reveal class={cn(aside && "lg:col-span-8")}>
+			<RichText value={body} class="refresh-prose max-w-3xl" components={{ block: { h2: ProseHeading } }} />
+		</div>
+		{
+			aside && (
+				<aside class="space-y-6 lg:sticky lg:top-28 lg:col-span-4 lg:self-start">
+					{headings.length >= 2 && (
+						<nav aria-label={t("aside.onThisPage")} class="hidden space-y-4 border-l border-border pl-5 lg:block">
+							<p class="text-xs font-semibold tracking-widest text-sky-700 uppercase dark:text-sky-400">{t("aside.onThisPage")}</p>
+							<ul class="space-y-2 text-sm">
+								{headings.map((heading) => (
+									<li>
+										<a href={`#${heading.id}`} class="text-muted-foreground transition-colors hover:text-foreground">
+											{heading.text}
+										</a>
+									</li>
+								))}
+							</ul>
+						</nav>
+					)}
+					{showCard && (
+						<Card className={cn("dark relative gap-5 overflow-hidden bg-sky-950 p-6 text-foreground ring-sky-400/20 md:p-8", linksContact && "hidden lg:flex")}>
+							<div aria-hidden="true" class="absolute -top-16 -right-16 size-48 rounded-full bg-sky-400/20 blur-3xl" />
+							<span class="grid size-11 place-items-center rounded-xl bg-sky-400 text-sky-950">
+								<MessageCircle aria-hidden="true" className="size-5" />
+							</span>
+							<p class="text-2xl font-semibold tracking-tight">{t("aside.title")}</p>
+							<p class="text-base leading-relaxed text-slate-300">{t("aside.text")}</p>
+							<a href={contactHref!} class={cn(buttonVariants({ size: "lg" }), "group w-fit")}>
+								{t("aside.cta")}
+								<ArrowRight data-icon="inline-end" className="transition-transform group-hover:translate-x-0.5" />
+							</a>
+						</Card>
+					)}
+				</aside>
+			)
+		}
+	</div>
+</div>

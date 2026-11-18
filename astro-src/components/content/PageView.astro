@@ -5,6 +5,12 @@ import { type getEmDashEntry, getSeoMeta, getSiteSettings } from "emdash";
 import PageBlocks from "@/components/blocks/PageBlocks.astro";
 
 import RichText from "@/components/content/RichText.astro";
+import RefreshPageBlocks from "@/components/refresh/PageBlocks.astro";
+import RefreshPageBody from "@/components/refresh/PageBody.astro";
+import RefreshPageHeader from "@/components/refresh/PageHeader.astro";
+import { pageLink } from "@/lib/content-links";
+import { isRefresh } from "@/lib/design";
+import { splitLead } from "@/lib/refresh-style";
 import { isEnabled } from "@/flags";
 import { resolveLocale, useTranslations } from "@/i18n";
 import Base from "@/layouts/Base.astro";
@@ -28,9 +34,14 @@ const { siteTitle } = resolveSiteIdentity(await getSiteSettings(), {
 // page_composer (editors only until released): sections as full-width bands, and an
 // Apertura as the first section replaces the page's title block (its heading is the h1).
 const composer = isEnabled("page_composer", env, Astro.locals.user);
+// design_refresh (editors only until released, needs page_composer): the redesigned page.
+const refresh = isRefresh(env, Astro.locals.user);
 const layout = page.data.layout ?? [];
 const hero = composer ? leadingHero(layout) : null;
 const sections = hero ? layout.slice(1) : layout;
+// Redesign: the body's first plain paragraph becomes the header's lead; the rest is the body.
+const { lead, rest: body } = refresh && !hero ? splitLead(page.data.content) : { lead: null, rest: page.data.content ?? [] };
+const contactHref = refresh ? await pageLink(Astro, "page.contact", resolveLocale(Astro.currentLocale)) : null;
 const seo = getSeoMeta(page, { siteTitle, siteUrl: Astro.url.origin, path: Astro.url.pathname });
 ---
 
@@ -42,7 +53,17 @@ const seo = getSeoMeta(page, { siteTitle, siteUrl: Astro.url.origin, path: Astro
 	content={{ collection: "pages", id: page.data.id, slug }}
 >
 	{
-		composer ? (
+		refresh ? (
+			<article>
+				{hero ? (
+					<RefreshPageBlocks value={[hero]} leadHero />
+				) : (
+					<RefreshPageHeader title={page.data.title} lead={lead} edit={page.edit.title} />
+				)}
+				{body.length > 0 && <RefreshPageBody content={body} contactHref={contactHref} reserved={layout.map((block) => (block as { anchor_id?: string | null }).anchor_id)} />}
+				<RefreshPageBlocks value={sections} />
+			</article>
+		) : composer ? (
 			<article class="pb-8 md:pb-12">
 				{hero && <PageBlocks value={[hero]} composer leadHero />}
 				{(!hero || (page.data.content?.length ?? 0) > 0) && (

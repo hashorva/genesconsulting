@@ -1,0 +1,32 @@
+---
+import FaqAccordion from "@/components/blocks/FaqAccordion";
+import SectionHeading from "@/components/refresh/SectionHeading.astro";
+import type { PageLayoutFaqBlock } from "../../../emdash-env";
+
+/**
+ * "Domande frequenti" in the redesign: the numbered heading on the left, the shadcn
+ * Accordion on the right on wide screens. Same FAQPage structured data as blocks/Faq.astro.
+ */
+interface Props {
+	value: PageLayoutFaqBlock;
+	eyebrow?: string | null;
+}
+const { value, eyebrow } = Astro.props;
+const jsonLd = JSON.stringify({
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	mainEntity: value.items.map((item) => ({
+		"@type": "Question",
+		name: item.question,
+		acceptedAnswer: { "@type": "Answer", text: item.answer },
+	})),
+}).replace(/</g, "\\u003c");
+---
+
+<section class="grid gap-10 lg:grid-cols-12 lg:gap-12">
+	<SectionHeading heading={value.heading} eyebrow={eyebrow} class="lg:col-span-4" />
+	<div data-reveal class="lg:col-span-8">
+		<FaqAccordion client:visible items={value.items} />
+	</div>
+	<script is:inline type="application/ld+json" set:html={jsonLd} />
+</section>

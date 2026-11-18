@@ -171,3 +171,30 @@
 		@apply font-semibold;
 	}
 }
+
+/* Page bodies in the redesign (flag design_refresh, components/refresh/PageBody.astro).
+   Default Tailwind utilities only (HARD RULE, AGENTS.md). */
+@layer components {
+	.refresh-prose {
+		@apply text-lg;
+	}
+	.refresh-prose h2 {
+		@apply pt-10 text-3xl font-semibold md:text-4xl;
+	}
+	.refresh-prose h2:first-child {
+		@apply pt-0;
+	}
+	.refresh-prose h3 {
+		@apply pt-4 text-xl;
+	}
+	.refresh-prose ul,
+	.refresh-prose ol {
+		@apply space-y-3 pl-6;
+	}
+	.refresh-prose li {
+		@apply pl-1;
+	}
+	.refresh-prose li::marker {
+		@apply font-semibold text-sky-500 dark:text-sky-400;
+	}
+}
