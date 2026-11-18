@@ -5,7 +5,14 @@ import { describe, expect, it } from "vitest";
 
 import { markdownToPortableText } from "emdash/client";
 
-import { canAddLayoutDraft, isLoaderDraft, parseLayoutFile, parsePageFile, sameContent } from "../scripts/content-file";
+import {
+	canAddLayoutDraft,
+	isLoaderDraft,
+	parseLayoutFile,
+	parsePageFile,
+	publishSkipReason,
+	sameContent,
+} from "../scripts/content-file";
 import { safeHref } from "../astro-src/lib/safe-href";
 
 const dir = join(import.meta.dirname, "..", "content", "it", "pages");
@@ -119,5 +126,23 @@ describe("sameContent", () => {
 		expect(sameContent([{ ...layout[0], _key: "d" }], layout)).toBe(false);
 		expect(sameContent([...layout, ...layout], layout)).toBe(false);
 		expect(sameContent(undefined, layout)).toBe(false);
+	});
+});
+
+describe("publishSkipReason", () => {
+	const file = { title: "Metodo" };
+	const draft = { status: "draft", publishedAt: null, liveRevisionId: null, scheduledAt: null, title: "Metodo" };
+
+	it("keeps a draft with sections unpublished until page_blocks is public", () => {
+		expect(publishSkipReason(draft, file, true, false)).toMatch(/page_blocks/);
+		expect(publishSkipReason(draft, file, true, true)).toBeNull();
+	});
+
+	it("publishes a loader draft without sections regardless of the flag", () => {
+		expect(publishSkipReason(draft, file, false, false)).toBeNull();
+	});
+
+	it("never publishes a page that is not the loader's draft", () => {
+		expect(publishSkipReason({ ...draft, title: "Altro" }, file, false, true)).toMatch(/changed in the admin/);
 	});
 });

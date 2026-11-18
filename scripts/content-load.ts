@@ -32,7 +32,7 @@ import { markdownToPortableText } from "emdash/client";
 
 import {
 	canAddLayoutDraft,
-	isLoaderDraft,
+	publishSkipReason,
 	type LayoutBlock,
 	parseLayoutFile,
 	parsePageFile,
@@ -140,16 +140,9 @@ async function publish(files: PageFile[]) {
 			console.log(`missing  ${page.slug} (run without --publish first)`);
 			continue;
 		}
-		// Only the loader's own, never-published drafts. A page that was ever published
-		// (then unpublished), scheduled, or retitled in the admin is left alone.
-		if (!isLoaderDraft(entry, page)) {
-			console.log(`skip     ${page.slug} (status ${entry.status}, changed in the admin or published before)`);
-			continue;
-		}
-		// A page with sections has a shorter body; visitors see the sections only once
-		// page_blocks is public, so until then it stays a draft.
-		if (layouts.has(page.slug) && !flags.flags.page_blocks?.public) {
-			console.log(`skip     ${page.slug} (has sections; publish after page_blocks is public)`);
+		const reason = publishSkipReason(entry, page, layouts.has(page.slug), !!flags.flags.page_blocks?.public);
+		if (reason) {
+			console.log(`skip     ${page.slug} (${reason})`);
 			continue;
 		}
 		if (!dryRun) await client.publish("pages", entry.id);
