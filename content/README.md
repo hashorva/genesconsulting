@@ -13,7 +13,20 @@ bun scripts/content-load.ts --url https://genesconsulting.purrfect.workers.dev  
 bun scripts/content-load.ts --url https://genesconsulting.purrfect.workers.dev --publish  # after approval: publish, tagline, menus
 ```
 
-Add `--dry-run` to see what would happen. The loader never updates or deletes an existing entry.
+Add `--dry-run` to see what would happen. The loader never overwrites live content or deletes an entry.
+
+## Sections (Sezioni)
+
+`pages/<slug>.layout.json` holds a page's sections (card grid, steps, FAQ, CTA, text) as EmDash stores them; in a `text` block, `content` is Markdown. Pages with sections have a shorter Markdown body, since the sections carry the rest. New pages get their sections when created. For pages already live:
+
+```sh
+bun scripts/content-load.ts --url https://genesconsulting.purrfect.workers.dev --layout            # adds sections as a DRAFT revision (live page unchanged)
+bun scripts/content-load.ts --url https://genesconsulting.purrfect.workers.dev --layout --publish  # after approval, once page_blocks is public
+```
+
+`--layout` only touches pages published by the loader and not edited since. `--layout --publish` refuses until the `page_blocks` flag is public, and publishes only drafts still exactly as the loader wrote them (title, body and every section field).
+
+After `--layout --publish`, those pages depend on their sections. Turning `page_blocks` off or rolling back past its release would hide most of their copy, so restore the previous revisions in the admin first. Once the sections are live, the flag is removed.
 
 ## Not written yet (needs the client)
 
