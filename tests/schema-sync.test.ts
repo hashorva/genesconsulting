@@ -86,4 +86,130 @@ describe("planSync", () => {
 		for (const item of plan.create) expect(["blockType", "field"]).toContain(item.kind);
 		expect(plan.create.some((c) => c.kind === "field" && c.slug === "layout")).toBe(true);
 	});
+
+	describe("existing block types", () => {
+		const typed: Seed = {
+			blockTypes: [
+				{
+					slug: "cta",
+					label: "CTA",
+					icon: "megaphone",
+					category: "Chiusura",
+					currentVersion: 1,
+					versions: [
+						{
+							version: 1,
+							fields: [
+								{ slug: "heading", label: "Titolo", type: "string", required: true },
+								{ slug: "background", label: "Sfondo", type: "select", validation: { options: ["Nessuno", "Blu"] } },
+								{ slug: "code", label: "Codice", type: "string", required: true },
+							],
+						},
+					],
+				},
+			],
+			collections: [],
+		};
+		const liveHeading = { slug: "heading", label: "Heading (edited on the site)", type: "string", required: true };
+
+		it("appends missing optional fields and keeps the live fields exactly as they are", () => {
+			const plan = planSync(typed, {
+				blockTypes: [{ slug: "cta", fields: [liveHeading], fingerprint: "fp1", icon: null, category: null }],
+				collections: new Map(),
+			});
+			expect(plan.create).toEqual([
+				{
+					kind: "blockTypeFields",
+					slug: "cta",
+					expectedFingerprint: "fp1",
+					added: ["background"],
+					fields: [liveHeading, typed.blockTypes![0]!.versions[0]!.fields[1]],
+					icon: "megaphone",
+					category: "Chiusura",
+				},
+			]);
+		});
+
+		it("refuses a missing required field on a block type", () => {
+			const plan = planSync(typed, {
+				blockTypes: [{ slug: "cta", fields: [liveHeading], fingerprint: "fp1" }],
+				collections: new Map(),
+			});
+			expect(plan.refuse).toEqual([{ what: "cta.code", reason: "required: would break existing sections" }]);
+		});
+
+		it("never overwrites an icon or category set on the site", () => {
+			const plan = planSync(typed, {
+				blockTypes: [
+					{
+						slug: "cta",
+						fields: [liveHeading, { slug: "background" }, { slug: "code" }],
+						fingerprint: "fp2",
+						icon: "star",
+						category: "Altro",
+					},
+				],
+				collections: new Map(),
+			});
+			expect(plan.create).toEqual([]);
+			expect(plan.skip).toContainEqual({ what: "block type cta", reason: "up to date" });
+		});
+	});
+
+	it("brings the real live types (seed as first released) up to the seed without required fields", () => {
+		const real = JSON.parse(readFileSync(join(import.meta.dirname, "..", "seed", "seed.json"), "utf-8")) as Seed;
+		const firstRelease: Record<string, string[]> = {
+			card_grid: ["heading", "intro", "cards"],
+			steps: ["heading", "intro", "steps"],
+			faq: ["heading", "items"],
+			cta: ["heading", "text", "button_label", "button_url"],
+			text: ["content"],
+		};
+		const plan = planSync(real, {
+			blockTypes: Object.entries(firstRelease).map(([slug, fields]) => ({
+				slug,
+				fields: fields.map((f) => ({ slug: f })),
+				fingerprint: `fp-${slug}`,
+			})),
+			collections: new Map([["pages", ["title", "content", "layout"]]]),
+		});
+		expect(plan.refuse).toEqual([]);
+		expect(plan.create.filter((c) => c.kind === "blockType").map((c) => c.slug)).toContain("hero");
+		const amended = plan.create.filter((c) => c.kind === "blockTypeFields");
+		expect(amended.map((c) => c.slug).sort()).toEqual(Object.keys(firstRelease).sort());
+		for (const item of amended) expect(item.added).toContain("background");
+	});
+
+	it("appends new block types to an existing blocks field and keeps the rest of its validation", () => {
+		const blocksSeed: Seed = {
+			collections: [
+				{
+					slug: "pages",
+					fields: [
+						{ slug: "layout", label: "Sezioni", type: "blocks", validation: { allowedTypes: ["hero", "cta", "faq"], maxItems: 30 } },
+					],
+				},
+			],
+		};
+		const plan = planSync(blocksSeed, {
+			blockTypes: [],
+			collections: new Map([
+				["pages", [{ slug: "layout", type: "blocks", validation: { allowedTypes: ["cta", "faq"], maxItems: 30, retiredTypes: ["old"] } }]],
+			]),
+		});
+		expect(plan.create).toEqual([
+			{
+				kind: "allowedTypes",
+				collection: "pages",
+				slug: "layout",
+				added: ["hero"],
+				validation: { allowedTypes: ["cta", "faq", "hero"], maxItems: 30, retiredTypes: ["old"] },
+			},
+		]);
+		const same = planSync(blocksSeed, {
+			blockTypes: [],
+			collections: new Map([["pages", [{ slug: "layout", type: "blocks", validation: { allowedTypes: ["hero", "cta", "faq"] } }]]]),
+		});
+		expect(same.create).toEqual([]);
+	});
 });

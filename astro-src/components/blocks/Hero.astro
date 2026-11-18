@@ -1,0 +1,51 @@
+---
+import { Image } from "emdash/ui";
+import { Waypoints } from "lucide-react";
+
+import ButtonList from "@/components/blocks/ButtonList.astro";
+import { pick } from "@/lib/section-style";
+import { cn } from "@/lib/utils";
+import type { PageLayoutHeroBlock } from "../../../emdash-env";
+
+/**
+ * "Apertura": the page's opening. As the first section it replaces the standard
+ * hero and its title is the page's h1; anywhere else it is a large h2 banner.
+ * Background and spacing come from the section band (PageBlocks).
+ */
+interface Props {
+	value: PageLayoutHeroBlock;
+	level?: "h1" | "h2";
+}
+const { value, level = "h2" } = Astro.props;
+const Heading = level;
+const centered = pick("align", value.align, "Sinistra") === "Centrato";
+const gold = pick("accent", value.accent, "Nessuno") === "Oro";
+const illustration = pick("illustration", value.illustration, "Rete");
+const showImage = !centered && illustration === "Immagine" && value.image?.id;
+const showNetwork = !centered && illustration === "Rete";
+---
+
+<div class={cn("grid items-center gap-10", (showImage || showNetwork) && "md:grid-cols-3")}>
+	<div class={cn("space-y-6", (showImage || showNetwork) && "md:col-span-2", centered && "mx-auto max-w-3xl text-center")}>
+		{gold && <div aria-hidden="true" class={cn("h-1 w-12 rounded-full bg-yellow-600", centered && "mx-auto")} />}
+		{
+			value.eyebrow && (
+				<p
+					class={cn(
+						"text-sm font-semibold tracking-wide uppercase",
+						gold ? "text-yellow-700 dark:text-yellow-600" : "text-sky-700 dark:text-sky-300",
+					)}
+				>
+					{value.eyebrow}
+				</p>
+			)
+		}
+		<Heading class={cn("font-bold tracking-tight", level === "h1" ? "text-4xl md:text-6xl" : "text-3xl md:text-5xl")}>
+			{value.heading}
+		</Heading>
+		{value.text && <p class="text-lg leading-relaxed text-muted-foreground md:text-xl">{value.text}</p>}
+		<ButtonList buttons={value.buttons} class={cn(centered && "justify-center")} />
+	</div>
+	{showNetwork && <Waypoints aria-hidden="true" className="hidden size-48 justify-self-center text-sky-400 md:block" />}
+	{showImage && <Image image={value.image!} class="w-full rounded-2xl object-cover" />}
+</div>

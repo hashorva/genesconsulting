@@ -1,0 +1,38 @@
+---
+import { buttonVariants } from "@/components/ui/button";
+import { safeHref } from "@/lib/safe-href";
+import { buttonVariant } from "@/lib/section-style";
+import { cn } from "@/lib/utils";
+
+/**
+ * "Pulsanti": up to three buttons an editor adds to a section. Each one is a
+ * default shadcn Button variant chosen by name (Principale, Secondario, Contorno, Link).
+ * A button whose link is not safe (see safe-href.ts) is left out.
+ */
+interface Props {
+	buttons?: { link_label: string; link_url: string; style?: string | null }[] | null;
+	size?: "default" | "lg";
+	class?: string;
+}
+const { buttons, size = "lg", class: className } = Astro.props;
+const items = (buttons ?? [])
+	.map((button, index) => ({
+		label: button.link_label?.trim(),
+		href: safeHref(button.link_url),
+		// The first button is the main one unless the editor chose otherwise.
+		variant: buttonVariant(button.style, index === 0 ? "Principale" : "Contorno"),
+	}))
+	.filter((button) => button.label && button.href);
+---
+
+{
+	items.length > 0 && (
+		<div class={cn("flex flex-wrap gap-3", className)}>
+			{items.map((button) => (
+				<a href={button.href!} class={buttonVariants({ variant: button.variant, size })}>
+					{button.label}
+				</a>
+			))}
+		</div>
+	)
+}

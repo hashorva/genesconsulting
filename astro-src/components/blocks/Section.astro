@@ -1,0 +1,23 @@
+---
+import { sectionStyle, type SectionStyleFields } from "@/lib/section-style";
+import { cn } from "@/lib/utils";
+
+/**
+ * One full-width section band (page_composer): background and spacing from the
+ * editor's presets, the page container inside, then the chosen width.
+ */
+interface Props {
+	value: SectionStyleFields & { _type: string };
+}
+const { value } = Astro.props;
+// The opening block is blue by default, like the standard hero it replaces.
+const style = sectionStyle(value, { background: value._type === "hero" ? "Blu" : "Nessuno" });
+---
+
+<div id={style.id} class={cn("scroll-mt-20", style.band)} data-section={value._type}>
+	<div class="container mx-auto px-4 md:px-6">
+		<div class={style.inner}>
+			<slot />
+		</div>
+	</div>
+</div>

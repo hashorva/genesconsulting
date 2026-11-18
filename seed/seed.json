@@ -12,6 +12,138 @@
 	},
 	"blockTypes": [
 		{
+			"slug": "hero",
+			"label": "Apertura",
+			"description": "Apertura della pagina: titolo grande, testo, pulsanti e sfondo. Se è la prima sezione, sostituisce l'apertura standard.",
+			"icon": "flag-banner",
+			"category": "Apertura",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{
+							"slug": "eyebrow",
+							"label": "Occhiello",
+							"type": "string"
+						},
+						{
+							"slug": "heading",
+							"label": "Titolo",
+							"type": "string",
+							"required": true
+						},
+						{
+							"slug": "text",
+							"label": "Testo",
+							"type": "text"
+						},
+						{
+							"slug": "buttons",
+							"label": "Pulsanti",
+							"type": "repeater",
+							"validation": {
+								"maxItems": 3,
+								"subFields": [
+									{
+										"slug": "link_label",
+										"label": "Testo",
+										"type": "string",
+										"required": true
+									},
+									{
+										"slug": "link_url",
+										"label": "Link",
+										"type": "url",
+										"required": true
+									},
+									{
+										"slug": "style",
+										"label": "Stile",
+										"type": "select",
+										"options": [
+											"Principale",
+											"Secondario",
+											"Contorno",
+											"Link"
+										]
+									}
+								]
+							}
+						},
+						{
+							"slug": "illustration",
+							"label": "Illustrazione",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Rete",
+									"Immagine",
+									"Nessuna"
+								]
+							}
+						},
+						{
+							"slug": "image",
+							"label": "Immagine",
+							"type": "image"
+						},
+						{
+							"slug": "align",
+							"label": "Allineamento",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Sinistra",
+									"Centrato"
+								]
+							}
+						},
+						{
+							"slug": "accent",
+							"label": "Accento",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Nessuno",
+									"Oro"
+								]
+							}
+						},
+						{
+							"slug": "background",
+							"label": "Sfondo",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Nessuno",
+									"Tenue",
+									"Blu"
+								]
+							}
+						},
+						{
+							"slug": "spacing",
+							"label": "Spaziatura",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Compatta",
+									"Normale",
+									"Ampia"
+								]
+							}
+						},
+						{
+							"slug": "anchor_id",
+							"label": "ID sezione (per i link #)",
+							"type": "string"
+						}
+					]
+				}
+			]
+		},
+		{
 			"slug": "card_grid",
 			"label": "Griglia di schede",
 			"description": "Titolo, introduzione e schede con testo e link facoltativo.",
@@ -61,10 +193,76 @@
 									}
 								]
 							}
+						},
+						{
+							"slug": "columns",
+							"label": "Colonne",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Automatiche",
+									"2",
+									"3",
+									"4"
+								]
+							}
+						},
+						{
+							"slug": "card_style",
+							"label": "Stile schede",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Schede",
+									"Semplice"
+								]
+							}
+						},
+						{
+							"slug": "background",
+							"label": "Sfondo",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Nessuno",
+									"Tenue",
+									"Blu"
+								]
+							}
+						},
+						{
+							"slug": "spacing",
+							"label": "Spaziatura",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Compatta",
+									"Normale",
+									"Ampia"
+								]
+							}
+						},
+						{
+							"slug": "width",
+							"label": "Larghezza",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Normale",
+									"Stretta"
+								]
+							}
+						},
+						{
+							"slug": "anchor_id",
+							"label": "ID sezione (per i link #)",
+							"type": "string"
 						}
 					]
 				}
-			]
+			],
+			"icon": "squares-four",
+			"category": "Contenuto"
 		},
 		{
 			"slug": "steps",
@@ -106,10 +304,52 @@
 									}
 								]
 							}
+						},
+						{
+							"slug": "background",
+							"label": "Sfondo",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Nessuno",
+									"Tenue",
+									"Blu"
+								]
+							}
+						},
+						{
+							"slug": "spacing",
+							"label": "Spaziatura",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Compatta",
+									"Normale",
+									"Ampia"
+								]
+							}
+						},
+						{
+							"slug": "width",
+							"label": "Larghezza",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Normale",
+									"Stretta"
+								]
+							}
+						},
+						{
+							"slug": "anchor_id",
+							"label": "ID sezione (per i link #)",
+							"type": "string"
 						}
 					]
 				}
-			]
+			],
+			"icon": "list-numbers",
+			"category": "Contenuto"
 		},
 		{
 			"slug": "faq",
@@ -148,10 +388,52 @@
 									}
 								]
 							}
+						},
+						{
+							"slug": "background",
+							"label": "Sfondo",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Nessuno",
+									"Tenue",
+									"Blu"
+								]
+							}
+						},
+						{
+							"slug": "spacing",
+							"label": "Spaziatura",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Compatta",
+									"Normale",
+									"Ampia"
+								]
+							}
+						},
+						{
+							"slug": "width",
+							"label": "Larghezza",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Normale",
+									"Stretta"
+								]
+							}
+						},
+						{
+							"slug": "anchor_id",
+							"label": "ID sezione (per i link #)",
+							"type": "string"
 						}
 					]
 				}
-			]
+			],
+			"icon": "question",
+			"category": "Contenuto"
 		},
 		{
 			"slug": "cta",
@@ -182,10 +464,96 @@
 							"slug": "button_url",
 							"label": "Link del pulsante",
 							"type": "url"
+						},
+						{
+							"slug": "buttons",
+							"label": "Pulsanti",
+							"type": "repeater",
+							"validation": {
+								"maxItems": 3,
+								"subFields": [
+									{
+										"slug": "link_label",
+										"label": "Testo",
+										"type": "string",
+										"required": true
+									},
+									{
+										"slug": "link_url",
+										"label": "Link",
+										"type": "url",
+										"required": true
+									},
+									{
+										"slug": "style",
+										"label": "Stile",
+										"type": "select",
+										"options": [
+											"Principale",
+											"Secondario",
+											"Contorno",
+											"Link"
+										]
+									}
+								]
+							}
+						},
+						{
+							"slug": "align",
+							"label": "Allineamento",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Sinistra",
+									"Centrato"
+								]
+							}
+						},
+						{
+							"slug": "background",
+							"label": "Sfondo",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Nessuno",
+									"Tenue",
+									"Blu"
+								]
+							}
+						},
+						{
+							"slug": "spacing",
+							"label": "Spaziatura",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Compatta",
+									"Normale",
+									"Ampia"
+								]
+							}
+						},
+						{
+							"slug": "width",
+							"label": "Larghezza",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Normale",
+									"Stretta"
+								]
+							}
+						},
+						{
+							"slug": "anchor_id",
+							"label": "ID sezione (per i link #)",
+							"type": "string"
 						}
 					]
 				}
-			]
+			],
+			"icon": "megaphone",
+			"category": "Chiusura"
 		},
 		{
 			"slug": "text",
@@ -201,10 +569,52 @@
 							"label": "Contenuto",
 							"type": "portableText",
 							"required": true
+						},
+						{
+							"slug": "background",
+							"label": "Sfondo",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Nessuno",
+									"Tenue",
+									"Blu"
+								]
+							}
+						},
+						{
+							"slug": "spacing",
+							"label": "Spaziatura",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Compatta",
+									"Normale",
+									"Ampia"
+								]
+							}
+						},
+						{
+							"slug": "width",
+							"label": "Larghezza",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Normale",
+									"Stretta"
+								]
+							}
+						},
+						{
+							"slug": "anchor_id",
+							"label": "ID sezione (per i link #)",
+							"type": "string"
 						}
 					]
 				}
-			]
+			],
+			"icon": "text-align-left",
+			"category": "Contenuto"
 		}
 	],
 	"collections": [
@@ -240,6 +650,7 @@
 					"type": "blocks",
 					"validation": {
 						"allowedTypes": [
+							"hero",
 							"card_grid",
 							"steps",
 							"faq",

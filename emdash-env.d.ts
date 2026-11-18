@@ -5,6 +5,25 @@
 
 import type { BylineSummary, ContentBylineCredit, TaxonomyTerm, PortableTextBlock } from "emdash";
 
+export interface PageLayoutHeroV1Block {
+  _type: "hero";
+  _version: 1;
+  _key: string;
+  "eyebrow"?: string | null;
+  "heading": string;
+  "text"?: string | null;
+  "buttons"?: { "link_label": string; "link_url": string; "style"?: "Principale" | "Secondario" | "Contorno" | "Link" | null }[] | null;
+  "illustration"?: "Rete" | "Immagine" | "Nessuna" | null;
+  "image"?: { id: string; src?: string; alt?: string; caption?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown>; darkVariant?: { id: string; src?: string; alt?: string; caption?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown> } } | null;
+  "align"?: "Sinistra" | "Centrato" | null;
+  "accent"?: "Nessuno" | "Oro" | null;
+  "background"?: "Nessuno" | "Tenue" | "Blu" | null;
+  "spacing"?: "Compatta" | "Normale" | "Ampia" | null;
+  "anchor_id"?: string | null;
+}
+
+export type PageLayoutHeroBlock = PageLayoutHeroV1Block;
+
 export interface PageLayoutCardGridV1Block {
   _type: "card_grid";
   _version: 1;
@@ -12,6 +31,12 @@ export interface PageLayoutCardGridV1Block {
   "heading"?: string | null;
   "intro"?: string | null;
   "cards": { "title": string; "text"?: string | null; "link_url"?: string | null; "link_label"?: string | null }[];
+  "columns"?: "Automatiche" | "2" | "3" | "4" | null;
+  "card_style"?: "Schede" | "Semplice" | null;
+  "background"?: "Nessuno" | "Tenue" | "Blu" | null;
+  "spacing"?: "Compatta" | "Normale" | "Ampia" | null;
+  "width"?: "Normale" | "Stretta" | null;
+  "anchor_id"?: string | null;
 }
 
 export type PageLayoutCardGridBlock = PageLayoutCardGridV1Block;
@@ -23,6 +48,10 @@ export interface PageLayoutStepsV1Block {
   "heading"?: string | null;
   "intro"?: string | null;
   "steps": { "title": string; "text"?: string | null }[];
+  "background"?: "Nessuno" | "Tenue" | "Blu" | null;
+  "spacing"?: "Compatta" | "Normale" | "Ampia" | null;
+  "width"?: "Normale" | "Stretta" | null;
+  "anchor_id"?: string | null;
 }
 
 export type PageLayoutStepsBlock = PageLayoutStepsV1Block;
@@ -33,6 +62,10 @@ export interface PageLayoutFaqV1Block {
   _key: string;
   "heading"?: string | null;
   "items": { "question": string; "answer": string }[];
+  "background"?: "Nessuno" | "Tenue" | "Blu" | null;
+  "spacing"?: "Compatta" | "Normale" | "Ampia" | null;
+  "width"?: "Normale" | "Stretta" | null;
+  "anchor_id"?: string | null;
 }
 
 export type PageLayoutFaqBlock = PageLayoutFaqV1Block;
@@ -45,6 +78,12 @@ export interface PageLayoutCtaV1Block {
   "text"?: string | null;
   "button_label"?: string | null;
   "button_url"?: string | null;
+  "buttons"?: { "link_label": string; "link_url": string; "style"?: "Principale" | "Secondario" | "Contorno" | "Link" | null }[] | null;
+  "align"?: "Sinistra" | "Centrato" | null;
+  "background"?: "Nessuno" | "Tenue" | "Blu" | null;
+  "spacing"?: "Compatta" | "Normale" | "Ampia" | null;
+  "width"?: "Normale" | "Stretta" | null;
+  "anchor_id"?: string | null;
 }
 
 export type PageLayoutCtaBlock = PageLayoutCtaV1Block;
@@ -54,11 +93,15 @@ export interface PageLayoutTextV1Block {
   _version: 1;
   _key: string;
   "content": PortableTextBlock[];
+  "background"?: "Nessuno" | "Tenue" | "Blu" | null;
+  "spacing"?: "Compatta" | "Normale" | "Ampia" | null;
+  "width"?: "Normale" | "Stretta" | null;
+  "anchor_id"?: string | null;
 }
 
 export type PageLayoutTextBlock = PageLayoutTextV1Block;
 
-export type PageLayoutBlock = PageLayoutCardGridBlock | PageLayoutStepsBlock | PageLayoutFaqBlock | PageLayoutCtaBlock | PageLayoutTextBlock;
+export type PageLayoutBlock = PageLayoutHeroBlock | PageLayoutCardGridBlock | PageLayoutStepsBlock | PageLayoutFaqBlock | PageLayoutCtaBlock | PageLayoutTextBlock;
 
 export interface Page {
   id: string;
