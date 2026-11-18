@@ -149,7 +149,6 @@ jobs:
       SHA: ${{ github.event.pull_request.head.sha }}
       SCOPE_RESULT: ${{ needs.scope.result }}
       CRITICAL: ${{ needs.scope.outputs.critical }}
-      AUTO_MERGE: ${{ github.event.pull_request.auto_merge != null }}
       DOCS_ONLY: ${{ needs.scope.outputs.docs_only }}
       HAS_CLAUDE_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
       FROM_FORK: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
@@ -160,7 +159,8 @@ jobs:
           set -euo pipefail
           if [[ "$SCOPE_RESULT" != "success" ]]; then echo "::error::scope job did not succeed"; exit 1; fi
           OWNER=${REPO%/*}; NAME=${REPO#*/}
-          if [[ "$CRITICAL" == "true" && "$AUTO_MERGE" == "true" ]]; then
+          # Live state, not the event payload: an older run must not pass after auto-merge was turned on.
+          if [[ "$CRITICAL" == "true" ]] && [[ "$(gh pr view "$PR" -R "$REPO" --json autoMergeRequest --jq '.autoMergeRequest != null')" != "false" ]]; then
             echo "::error title=Critical PR::Auto-merge is not allowed on critical PRs. Disable it; the owner merges by hand."; exit 1
           fi
           if [[ "$DOCS_ONLY" == "true" ]]; then echo "Docs-only PR: no AI review needed."; exit 0; fi
