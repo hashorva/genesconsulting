@@ -1,0 +1,65 @@
+---
+import { ArrowRight } from "lucide-react";
+
+import { buttonVariants } from "@/components/ui/button";
+import { splitClaim } from "@/lib/refresh-style";
+import { safeHref } from "@/lib/safe-href";
+import { buttonVariant, pick } from "@/lib/section-style";
+import { cn } from "@/lib/utils";
+import type { PageLayoutCtaBlock } from "../../../emdash-env";
+
+/**
+ * "Invito all'azione" in the redesign: the deck's closing slide ("Parliamone."):
+ * a very large heading over a gold rule, the text, and the buttons. A soft light
+ * source behind the heading. The band (dark by default) comes from Section.
+ */
+interface Props {
+	value: PageLayoutCtaBlock;
+}
+const { value } = Astro.props;
+const centered = pick("align", value.align, "Sinistra") === "Centrato";
+const [first, second] = splitClaim(value.heading);
+const listed = (value.buttons ?? [])
+	.map((button, index) => ({
+		label: button.link_label?.trim(),
+		href: safeHref(button.link_url),
+		variant: buttonVariant(button.style, index === 0 ? "Principale" : "Contorno"),
+	}))
+	.filter((button) => button.label && button.href);
+// The original single button, when the editor has not added a list.
+const legacyHref = safeHref(value.button_url);
+const buttons =
+	listed.length > 0
+		? listed
+		: legacyHref
+			? [{ label: value.button_label || value.heading, href: legacyHref, variant: buttonVariant(null) }]
+			: [];
+---
+
+<section class={cn("relative", centered && "text-center")}>
+	<div
+		aria-hidden="true"
+		class={cn("absolute -top-32 -z-10 size-96 rounded-full bg-sky-400/15 blur-3xl", centered ? "left-1/2 -translate-x-1/2" : "-left-24")}
+	>
+	</div>
+	<div data-reveal class={cn("max-w-4xl space-y-8", centered && "mx-auto")}>
+		<h2 class="text-5xl font-semibold tracking-tight text-balance md:text-7xl">
+			{first}
+			{second && <span class="text-sky-400"> {second}</span>}
+		</h2>
+		<div aria-hidden="true" class={cn("h-1 w-16 rounded-full bg-yellow-600", centered && "mx-auto")}></div>
+		{value.text && <p class={cn("max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl", centered && "mx-auto")}>{value.text}</p>}
+		{
+			buttons.length > 0 && (
+				<div class={cn("flex flex-wrap gap-3", centered && "justify-center")}>
+					{buttons.map((button, index) => (
+						<a href={button.href!} class={cn(buttonVariants({ variant: button.variant, size: "lg" }), "group")}>
+							{button.label}
+							{index === 0 && <ArrowRight data-icon="inline-end" className="transition-transform group-hover:translate-x-0.5" />}
+						</a>
+					))}
+				</div>
+			)
+		}
+	</div>
+</section>

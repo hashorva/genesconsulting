@@ -1,0 +1,29 @@
+---
+import { resolveLocale, useTranslations } from "@/i18n";
+
+/**
+ * Title band of a page that does not open with an Apertura block (redesign): the dark
+ * brand band, a short cyan bar, the h1, and the deck's running line.
+ */
+interface Props {
+	title: string;
+	/** EmDash inline-editing attributes for the title. */
+	edit?: Record<string, unknown>;
+}
+const { title, edit = {} } = Astro.props;
+const t = useTranslations(resolveLocale(Astro.currentLocale));
+---
+
+<div class="dark relative isolate overflow-hidden bg-sky-950 text-foreground">
+	<div aria-hidden="true" class="absolute inset-0 -z-10 bg-linear-to-b from-sky-950 to-sky-900"></div>
+	<div aria-hidden="true" class="absolute -top-32 -right-32 -z-10 size-96 rounded-full bg-sky-500/10 blur-3xl"></div>
+	<div class="container mx-auto px-4 md:px-6">
+		<div class="space-y-6 py-16 md:py-24 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-700">
+			<div aria-hidden="true" class="h-0.5 w-8 rounded-full bg-sky-400"></div>
+			<h1 class="max-w-4xl text-4xl font-semibold tracking-tight text-balance md:text-6xl" {...edit}>{title}</h1>
+		</div>
+		<div class="border-t border-sky-400/20 py-4 text-xs tracking-widest text-slate-400 uppercase">
+			{t("site.name")} <span aria-hidden="true" class="px-1 text-sky-400">•</span> {t("site.city")}
+		</div>
+	</div>
+</div>

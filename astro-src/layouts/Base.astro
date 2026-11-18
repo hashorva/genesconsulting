@@ -1,10 +1,15 @@
 ---
+import { env } from "cloudflare:workers";
 import { getSiteSettingsWithCacheHint } from "emdash";
 import { createPublicPageContext } from "emdash/page";
 import { EmDashBodyEnd, EmDashBodyStart, EmDashHead } from "emdash/ui";
 
+import Motion from "@/components/refresh/Motion.astro";
+import RefreshFooter from "@/components/refresh/SiteFooter.astro";
+import RefreshHeader from "@/components/refresh/SiteHeader.astro";
 import SiteFooter from "@/components/site/SiteFooter.astro";
 import SiteHeader from "@/components/site/SiteHeader.astro";
+import { isRefresh } from "@/lib/design";
 import { LOCALE_META, resolveLocale, useTranslations } from "@/i18n";
 import { resolveSiteIdentity } from "@/utils/site-identity";
 import "@/styles/global.css";
@@ -22,6 +27,11 @@ interface Props {
 const { title, pageTitle, description, image, canonical, content } = Astro.props;
 const locale = resolveLocale(Astro.currentLocale);
 const t = useTranslations(locale);
+
+// design_refresh (editors only until released): new header, footer, motion and page transitions.
+const refresh = isRefresh(env, Astro.locals.user);
+const Header = refresh ? RefreshHeader : SiteHeader;
+const Footer = refresh ? RefreshFooter : SiteFooter;
 
 const settingsResult = await getSiteSettingsWithCacheHint();
 if (Astro.cache?.enabled) Astro.cache.set(settingsResult.cacheHint);
@@ -78,6 +88,18 @@ const pageCtx = createPublicPageContext({
 				mq.addEventListener("change", apply);
 			})();
 		</script>
+		{
+			refresh && (
+				/* Native cross-document view transitions: a soft cross-fade between pages, no JS. */
+				<style is:inline>
+					@media (prefers-reduced-motion: no-preference) {
+						@view-transition {
+							navigation: auto;
+						}
+					}
+				</style>
+			)
+		}
 		<EmDashHead page={pageCtx} />
 	</head>
 	<body class="flex min-h-svh flex-col">
@@ -88,11 +110,12 @@ const pageCtx = createPublicPageContext({
 		>
 			{t("site.skipToContent")}
 		</a>
-		<SiteHeader siteTitle={siteTitle} siteLogo={siteLogo} />
+		<Header siteTitle={siteTitle} siteLogo={siteLogo} />
 		<main id="main" class="flex-1">
 			<slot />
 		</main>
-		<SiteFooter siteTitle={siteTitle} siteTagline={siteTagline} />
+		<Footer siteTitle={siteTitle} siteTagline={siteTagline} />
+		{refresh && <Motion />}
 		<EmDashBodyEnd page={pageCtx} />
 	</body>
 </html>

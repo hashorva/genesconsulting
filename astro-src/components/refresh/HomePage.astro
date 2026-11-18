@@ -1,0 +1,107 @@
+---
+import { ArrowUpRight } from "lucide-react";
+
+import RichText from "@/components/content/RichText.astro";
+import Eyebrow from "@/components/refresh/Eyebrow.astro";
+import Hero from "@/components/refresh/Hero.astro";
+import PageBlocks from "@/components/refresh/PageBlocks.astro";
+import { buttonVariants } from "@/components/ui/button";
+import { formatDate, resolveLocale, useTranslations } from "@/i18n";
+import { postPath, routePath } from "@/i18n/routes";
+import { ordinal, revealDelay } from "@/lib/refresh-style";
+import { leadingHero } from "@/lib/section-style";
+import { cn } from "@/lib/utils";
+import type { PageLayoutBlock } from "../../../emdash-env";
+
+/**
+ * Homepage of the redesign (flag design_refresh). Same content as pages/index.astro:
+ * the opening (an Apertura block, else title + tagline), the "home" page body as an
+ * editorial intro, the sections, the latest updates as an editorial list.
+ */
+interface Props {
+	title: string;
+	tagline: string;
+	content?: unknown[] | null;
+	layout: PageLayoutBlock[];
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	posts: any[];
+	contactHref: string | null;
+	servicesHref: string | null;
+}
+const { title, tagline, content, layout, posts, contactHref, servicesHref } = Astro.props;
+const locale = resolveLocale(Astro.currentLocale);
+const t = useTranslations(locale);
+const hero = leadingHero(layout);
+const sections = hero ? layout.slice(1) : layout;
+const hasIntro = (content?.length ?? 0) > 0;
+const buttons = [
+	contactHref && { link_label: t("nav.cta"), link_url: contactHref, style: "Principale" },
+	servicesHref && { link_label: t("actions.discoverServices"), link_url: servicesHref, style: "Contorno" },
+].filter((button): button is { link_label: string; link_url: string; style: string } => Boolean(button));
+---
+
+{
+	hero ? (
+		<PageBlocks value={[hero]} leadHero />
+	) : (
+		<Hero heading={title} eyebrow={t("site.line")} text={tagline} buttons={buttons} />
+	)
+}
+
+{
+	hasIntro && (
+		<section class="bg-background py-20 md:py-28">
+			<div data-reveal class="container mx-auto space-y-8 px-4 md:px-6">
+				<Eyebrow text={ordinal(0)} />
+				<RichText value={content} class="max-w-4xl text-xl leading-relaxed text-pretty md:text-2xl" />
+			</div>
+		</section>
+	)
+}
+
+<PageBlocks value={sections} start={hasIntro ? 1 : 0} />
+
+{
+	posts.length > 0 && (
+		<section class="bg-background py-16 md:py-24">
+			<div class="container mx-auto space-y-10 px-4 md:px-6">
+				<div data-reveal class="flex flex-wrap items-end justify-between gap-4">
+					<div class="space-y-5">
+						<Eyebrow text={t("blog:title")} />
+						<h2 class="text-3xl font-semibold tracking-tight md:text-4xl">{t("blog:title")}</h2>
+					</div>
+					<a href={routePath("page.updates", locale)} class={buttonVariants({ variant: "outline" })}>
+						{t("actions.readMore")}
+					</a>
+				</div>
+				<ul class="divide-y border-y">
+					{posts.map((post, index) => (
+						<li data-reveal class={revealDelay(index)}>
+							<a
+								href={postPath(post.id, locale)}
+								class="group grid gap-2 py-6 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 md:grid-cols-12 md:items-baseline md:gap-8"
+							>
+								{post.data.publishedAt && (
+									<time
+										datetime={post.data.publishedAt.toISOString()}
+										class="text-xs font-semibold tracking-widest text-muted-foreground uppercase md:col-span-3"
+									>
+										{formatDate(post.data.publishedAt, locale)}
+									</time>
+								)}
+								<span class="text-xl font-semibold tracking-tight transition-colors group-hover:text-sky-700 md:col-span-8 dark:group-hover:text-sky-300">
+									{post.data.title}
+								</span>
+								<ArrowUpRight
+									className={cn(
+										"hidden size-5 justify-self-end text-muted-foreground transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-sky-500 md:col-span-1 md:block",
+									)}
+								/>
+							</a>
+						</li>
+					))}
+				</ul>
+			</div>
+		</section>
+	)
+}

@@ -6,11 +6,13 @@ import { env } from "cloudflare:workers";
 import PostCard from "@/components/blog/PostCard.astro";
 import RichText from "@/components/content/RichText.astro";
 import PageBlocks from "@/components/blocks/PageBlocks.astro";
+import RefreshHome from "@/components/refresh/HomePage.astro";
 import { buttonVariants } from "@/components/ui/button";
 import { isEnabled } from "@/flags";
 import { resolveLocale, useTranslations } from "@/i18n";
 import { routePath } from "@/i18n/routes";
 import { pageLink } from "@/lib/content-links";
+import { isRefresh } from "@/lib/design";
 import { leadingHero, withoutComposer } from "@/lib/section-style";
 import Base from "@/layouts/Base.astro";
 import { resolveSiteIdentity } from "@/utils/site-identity";
@@ -37,6 +39,8 @@ const [contactHref, servicesHref] = await Promise.all([
 // page_composer (editors only until released): sections as full-width bands, and an
 // Apertura as the first section replaces the standard hero below.
 const composer = isEnabled("page_composer", env, Astro.locals.user);
+// design_refresh (editors only until released, needs page_composer): the redesigned homepage.
+const refresh = isRefresh(env, Astro.locals.user);
 const layout = home?.data.layout ?? [];
 const hero = composer ? leadingHero(layout) : null;
 const sections = hero ? layout.slice(1) : layout;
@@ -49,6 +53,18 @@ const { siteTitle, siteTagline } = resolveSiteIdentity(settings, {
 ---
 
 <Base title={siteTitle} description={siteTagline}>
+	{refresh ? (
+		<RefreshHome
+			title={home?.data.title ?? siteTitle}
+			tagline={siteTagline}
+			content={home?.data.content}
+			layout={layout}
+			posts={posts}
+			contactHref={contactHref}
+			servicesHref={servicesHref}
+		/>
+	) : (
+	<>
 	{hero ? (
 		<PageBlocks value={[hero]} composer leadHero />
 	) : (
@@ -114,4 +130,6 @@ const { siteTitle, siteTagline } = resolveSiteIdentity(settings, {
 			</section>
 		)
 	}
+	</>
+	)}
 </Base>

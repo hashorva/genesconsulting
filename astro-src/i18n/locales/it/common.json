@@ -1,7 +1,9 @@
 {
   "site": {
     "name": "Genes Consulting",
-    "skipToContent": "Vai al contenuto"
+    "skipToContent": "Vai al contenuto",
+    "city": "Milano",
+    "line": "Consulenza aziendale e servizi integrati"
   },
   "nav": {
     "label": "Navigazione principale",
@@ -16,7 +18,8 @@
   },
   "footer": {
     "legal": "Informazioni legali",
-    "copyright": "© {{year}} {{name}}"
+    "copyright": "© {{year}} {{name}}",
+    "explore": "Esplora"
   },
   "theme": {
     "label": "Tema",
