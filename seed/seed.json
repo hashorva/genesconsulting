@@ -14,7 +14,7 @@
 		{
 			"slug": "hero",
 			"label": "Apertura",
-			"description": "Apertura della pagina: titolo grande, testo, pulsanti e sfondo. Se è la prima sezione, sostituisce l'apertura standard.",
+			"description": "Il grande titolo in cima alla pagina, con sottotitolo, pulsanti e illustrazione. Mettila come prima sezione.",
 			"icon": "flag-banner",
 			"category": "Apertura",
 			"currentVersion": 1,
@@ -24,7 +24,7 @@
 					"fields": [
 						{
 							"slug": "eyebrow",
-							"label": "Occhiello",
+							"label": "Occhiello (testo piccolo sopra il titolo)",
 							"type": "string"
 						},
 						{
@@ -35,7 +35,7 @@
 						},
 						{
 							"slug": "text",
-							"label": "Testo",
+							"label": "Sottotitolo",
 							"type": "text"
 						},
 						{
@@ -72,6 +72,11 @@
 							}
 						},
 						{
+							"slug": "image",
+							"label": "Immagine (con Illustrazione: Immagine)",
+							"type": "image"
+						},
+						{
 							"slug": "illustration",
 							"label": "Illustrazione",
 							"type": "select",
@@ -81,12 +86,8 @@
 									"Immagine",
 									"Nessuna"
 								]
-							}
-						},
-						{
-							"slug": "image",
-							"label": "Immagine",
-							"type": "image"
+							},
+							"defaultValue": "Rete"
 						},
 						{
 							"slug": "align",
@@ -97,18 +98,20 @@
 									"Sinistra",
 									"Centrato"
 								]
-							}
+							},
+							"defaultValue": "Sinistra"
 						},
 						{
 							"slug": "accent",
-							"label": "Accento",
+							"label": "Linea d'accento",
 							"type": "select",
 							"validation": {
 								"options": [
 									"Nessuno",
 									"Oro"
 								]
-							}
+							},
+							"defaultValue": "Nessuno"
 						},
 						{
 							"slug": "background",
@@ -120,11 +123,12 @@
 									"Tenue",
 									"Blu"
 								]
-							}
+							},
+							"defaultValue": "Blu"
 						},
 						{
 							"slug": "spacing",
-							"label": "Spaziatura",
+							"label": "Spazio sopra e sotto",
 							"type": "select",
 							"validation": {
 								"options": [
@@ -132,7 +136,8 @@
 									"Normale",
 									"Ampia"
 								]
-							}
+							},
+							"defaultValue": "Normale"
 						},
 						{
 							"slug": "anchor_id",
@@ -146,7 +151,7 @@
 		{
 			"slug": "card_grid",
 			"label": "Griglia di schede",
-			"description": "Titolo, introduzione e schede con testo e link facoltativo.",
+			"description": "Schede affiancate con titolo, testo, icona e link. Per servizi, vantaggi o destinatari.",
 			"currentVersion": 1,
 			"versions": [
 				{
@@ -154,7 +159,7 @@
 					"fields": [
 						{
 							"slug": "heading",
-							"label": "Titolo della sezione",
+							"label": "Titolo",
 							"type": "string"
 						},
 						{
@@ -182,16 +187,6 @@
 										"type": "text"
 									},
 									{
-										"slug": "link_url",
-										"label": "Link (URL)",
-										"type": "url"
-									},
-									{
-										"slug": "link_label",
-										"label": "Testo del link",
-										"type": "string"
-									},
-									{
 										"slug": "icon",
 										"label": "Icona",
 										"type": "select",
@@ -211,6 +206,16 @@
 											"Stretta di mano",
 											"Istituzione"
 										]
+									},
+									{
+										"slug": "link_label",
+										"label": "Testo del link",
+										"type": "string"
+									},
+									{
+										"slug": "link_url",
+										"label": "Link",
+										"type": "url"
 									}
 								]
 							}
@@ -226,7 +231,8 @@
 									"3",
 									"4"
 								]
-							}
+							},
+							"defaultValue": "Automatiche"
 						},
 						{
 							"slug": "card_style",
@@ -237,7 +243,8 @@
 									"Schede",
 									"Semplice"
 								]
-							}
+							},
+							"defaultValue": "Schede"
 						},
 						{
 							"slug": "background",
@@ -249,11 +256,12 @@
 									"Tenue",
 									"Blu"
 								]
-							}
+							},
+							"defaultValue": "Nessuno"
 						},
 						{
 							"slug": "spacing",
-							"label": "Spaziatura",
+							"label": "Spazio sopra e sotto",
 							"type": "select",
 							"validation": {
 								"options": [
@@ -261,18 +269,20 @@
 									"Normale",
 									"Ampia"
 								]
-							}
+							},
+							"defaultValue": "Normale"
 						},
 						{
 							"slug": "width",
-							"label": "Larghezza",
+							"label": "Larghezza del contenuto",
 							"type": "select",
 							"validation": {
 								"options": [
 									"Normale",
 									"Stretta"
 								]
-							}
+							},
+							"defaultValue": "Normale"
 						},
 						{
 							"slug": "anchor_id",
@@ -283,12 +293,12 @@
 				}
 			],
 			"icon": "squares-four",
-			"category": "Contenuto"
+			"category": "Elenchi"
 		},
 		{
 			"slug": "steps",
 			"label": "Passaggi",
-			"description": "Percorso numerato, ad esempio il metodo di lavoro.",
+			"description": "Percorso numerato (01, 02, 03…), per il metodo di lavoro o le fasi di un servizio.",
 			"currentVersion": 1,
 			"versions": [
 				{
@@ -296,7 +306,7 @@
 					"fields": [
 						{
 							"slug": "heading",
-							"label": "Titolo della sezione",
+							"label": "Titolo",
 							"type": "string"
 						},
 						{
@@ -336,11 +346,12 @@
 									"Tenue",
 									"Blu"
 								]
-							}
+							},
+							"defaultValue": "Nessuno"
 						},
 						{
 							"slug": "spacing",
-							"label": "Spaziatura",
+							"label": "Spazio sopra e sotto",
 							"type": "select",
 							"validation": {
 								"options": [
@@ -348,18 +359,20 @@
 									"Normale",
 									"Ampia"
 								]
-							}
+							},
+							"defaultValue": "Normale"
 						},
 						{
 							"slug": "width",
-							"label": "Larghezza",
+							"label": "Larghezza del contenuto",
 							"type": "select",
 							"validation": {
 								"options": [
 									"Normale",
 									"Stretta"
 								]
-							}
+							},
+							"defaultValue": "Normale"
 						},
 						{
 							"slug": "anchor_id",
@@ -370,12 +383,12 @@
 				}
 			],
 			"icon": "list-numbers",
-			"category": "Contenuto"
+			"category": "Elenchi"
 		},
 		{
 			"slug": "faq",
 			"label": "Domande frequenti",
-			"description": "Domande e risposte, apribili una alla volta.",
+			"description": "Domande e risposte che si aprono con un clic.",
 			"currentVersion": 1,
 			"versions": [
 				{
@@ -383,7 +396,7 @@
 					"fields": [
 						{
 							"slug": "heading",
-							"label": "Titolo della sezione",
+							"label": "Titolo",
 							"type": "string",
 							"defaultValue": "Domande frequenti"
 						},
@@ -420,11 +433,12 @@
 									"Tenue",
 									"Blu"
 								]
-							}
+							},
+							"defaultValue": "Nessuno"
 						},
 						{
 							"slug": "spacing",
-							"label": "Spaziatura",
+							"label": "Spazio sopra e sotto",
 							"type": "select",
 							"validation": {
 								"options": [
@@ -432,18 +446,20 @@
 									"Normale",
 									"Ampia"
 								]
-							}
+							},
+							"defaultValue": "Normale"
 						},
 						{
 							"slug": "width",
-							"label": "Larghezza",
+							"label": "Larghezza del contenuto",
 							"type": "select",
 							"validation": {
 								"options": [
 									"Normale",
 									"Stretta"
 								]
-							}
+							},
+							"defaultValue": "Normale"
 						},
 						{
 							"slug": "anchor_id",
@@ -454,14 +470,14 @@
 				}
 			],
 			"icon": "question",
-			"category": "Contenuto"
+			"category": "Elenchi"
 		},
 		{
 			"slug": "media_text",
 			"label": "Testo e immagine",
-			"description": "Titolo, testo e un'immagine a destra o a sinistra, con pulsanti facoltativi.",
+			"description": "Testo accanto a un'immagine, a destra o a sinistra, con pulsanti facoltativi.",
 			"icon": "image",
-			"category": "Contenuto",
+			"category": "Testo e immagini",
 			"currentVersion": 1,
 			"versions": [
 				{
@@ -488,14 +504,15 @@
 						},
 						{
 							"slug": "image_side",
-							"label": "Posizione immagine",
+							"label": "Lato dell'immagine",
 							"type": "select",
 							"validation": {
 								"options": [
 									"Destra",
 									"Sinistra"
 								]
-							}
+							},
+							"defaultValue": "Destra"
 						},
 						{
 							"slug": "buttons",
@@ -540,11 +557,12 @@
 									"Tenue",
 									"Blu"
 								]
-							}
+							},
+							"defaultValue": "Nessuno"
 						},
 						{
 							"slug": "spacing",
-							"label": "Spaziatura",
+							"label": "Spazio sopra e sotto",
 							"type": "select",
 							"validation": {
 								"options": [
@@ -552,18 +570,20 @@
 									"Normale",
 									"Ampia"
 								]
-							}
+							},
+							"defaultValue": "Normale"
 						},
 						{
 							"slug": "width",
-							"label": "Larghezza",
+							"label": "Larghezza del contenuto",
 							"type": "select",
 							"validation": {
 								"options": [
 									"Normale",
 									"Stretta"
 								]
-							}
+							},
+							"defaultValue": "Normale"
 						},
 						{
 							"slug": "anchor_id",
@@ -577,9 +597,9 @@
 		{
 			"slug": "stats",
 			"label": "Numeri chiave",
-			"description": "Da 2 a 4 numeri grandi con una breve etichetta.",
+			"description": "Da 2 a 4 numeri grandi con un'etichetta, per dare concretezza.",
 			"icon": "chart-bar",
-			"category": "Contenuto",
+			"category": "Elenchi",
 			"currentVersion": 1,
 			"versions": [
 				{
@@ -587,7 +607,7 @@
 					"fields": [
 						{
 							"slug": "heading",
-							"label": "Titolo della sezione",
+							"label": "Titolo",
 							"type": "string"
 						},
 						{
@@ -629,11 +649,12 @@
 									"Tenue",
 									"Blu"
 								]
-							}
+							},
+							"defaultValue": "Nessuno"
 						},
 						{
 							"slug": "spacing",
-							"label": "Spaziatura",
+							"label": "Spazio sopra e sotto",
 							"type": "select",
 							"validation": {
 								"options": [
@@ -641,18 +662,20 @@
 									"Normale",
 									"Ampia"
 								]
-							}
+							},
+							"defaultValue": "Normale"
 						},
 						{
 							"slug": "width",
-							"label": "Larghezza",
+							"label": "Larghezza del contenuto",
 							"type": "select",
 							"validation": {
 								"options": [
 									"Normale",
 									"Stretta"
 								]
-							}
+							},
+							"defaultValue": "Normale"
 						},
 						{
 							"slug": "anchor_id",
@@ -666,7 +689,7 @@
 		{
 			"slug": "cta",
 			"label": "Invito all'azione",
-			"description": "Riquadro finale con titolo, testo e pulsante.",
+			"description": "Riquadro finale che invita a contattarvi, con uno o più pulsanti.",
 			"currentVersion": 1,
 			"versions": [
 				{
@@ -685,7 +708,7 @@
 						},
 						{
 							"slug": "button_label",
-							"label": "Testo del pulsante",
+							"label": "Pulsante",
 							"type": "string"
 						},
 						{
@@ -695,7 +718,7 @@
 						},
 						{
 							"slug": "buttons",
-							"label": "Pulsanti",
+							"label": "Più pulsanti (al posto del Pulsante)",
 							"type": "repeater",
 							"validation": {
 								"maxItems": 3,
@@ -735,7 +758,8 @@
 									"Sinistra",
 									"Centrato"
 								]
-							}
+							},
+							"defaultValue": "Sinistra"
 						},
 						{
 							"slug": "background",
@@ -747,11 +771,12 @@
 									"Tenue",
 									"Blu"
 								]
-							}
+							},
+							"defaultValue": "Nessuno"
 						},
 						{
 							"slug": "spacing",
-							"label": "Spaziatura",
+							"label": "Spazio sopra e sotto",
 							"type": "select",
 							"validation": {
 								"options": [
@@ -759,18 +784,20 @@
 									"Normale",
 									"Ampia"
 								]
-							}
+							},
+							"defaultValue": "Normale"
 						},
 						{
 							"slug": "width",
-							"label": "Larghezza",
+							"label": "Larghezza del contenuto",
 							"type": "select",
 							"validation": {
 								"options": [
 									"Normale",
 									"Stretta"
 								]
-							}
+							},
+							"defaultValue": "Normale"
 						},
 						{
 							"slug": "anchor_id",
@@ -794,7 +821,7 @@
 					"fields": [
 						{
 							"slug": "content",
-							"label": "Contenuto",
+							"label": "Testo",
 							"type": "portableText",
 							"required": true
 						},
@@ -808,11 +835,12 @@
 									"Tenue",
 									"Blu"
 								]
-							}
+							},
+							"defaultValue": "Nessuno"
 						},
 						{
 							"slug": "spacing",
-							"label": "Spaziatura",
+							"label": "Spazio sopra e sotto",
 							"type": "select",
 							"validation": {
 								"options": [
@@ -820,18 +848,20 @@
 									"Normale",
 									"Ampia"
 								]
-							}
+							},
+							"defaultValue": "Normale"
 						},
 						{
 							"slug": "width",
-							"label": "Larghezza",
+							"label": "Larghezza del contenuto",
 							"type": "select",
 							"validation": {
 								"options": [
 									"Normale",
 									"Stretta"
 								]
-							}
+							},
+							"defaultValue": "Normale"
 						},
 						{
 							"slug": "anchor_id",
@@ -842,7 +872,7 @@
 				}
 			],
 			"icon": "text-align-left",
-			"category": "Contenuto"
+			"category": "Testo e immagini"
 		}
 	],
 	"collections": [

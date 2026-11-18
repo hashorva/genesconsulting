@@ -32,6 +32,8 @@ export interface LiveBlockType {
 	slug: string;
 	fields: Array<{ slug: string; [key: string]: unknown }>;
 	fingerprint: string;
+	label?: string;
+	description?: string | null;
 	icon?: string | null;
 	category?: string | null;
 }
@@ -236,4 +238,110 @@ export function planSync(seed: Seed, live: LiveSchema): SyncPlan {
 		}
 	}
 	return plan;
+}
+
+/**
+ * Presentation of an existing block type, as the editor sees it: the type's label,
+ * description, icon and category (the "Add block" picker), and each field's label,
+ * order and default value (pre-filled on new blocks). EmDash treats all of these as
+ * compatible changes made in place, so stored sections stay valid. Field types,
+ * "required", validation and select options always stay as they are on the site.
+ */
+export interface PresentationUpdate {
+	slug: string;
+	expectedFingerprint: string;
+	label: string;
+	description: string | null;
+	icon: string | null;
+	category: string | null;
+	fields: Array<Record<string, unknown>>;
+	changed: string[];
+}
+
+type AnyField = { slug: string; type?: unknown; label?: unknown; defaultValue?: unknown; validation?: unknown; [key: string]: unknown };
+
+/** The seed's default only if the site would accept it (a select default must be one of the live options). */
+function validDefault(live: AnyField, seed: AnyField): unknown {
+	if (seed.defaultValue === undefined) return undefined;
+	if (live.type !== "select") return seed.defaultValue;
+	const options = (live.validation as { options?: unknown } | null | undefined)?.options;
+	return Array.isArray(options) && options.includes(seed.defaultValue) ? seed.defaultValue : undefined;
+}
+
+/** Live fields in the seed's order with the seed's labels and defaults; fields only on the site keep their place at the end. */
+function presentFields<T extends AnyField>(live: readonly T[], seed: readonly AnyField[], withDefaults: boolean): T[] {
+	const liveBySlug = new Map(live.map((f) => [f.slug, f]));
+	const out: T[] = [];
+	for (const wanted of seed) {
+		const have = liveBySlug.get(wanted.slug);
+		if (!have) continue;
+		const { defaultValue: _old, ...rest } = have;
+		const next: AnyField = { ...rest, slug: have.slug, label: wanted.label ?? have.label };
+		if (withDefaults) {
+			const value = validDefault(have, wanted);
+			if (value !== undefined) next.defaultValue = value;
+		} else if (have.defaultValue !== undefined) {
+			next.defaultValue = have.defaultValue;
+		}
+		if (have.type === "repeater" && wanted.type === "repeater") {
+			const validation = (have.validation ?? {}) as { subFields?: AnyField[] };
+			const seedSub = ((wanted.validation as typeof validation | undefined)?.subFields ?? []) as AnyField[];
+			// Sub-fields have no default in EmDash: only their labels and order change.
+			next.validation = { ...validation, subFields: presentFields(validation.subFields ?? [], seedSub, false) };
+		}
+		out.push(next as T);
+	}
+	const placed = new Set(seed.map((f) => f.slug));
+	return [...out, ...live.filter((f) => !placed.has(f.slug))];
+}
+
+export function planPresentation(
+	seed: Seed,
+	live: Iterable<LiveBlockType>,
+): { update: PresentationUpdate[]; skip: PlanNote[] } {
+	const result: { update: PresentationUpdate[]; skip: PlanNote[] } = { update: [], skip: [] };
+	const liveBySlug = new Map([...live].map((t) => [t.slug, t]));
+	for (const type of seed.blockTypes ?? []) {
+		const existing = liveBySlug.get(type.slug);
+		if (!existing) continue;
+		const active = type.versions.find((v) => v.version === type.currentVersion);
+		const seedFields = (active?.fields ?? []) as AnyField[];
+		const have = new Set(existing.fields.map((f) => f.slug));
+		const missing = seedFields.filter((f) => !have.has(f.slug));
+		if (missing.length > 0) {
+			result.skip.push({
+				what: `presentation of ${type.slug}`,
+				reason: `fields ${missing.map((f) => f.slug).join(", ")} not on the site yet`,
+			});
+			continue;
+		}
+		const fields = presentFields(existing.fields as AnyField[], seedFields, true);
+		const next = {
+			label: type.label,
+			description: type.description ?? null,
+			icon: type.icon ?? null,
+			category: type.category ?? null,
+		};
+		const changed: string[] = [];
+		if (next.label !== (existing.label ?? type.label)) changed.push("label");
+		if (next.description !== (existing.description ?? null)) changed.push("description");
+		if (next.icon !== (existing.icon ?? null)) changed.push("icon");
+		if (next.category !== (existing.category ?? null)) changed.push("category");
+		if (stable(fields) !== stable(existing.fields)) changed.push("fields");
+		if (changed.length === 0) {
+			result.skip.push({ what: `presentation of ${type.slug}`, reason: "up to date" });
+			continue;
+		}
+		result.update.push({ slug: type.slug, expectedFingerprint: existing.fingerprint, ...next, fields, changed });
+	}
+	return result;
+}
+
+/** JSON with object keys sorted (array order kept), so key order alone is not a change. */
+function stable(value: unknown): string {
+	return JSON.stringify(value, (_key, v) =>
+		v && typeof v === "object" && !Array.isArray(v)
+			? Object.fromEntries(Object.keys(v).sort().map((k) => [k, (v as Record<string, unknown>)[k]]))
+			: v,
+	);
 }

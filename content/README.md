@@ -17,7 +17,7 @@ Add `--dry-run` to see what would happen. The loader never overwrites live conte
 
 ## Sections (Sezioni)
 
-`pages/<slug>.layout.json` holds a page's sections (card grid, steps, FAQ, CTA, text) as EmDash stores them; in a `text` block, `content` is Markdown. Pages with sections have a shorter Markdown body, since the sections carry the rest. New pages get their sections when created. For pages already live:
+`pages/<slug>.layout.json` holds a page's sections (Apertura, card grid, steps, FAQ, text and image, key numbers, CTA, text) as EmDash stores them; in a `text` block, `content` is Markdown. Pages with sections have a shorter Markdown body, since the sections carry the rest. New pages get their sections when created. For pages already live:
 
 ```sh
 bun scripts/content-load.ts --url https://genesconsulting.purrfect.workers.dev --layout            # adds sections as a DRAFT revision (live page unchanged)
@@ -25,6 +25,15 @@ bun scripts/content-load.ts --url https://genesconsulting.purrfect.workers.dev -
 ```
 
 `--layout` only touches pages published by the loader and not edited since. `--layout --publish` publishes only drafts still exactly as the loader wrote them (title, body and every section field).
+
+Each layout file opens with an Apertura (`hero` block, the page's opening band; it shows only while the `page_composer` flag is on for the viewer). To add it to pages that are live with their other sections:
+
+```sh
+bun scripts/content-load.ts --url https://genesconsulting.purrfect.workers.dev --hero              # adds the Apertura as a DRAFT revision
+bun scripts/content-load.ts --url https://genesconsulting.purrfect.workers.dev --layout --publish  # after approval
+```
+
+`--hero` only touches published pages with no pending draft whose title, body and other sections still equal the files.
 
 Pages with sections depend on them for most of their copy. Rolling back to a tag before v0.1.0 (when sections were released) would hide it, so restore the pages' previous revisions in the admin first.
 

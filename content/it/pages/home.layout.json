@@ -1,5 +1,25 @@
 [
   {
+    "_type": "hero",
+    "_version": 1,
+    "_key": "home-hero",
+    "heading": "Meno complessità. Più impresa.",
+    "text": "Consulenza aziendale e servizi integrati per imprese e studi professionali.",
+    "buttons": [
+      {
+        "link_label": "Parliamone",
+        "link_url": "/contatti/",
+        "style": "Principale"
+      },
+      {
+        "link_label": "Scopri i servizi",
+        "link_url": "/servizi/",
+        "style": "Contorno"
+      }
+    ],
+    "illustration": "Rete"
+  },
+  {
     "_type": "card_grid",
     "_version": 1,
     "_key": "home-areas",

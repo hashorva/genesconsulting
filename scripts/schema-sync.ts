@@ -13,6 +13,11 @@
  *   fingerprint check, so existing sections stay valid. Nothing else: never changes,
  *   renames or deletes a type, field, collection or any content.
  * - Refuses a missing field that is required (not additive on existing entries).
+ * - `--presentation` also brings what editors see in line with the seed: block type
+ *   label, description, icon and group in the "Add block" picker, and each field's
+ *   label, order and default value. Only those: types, "required", validation and
+ *   select options stay as they are, so EmDash makes it a compatible change in place
+ *   (fingerprint check) and stored sections stay valid.
  * - The decisions live in scripts/schema-plan.ts (tested in tests/schema-sync.test.ts).
  * - Never runs in CI. Auth as in scripts/content-load.ts.
  */
@@ -21,13 +26,14 @@ import { join } from "node:path";
 import { parseArgs } from "node:util";
 
 import { createClient } from "./emdash-client";
-import { type LiveBlockType, type LiveField, planSync, type Seed } from "./schema-plan";
+import { type LiveBlockType, type LiveField, planPresentation, planSync, type Seed } from "./schema-plan";
 
 const { values: args } = parseArgs({
 	options: {
 		url: { type: "string" },
 		seed: { type: "string", default: join(import.meta.dirname, "..", "seed", "seed.json") },
 		"dry-run": { type: "boolean", default: false },
+		presentation: { type: "boolean", default: false },
 	},
 });
 if (!args.url) {
@@ -38,17 +44,22 @@ const dryRun = args["dry-run"];
 const client = createClient(args.url.replace(/\/$/, ""));
 const seed = JSON.parse(readFileSync(args.seed, "utf-8")) as Seed;
 
-const liveTypes: LiveBlockType[] = (await client.blockTypes()).map((type) => {
-	const active = type.versions.find((v) => v.version === type.currentVersion);
-	if (!active) throw new Error(`site: block type ${type.slug} has no active version`);
-	return {
-		slug: type.slug,
-		fields: active.fields as LiveBlockType["fields"],
-		fingerprint: active.fingerprint,
-		icon: type.icon,
-		category: type.category,
-	};
-});
+async function readBlockTypes(): Promise<LiveBlockType[]> {
+	return (await client.blockTypes()).map((type) => {
+		const active = type.versions.find((v) => v.version === type.currentVersion);
+		if (!active) throw new Error(`site: block type ${type.slug} has no active version`);
+		return {
+			slug: type.slug,
+			fields: active.fields as LiveBlockType["fields"],
+			fingerprint: active.fingerprint,
+			label: type.label,
+			description: type.description,
+			icon: type.icon,
+			category: type.category,
+		};
+	});
+}
+const liveTypes = await readBlockTypes();
 const liveCollections = new Map<string, LiveField[]>();
 for (const collection of seed.collections) {
 	const live = (await client.collection(collection.slug)) as { fields?: Array<{ slug: string }> } | null;
@@ -118,5 +129,26 @@ for (const item of plan.create) {
 			} as never);
 		}
 		console.log(`${dryRun ? "would add" : "added"} field ${item.collection}.${item.slug} (${item.type})`);
+	}
+}
+
+if (args.presentation) {
+	// Read again: the additions above changed fields and fingerprints. In a dry run
+	// they were not made, so types still missing fields are reported, not planned.
+	const presentation = planPresentation(seed, dryRun ? liveTypes : await readBlockTypes());
+	for (const note of presentation.skip) console.log(`skip     ${note.what} (${note.reason})`);
+	for (const item of presentation.update) {
+		if (!dryRun) {
+			// Never `breaking: true`: EmDash refuses anything that is not a compatible change.
+			await client.updateBlockType(item.slug, {
+				expectedFingerprint: item.expectedFingerprint,
+				label: item.label,
+				description: item.description,
+				icon: item.icon,
+				category: item.category,
+				fields: item.fields as never,
+			});
+		}
+		console.log(`${dryRun ? "would update" : "updated"} ${item.changed.join(", ")} of block type ${item.slug}`);
 	}
 }

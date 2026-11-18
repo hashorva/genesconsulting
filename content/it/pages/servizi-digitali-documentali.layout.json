@@ -1,5 +1,12 @@
 [
   {
+    "_type": "hero",
+    "_version": 1,
+    "_key": "servizi-digitali-documentali-hero",
+    "heading": "Digitale e gestione documentale",
+    "illustration": "Nessuna"
+  },
+  {
     "_type": "card_grid",
     "_version": 1,
     "_key": "digital-what",
