@@ -24,6 +24,8 @@ export function applyTheme(theme: Theme) {
 	const dark =
 		theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 	document.documentElement.classList.toggle("dark", dark);
+	// Native controls and scrollbars follow the chosen theme, not only the OS.
+	document.documentElement.style.colorScheme = dark ? "dark" : "light";
 }
 
 export function saveTheme(theme: Theme) {

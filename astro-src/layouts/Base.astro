@@ -69,7 +69,10 @@ const pageCtx = createPublicPageContext({
 				const apply = () => {
 					let t = null;
 					try { t = localStorage.getItem("theme"); } catch {}
-					document.documentElement.classList.toggle("dark", t === "dark" || (t !== "light" && mq.matches));
+					const dark = t === "dark" || (t !== "light" && mq.matches);
+					document.documentElement.classList.toggle("dark", dark);
+					// Native controls and scrollbars follow the chosen theme, not only the OS.
+					document.documentElement.style.colorScheme = dark ? "dark" : "light";
 				};
 				apply();
 				mq.addEventListener("change", apply);
