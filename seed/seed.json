@@ -256,8 +256,7 @@
 									"Tenue",
 									"Blu"
 								]
-							},
-							"defaultValue": "Nessuno"
+							}
 						},
 						{
 							"slug": "spacing",
@@ -269,8 +268,7 @@
 									"Normale",
 									"Ampia"
 								]
-							},
-							"defaultValue": "Normale"
+							}
 						},
 						{
 							"slug": "width",
@@ -346,8 +344,7 @@
 									"Tenue",
 									"Blu"
 								]
-							},
-							"defaultValue": "Nessuno"
+							}
 						},
 						{
 							"slug": "spacing",
@@ -359,8 +356,7 @@
 									"Normale",
 									"Ampia"
 								]
-							},
-							"defaultValue": "Normale"
+							}
 						},
 						{
 							"slug": "width",
@@ -433,8 +429,7 @@
 									"Tenue",
 									"Blu"
 								]
-							},
-							"defaultValue": "Nessuno"
+							}
 						},
 						{
 							"slug": "spacing",
@@ -446,8 +441,7 @@
 									"Normale",
 									"Ampia"
 								]
-							},
-							"defaultValue": "Normale"
+							}
 						},
 						{
 							"slug": "width",
@@ -557,8 +551,7 @@
 									"Tenue",
 									"Blu"
 								]
-							},
-							"defaultValue": "Nessuno"
+							}
 						},
 						{
 							"slug": "spacing",
@@ -570,8 +563,7 @@
 									"Normale",
 									"Ampia"
 								]
-							},
-							"defaultValue": "Normale"
+							}
 						},
 						{
 							"slug": "width",
@@ -649,8 +641,7 @@
 									"Tenue",
 									"Blu"
 								]
-							},
-							"defaultValue": "Nessuno"
+							}
 						},
 						{
 							"slug": "spacing",
@@ -662,8 +653,7 @@
 									"Normale",
 									"Ampia"
 								]
-							},
-							"defaultValue": "Normale"
+							}
 						},
 						{
 							"slug": "width",
@@ -771,8 +761,7 @@
 									"Tenue",
 									"Blu"
 								]
-							},
-							"defaultValue": "Nessuno"
+							}
 						},
 						{
 							"slug": "spacing",
@@ -784,8 +773,7 @@
 									"Normale",
 									"Ampia"
 								]
-							},
-							"defaultValue": "Normale"
+							}
 						},
 						{
 							"slug": "width",
@@ -835,8 +823,7 @@
 									"Tenue",
 									"Blu"
 								]
-							},
-							"defaultValue": "Nessuno"
+							}
 						},
 						{
 							"slug": "spacing",
@@ -848,8 +835,7 @@
 									"Normale",
 									"Ampia"
 								]
-							},
-							"defaultValue": "Normale"
+							}
 						},
 						{
 							"slug": "width",
