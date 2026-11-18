@@ -26,6 +26,8 @@ bun scripts/content-load.ts --url https://genesconsulting.purrfect.workers.dev -
 
 `--layout` only touches pages published by the loader and not edited since. `--layout --publish` refuses until the `page_blocks` flag is public, and publishes only drafts still exactly as the loader wrote them (title, body and every section field).
 
+After `--layout --publish`, those pages depend on their sections. Turning `page_blocks` off or rolling back past its release would hide most of their copy, so restore the previous revisions in the admin first. Once the sections are live, the flag is removed.
+
 ## Not written yet (needs the client)
 
 - `/privacy/` and `/cookie/`: no legal text in the source.
