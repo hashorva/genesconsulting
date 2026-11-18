@@ -9,8 +9,8 @@
  *   a page whose slug already exists is skipped, so edits made in the admin win.
  * - New pages are created as DRAFTS. Visitors see nothing until someone publishes them.
  * - `--publish` (run only after the owner approved the drafts) publishes the pages
- *   listed in content/, sets the site tagline and fills the primary/footer menus
- *   only when they are still empty.
+ *   listed in content/ that are still drafts, replaces the seed's
+ *   placeholder tagline, and fills the primary/footer menus only when empty.
  * - `--dry-run` prints what would happen without writing.
  *
  * Auth: EMDASH_TOKEN, else the credentials saved by `bunx emdash login`.
@@ -28,6 +28,8 @@ import { parsePageFile, type PageFile } from "./content-file";
 const CONTENT_DIR = join(import.meta.dirname, "..", "content", "it", "pages");
 const LOCALE = "it";
 const TAGLINE = "Consulenza aziendale e servizi integrati per imprese e studi professionali.";
+// The seed's placeholder (seed/seed.json). Any other tagline was set by an editor and is kept.
+const SEED_TAGLINE = "Meno complessità. Più impresa.";
 
 // Menu items are added in this order, and only if the menu is empty.
 const PRIMARY_MENU: Array<[label: string, slug: string]> = [
@@ -96,8 +98,10 @@ async function publish(files: PageFile[]) {
 			console.log(`missing  ${page.slug} (run without --publish first)`);
 			continue;
 		}
-		if (entry.status === "published") {
-			console.log(`skip     ${page.slug} (already published)`);
+		// Only plain drafts: scheduled, archived or already published pages are left alone.
+		// Running --publish is the owner's approval of these drafts; check with --dry-run first.
+		if (entry.status !== "draft") {
+			console.log(`skip     ${page.slug} (status ${entry.status})`);
 			continue;
 		}
 		if (!dryRun) await client.publish("pages", entry.id);
@@ -105,9 +109,11 @@ async function publish(files: PageFile[]) {
 	}
 
 	const settings = (await client.request("GET", "/settings")) as { tagline?: string };
-	if (settings.tagline !== TAGLINE) {
+	if (!settings.tagline || settings.tagline === SEED_TAGLINE) {
 		if (!dryRun) await client.request("POST", "/settings", { tagline: TAGLINE });
 		console.log(`${dryRun ? "would set" : "set"} tagline: ${TAGLINE}`);
+	} else if (settings.tagline !== TAGLINE) {
+		console.log("skip     tagline (set in the admin, not touched)");
 	}
 
 	await fillMenu("primary", PRIMARY_MENU);
