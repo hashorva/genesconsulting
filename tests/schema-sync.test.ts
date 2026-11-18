@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { planSync, type Seed } from "../scripts/schema-plan";
+import { planPresentation, planSync, type Seed } from "../scripts/schema-plan";
 
 const seed: Seed = {
 	blockTypes: [
@@ -293,5 +293,89 @@ describe("planSync", () => {
 				category: undefined,
 			},
 		]);
+	});
+});
+
+describe("planPresentation", () => {
+	const seedTypes: Seed = {
+		collections: [],
+		blockTypes: [
+			{
+				slug: "cta",
+				label: "Invito",
+				description: "Riquadro finale.",
+				icon: "megaphone",
+				category: "Chiusura",
+				currentVersion: 1,
+				versions: [
+					{
+						version: 1,
+						fields: [
+							{ slug: "heading", label: "Titolo", type: "string", required: true },
+							{ slug: "background", label: "Sfondo", type: "select", defaultValue: "Nessuno" },
+							{ slug: "spacing", label: "Spazio", type: "select", defaultValue: "Inventato" },
+							{
+								slug: "buttons",
+								label: "Pulsanti",
+								type: "repeater",
+								validation: { subFields: [{ slug: "link_label", label: "Testo" }, { slug: "link_url", label: "Link" }] },
+							},
+						],
+					},
+				],
+			},
+		],
+	};
+	const live = {
+		slug: "cta",
+		fingerprint: "fp1",
+		label: "CTA",
+		description: null,
+		icon: "megaphone",
+		category: null,
+		fields: [
+			{ slug: "background", label: "Background", type: "select", validation: { options: ["Nessuno", "Blu"] } },
+			{ slug: "heading", label: "Heading", type: "string", required: false },
+			{ slug: "spacing", label: "Spacing", type: "select", validation: { options: ["Normale"] }, defaultValue: "Normale" },
+			{
+				slug: "buttons",
+				label: "Buttons",
+				type: "repeater",
+				validation: { maxItems: 3, subFields: [{ slug: "link_url", type: "url", label: "URL" }, { slug: "link_label", type: "string", label: "Label" }] },
+			},
+			{ slug: "legacy", label: "Legacy", type: "string" },
+		],
+	};
+
+	it("changes only labels, order, defaults and the picker fields, keeping types, required and validation", () => {
+		const { update } = planPresentation(seedTypes, [live]);
+		expect(update).toHaveLength(1);
+		const [cta] = update;
+		expect(cta).toMatchObject({ slug: "cta", expectedFingerprint: "fp1", label: "Invito", description: "Riquadro finale.", category: "Chiusura" });
+		expect(cta.changed).toEqual(["label", "description", "category", "fields"]);
+		expect(cta.fields.map((f) => f.slug)).toEqual(["heading", "background", "spacing", "buttons", "legacy"]);
+		// required stays as on the site, never tightened.
+		expect(cta.fields[0]).toEqual({ slug: "heading", label: "Titolo", type: "string", required: false });
+		expect(cta.fields[1]).toMatchObject({ label: "Sfondo", defaultValue: "Nessuno", validation: { options: ["Nessuno", "Blu"] } });
+		// A default the site's options don't have is not sent (the live one is dropped too: the seed decides).
+		expect(cta.fields[2]).not.toHaveProperty("defaultValue");
+		expect(cta.fields[3].validation).toEqual({
+			maxItems: 3,
+			subFields: [
+				{ slug: "link_label", type: "string", label: "Testo" },
+				{ slug: "link_url", type: "url", label: "Link" },
+			],
+		});
+		expect(cta.fields[4]).toEqual(live.fields[4]);
+	});
+
+	it("is up to date after applying, and waits for fields the site does not have yet", () => {
+		const [cta] = planPresentation(seedTypes, [live]).update;
+		const applied = { ...live, ...cta, fields: cta.fields as typeof live.fields };
+		expect(planPresentation(seedTypes, [applied]).update).toEqual([]);
+		const older = { ...live, fields: live.fields.filter((f) => f.slug !== "buttons") };
+		const plan = planPresentation(seedTypes, [older]);
+		expect(plan.update).toEqual([]);
+		expect(plan.skip).toContainEqual({ what: "presentation of cta", reason: "fields buttons not on the site yet" });
 	});
 });
