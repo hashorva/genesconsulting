@@ -1,11 +1,9 @@
 ---
-import { env } from "cloudflare:workers";
 import { type getEmDashEntry, getSeoMeta, getSiteSettings } from "emdash";
 
 import PageBlocks from "@/components/blocks/PageBlocks.astro";
 
 import RichText from "@/components/content/RichText.astro";
-import { isEnabled } from "@/flags";
 import { resolveLocale, useTranslations } from "@/i18n";
 import Base from "@/layouts/Base.astro";
 import { resolveSiteIdentity } from "@/utils/site-identity";
@@ -24,8 +22,6 @@ const { siteTitle } = resolveSiteIdentity(await getSiteSettings(), {
 	title: t("site.name"),
 	tagline: t("seo:defaultDescription"),
 });
-// Reusable sections ("Sezioni" field): visible to editors only until the flag is released.
-const showBlocks = isEnabled("page_blocks", env, Astro.locals.user);
 const seo = getSeoMeta(page, { siteTitle, siteUrl: Astro.url.origin, path: Astro.url.pathname });
 ---
 
@@ -41,6 +37,6 @@ const seo = getSeoMeta(page, { siteTitle, siteUrl: Astro.url.origin, path: Astro
 			<h1 class="text-3xl font-bold tracking-tight md:text-4xl" {...page.edit.title}>{page.data.title}</h1>
 			<RichText value={page.data.content} />
 		</div>
-		{showBlocks && <PageBlocks value={page.data.layout} />}
+		<PageBlocks value={page.data.layout} />
 	</article>
 </Base>

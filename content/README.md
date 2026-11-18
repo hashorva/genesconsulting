@@ -21,12 +21,12 @@ Add `--dry-run` to see what would happen. The loader never overwrites live conte
 
 ```sh
 bun scripts/content-load.ts --url https://genesconsulting.purrfect.workers.dev --layout            # adds sections as a DRAFT revision (live page unchanged)
-bun scripts/content-load.ts --url https://genesconsulting.purrfect.workers.dev --layout --publish  # after approval, once page_blocks is public
+bun scripts/content-load.ts --url https://genesconsulting.purrfect.workers.dev --layout --publish  # after approval
 ```
 
-`--layout` only touches pages published by the loader and not edited since. `--layout --publish` refuses until the `page_blocks` flag is public, and publishes only drafts still exactly as the loader wrote them (title, body and every section field).
+`--layout` only touches pages published by the loader and not edited since. `--layout --publish` publishes only drafts still exactly as the loader wrote them (title, body and every section field).
 
-After `--layout --publish`, those pages depend on their sections. Turning `page_blocks` off or rolling back past its release would hide most of their copy, so restore the previous revisions in the admin first. Once the sections are live, the flag is removed.
+Pages with sections depend on them for most of their copy. Rolling back to a tag before v0.1.0 (when sections were released) would hide it, so restore the pages' previous revisions in the admin first.
 
 ## Not written yet (needs the client)
 
