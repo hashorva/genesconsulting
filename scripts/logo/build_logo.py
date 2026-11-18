@@ -19,12 +19,20 @@ PREV = os.path.join(ROOT, "docs", "design", "logo")
 # Tailwind v4 default palette
 C = dict(sky400="#00bcff", sky500="#00a6f4", sky600="#0084d1", sky700="#0069a8",
          sky900="#024a70", sky950="#052f4a", slate300="#cad5e2", slate600="#45556c",
-         white="#ffffff")
+         yellow600="#d08700", white="#ffffff")
 
-U = 100          # one ring pitch; mark is 4U x 4U
-T = 53           # ring thickness
-CR = 6           # corner radius of the flat ends
-CX = CY = 4 * U  # arc centre = bottom-right corner of the mark
+# Geometry on a 5x5 grid, 1 cell = U = 100 units. All arcs are centred on the bottom-right corner.
+U = 100
+N = 5 * U                    # the mark is a 5x5 square
+CR = 6                       # corner radius of the flat ends
+CX = CY = N
+T = 85                       # arc thickness (C and G arcs, and the width of the terminal)
+GAP = 30                     # gap between the C and G arcs
+R1o, R1i = N, N - T          # C arc
+R2o = R1i - GAP              # G arc
+R2i = R2o - T
+DR = 2 * U                   # radius of the bar-and-terminal piece (2 cells)
+NOTCH = T                    # notch under the bar is a T x T square; bar line meets the diagonal at (N-T, N-T)
 
 
 def f(v):
@@ -47,9 +55,20 @@ def ring(ro, ri, c=CR):
     return "".join(p)
 
 
+def bar_terminal(c=CR):
+    """Quarter disc (radius DR) with a T x T notch cut from its bottom-left: the G's bar and terminal."""
+    sq = lambda r: math.sqrt(r * r - c * c)
+    ny, sx = CY - NOTCH, CX - NOTCH
+    lx = CX - math.sqrt(DR * DR - NOTCH * NOTCH)   # where the arc meets the bar line
+    return (f"M{f(lx)} {ny}A{DR} {DR} 0 0 1 {f(CX - c)} {f(CY - sq(DR))}"
+            f"Q{CX} {f(CY - DR)} {CX} {f(CY - DR + c)}L{CX} {CY - c}Q{CX} {CY} {CX - c} {CY}"
+            f"L{sx + c} {CY}Q{sx} {CY} {sx} {CY - c}L{sx} {ny}Z")
+
+
 def mark_group(cols, tx=0, ty=0, s=1):
-    rings = [(4 * U, 4 * U - T), (3 * U, 3 * U - T), (2 * U, 2 * U - T), (U, 0)]
-    paths = "".join(f'<path fill="{col}" d="{ring(ro, ri)}"/>' for (ro, ri), col in zip(rings, cols))
+    paths = (f'<path fill="{cols[0]}" d="{ring(R1o, R1i)}"/>'
+             f'<path fill="{cols[1]}" d="{ring(R2o, R2i)}"/>'
+             f'<path fill="{cols[2]}" d="{bar_terminal()}"/>')
     return f'<g transform="translate({tx} {ty}) scale({s})">{paths}</g>'
 
 
@@ -75,9 +94,10 @@ def svg(w, h, body, bg=None, title="Genes Consulting"):
 def main(bold_path, light_path):
     bold, light = TTFont(bold_path), TTFont(light_path)
     os.makedirs(OUT, exist_ok=True); os.makedirs(PREV, exist_ok=True)
-    cols_dark = [C["sky400"], C["sky400"], C["sky500"], C["sky500"]]
-    cols_light = [C["sky500"], C["sky500"], C["sky600"], C["sky600"]]
-    S = 4 * U
+    # C arc, G arc, bar and terminal (gold accent)
+    cols_dark = [C["sky400"], C["sky500"], C["yellow600"]]
+    cols_light = [C["sky500"], C["sky600"], C["yellow600"]]
+    S = N
     pad = 20
 
     # wordmark geometry
