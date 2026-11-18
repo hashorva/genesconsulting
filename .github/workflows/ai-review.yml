@@ -10,11 +10,11 @@ name: AI review
 
 on:
   pull_request:
-    types: [opened, synchronize, ready_for_review, labeled, unlabeled, auto_merge_enabled]
+    types: [opened, synchronize, ready_for_review, labeled, unlabeled, auto_merge_enabled, auto_merge_disabled]
 
 concurrency:
   # Ignored labels, label removals, auto-merge toggles get their own group so they never cancel a running review.
-  group: ${{ ((github.event.action == 'labeled' && github.event.label.name != 'risky') || github.event.action == 'unlabeled' || github.event.action == 'auto_merge_enabled') && format('ai-review-ignored-{0}', github.run_id) || format('ai-review-{0}', github.event.pull_request.number) }}
+  group: ${{ ((github.event.action == 'labeled' && github.event.label.name != 'risky') || github.event.action == 'unlabeled' || github.event.action == 'auto_merge_enabled' || github.event.action == 'auto_merge_disabled') && format('ai-review-ignored-{0}', github.run_id) || format('ai-review-{0}', github.event.pull_request.number) }}
   cancel-in-progress: true
 
 permissions:
@@ -71,7 +71,7 @@ jobs:
           docs_only=false
           if [[ "$critical" == false ]] && ! echo "$files" | cut -f1 | grep -qvE '^docs/|^README\.md$'; then docs_only=true; fi
           if [[ "$DRAFT" == "true" ]]; then out false "$model" "$critical" draft; exit 0; fi
-          if [[ "$EVENT_ACTION" == "auto_merge_enabled" || "$EVENT_ACTION" == "unlabeled" ]]; then out false "$model" "$critical" "$EVENT_ACTION"; exit 0; fi
+          if [[ "$EVENT_ACTION" == "auto_merge_enabled" || "$EVENT_ACTION" == "auto_merge_disabled" || "$EVENT_ACTION" == "unlabeled" ]]; then out false "$model" "$critical" "$EVENT_ACTION"; exit 0; fi
           if [[ "$EVENT_ACTION" == "labeled" && "$LABEL_ADDED" != "risky" ]]; then out false "$model" "$critical" "label ignored"; exit 0; fi
           if [[ "$docs_only" == true ]]; then out false "$model" "$critical" "docs only"; exit 0; fi
           out true "$model" "$critical" "$why"
@@ -130,7 +130,8 @@ jobs:
   # Required check (ruleset on main, next to `gate`): a PR can merge, by hand or by
   # auto-merge, only once the AI review of its current head SHA said "No blocking findings."
   # (docs-only PRs need no review; without a Claude token it fails closed).
-  # Critical PRs get the same check (with an Opus review) but are never auto-merged.
+  # Critical PRs get the same check (with an Opus review) and fail it while auto-merge is
+  # on, so they merge only by the owner's own click.
   # Always runs, also on ignored-label and auto-merge events, so the latest result
   # reflects the current labels and comments.
   review-gate:
@@ -148,6 +149,7 @@ jobs:
       SHA: ${{ github.event.pull_request.head.sha }}
       SCOPE_RESULT: ${{ needs.scope.result }}
       CRITICAL: ${{ needs.scope.outputs.critical }}
+      AUTO_MERGE: ${{ github.event.pull_request.auto_merge != null }}
       DOCS_ONLY: ${{ needs.scope.outputs.docs_only }}
       HAS_CLAUDE_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
       FROM_FORK: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
@@ -158,11 +160,14 @@ jobs:
           set -euo pipefail
           if [[ "$SCOPE_RESULT" != "success" ]]; then echo "::error::scope job did not succeed"; exit 1; fi
           OWNER=${REPO%/*}; NAME=${REPO#*/}
+          if [[ "$CRITICAL" == "true" && "$AUTO_MERGE" == "true" ]]; then
+            echo "::error title=Critical PR::Auto-merge is not allowed on critical PRs. Disable it; the owner merges by hand."; exit 1
+          fi
           if [[ "$DOCS_ONLY" == "true" ]]; then echo "Docs-only PR: no AI review needed."; exit 0; fi
           # Fail closed when no review can run (fork PRs get no secrets; a missing or expired
-          # token). Deliberate opt-out for same-repo PRs: repo variable AI_REVIEW_OPTIONAL=true.
+          # token). Deliberate opt-out for same-repo, non-critical PRs: repo variable AI_REVIEW_OPTIONAL=true.
           if [[ "$HAS_CLAUDE_TOKEN" != "true" ]]; then
-            if [[ "$AI_REVIEW_OPTIONAL" == "true" && "$FROM_FORK" != "true" ]]; then
+            if [[ "$AI_REVIEW_OPTIONAL" == "true" && "$FROM_FORK" != "true" && "$CRITICAL" != "true" ]]; then
               echo "::warning title=No AI review::CLAUDE_CODE_OAUTH_TOKEN missing; AI_REVIEW_OPTIONAL=true lets this pass."; exit 0
             fi
             echo "::error title=No AI review possible::No CLAUDE_CODE_OAUTH_TOKEN for this run (fork PR, or missing secret)."; exit 1
