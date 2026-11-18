@@ -1,6 +1,7 @@
 ---
 import { ArrowRight } from "lucide-react";
 
+import { cardIcon } from "@/components/blocks/icons";
 import SectionHeading from "@/components/blocks/SectionHeading.astro";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,10 +27,12 @@ const plain = pick("cardStyle", value.card_style, "Schede") === "Semplice";
 		{
 			value.cards.map((card) => {
 				const href = safeHref(card.link_url);
+				const Icon = cardIcon(card.icon);
 				return (
 				<li class="flex">
 					{plain ? (
 						<div class="flex w-full flex-col gap-2 border-t pt-4">
+							{Icon && <Icon aria-hidden="true" className="size-6 text-sky-700 dark:text-sky-300" />}
 							<h3 class="text-lg font-semibold dark:text-sky-300">{card.title}</h3>
 							{card.text && <p class="text-sm leading-relaxed text-muted-foreground">{card.text}</p>}
 							{href && (
@@ -42,6 +45,7 @@ const plain = pick("cardStyle", value.card_style, "Schede") === "Semplice";
 					) : (
 					<Card className="w-full">
 						<CardHeader>
+							{Icon && <Icon aria-hidden="true" className="size-6 text-sky-700 dark:text-sky-300" />}
 							<CardTitle>
 								<h3 class="text-lg font-semibold dark:text-sky-300">{card.title}</h3>
 							</CardTitle>

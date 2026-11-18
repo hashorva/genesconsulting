@@ -3,6 +3,7 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { CARD_ICONS, cardIcon } from "../astro-src/components/blocks/icons";
 import {
 	anchorId,
 	buttonVariant,
@@ -32,6 +33,7 @@ describe("seed select options", () => {
 		card_style: "cardStyle",
 		illustration: "illustration",
 		accent: "accent",
+		image_side: "imageSide",
 	};
 
 	it("match the presets the components know, so every choice maps to a class", () => {
@@ -45,6 +47,9 @@ describe("seed select options", () => {
 			const buttons = fields.find((f) => f.slug === "buttons");
 			const style = buttons?.validation?.subFields?.find((f) => f.slug === "style");
 			if (buttons) expect(style?.options).toEqual([...OPTIONS.buttonStyle]);
+			const cards = fields.find((f) => f.slug === "cards");
+			const icon = cards?.validation?.subFields?.find((f) => f.slug === "icon");
+			if (cards) expect(icon?.options).toEqual([...OPTIONS.icon]);
 		}
 	});
 
@@ -112,7 +117,7 @@ describe("withoutComposer", () => {
 		];
 		expect(withoutComposer(blocks)).toEqual([{ _type: "cta", _key: "b", heading: "Parliamone", button_url: "/contatti/" }]);
 		expect(blocks[1]).toHaveProperty("background", "Blu");
-		expect(COMPOSER_TYPES).toEqual(["hero"]);
+		expect(COMPOSER_TYPES).toEqual(["hero", "media_text", "stats"]);
 	});
 });
 
@@ -121,5 +126,20 @@ describe("leadingHero", () => {
 		expect(leadingHero([{ _type: "hero" }, { _type: "cta" }])).toEqual({ _type: "hero" });
 		expect(leadingHero([{ _type: "cta" }, { _type: "hero" }])).toBeNull();
 		expect(leadingHero(undefined)).toBeNull();
+	});
+});
+
+describe("card icons", () => {
+	it("cover every icon option with a lucide icon, and nothing else", () => {
+		expect(Object.keys(CARD_ICONS)).toEqual([...OPTIONS.icon]);
+		expect(cardIcon("Rete")).toBe(CARD_ICONS.Rete);
+		expect(cardIcon("constructor")).toBeNull();
+		expect(cardIcon(null)).toBeNull();
+	});
+
+	it("are dropped with the other composer fields while the flag is off", () => {
+		const [grid] = withoutComposer([{ _type: "card_grid", cards: [{ title: "A", icon: "Rete" }] }]);
+		expect(grid).toEqual({ _type: "card_grid", cards: [{ title: "A" }] });
+		expect(withoutComposer([{ _type: "stats" }, { _type: "media_text" }])).toEqual([]);
 	});
 });

@@ -21,6 +21,23 @@ export const OPTIONS = {
 	cardStyle: ["Schede", "Semplice"],
 	illustration: ["Rete", "Immagine", "Nessuna"],
 	accent: ["Nessuno", "Oro"],
+	imageSide: ["Destra", "Sinistra"],
+	icon: [
+		"Rete",
+		"Documento",
+		"Edificio",
+		"Persone",
+		"Scudo",
+		"Grafico",
+		"Telefono",
+		"Posta",
+		"Calendario",
+		"Bilancia",
+		"Valigetta",
+		"Spunta",
+		"Stretta di mano",
+		"Istituzione",
+	],
 } as const;
 
 type Option<K extends keyof typeof OPTIONS> = (typeof OPTIONS)[K][number];
@@ -127,7 +144,7 @@ export function gridColumns(columns: unknown, count: number): string {
 }
 
 /** Block types that exist only with the page_composer flag on. */
-export const COMPOSER_TYPES: readonly string[] = ["hero"];
+export const COMPOSER_TYPES: readonly string[] = ["hero", "media_text", "stats"];
 
 /** Fields added by the page_composer schema to the original block types. */
 export const COMPOSER_FIELDS: readonly string[] = [
@@ -151,6 +168,13 @@ export function withoutComposer<T extends { _type: string }>(blocks: readonly T[
 		.map((block) => {
 			const copy: Record<string, unknown> = { ...block };
 			for (const field of COMPOSER_FIELDS) delete copy[field];
+			// Card icons (card_grid.cards[].icon) are composer-only too.
+			if (Array.isArray(copy.cards)) {
+				copy.cards = copy.cards.map((card: Record<string, unknown>) => {
+					const { icon: _icon, ...rest } = card;
+					return rest;
+				});
+			}
 			return copy as T;
 		});
 }

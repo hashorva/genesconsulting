@@ -190,6 +190,27 @@
 										"slug": "link_label",
 										"label": "Testo del link",
 										"type": "string"
+									},
+									{
+										"slug": "icon",
+										"label": "Icona",
+										"type": "select",
+										"options": [
+											"Rete",
+											"Documento",
+											"Edificio",
+											"Persone",
+											"Scudo",
+											"Grafico",
+											"Telefono",
+											"Posta",
+											"Calendario",
+											"Bilancia",
+											"Valigetta",
+											"Spunta",
+											"Stretta di mano",
+											"Istituzione"
+										]
 									}
 								]
 							}
@@ -436,6 +457,213 @@
 			"category": "Contenuto"
 		},
 		{
+			"slug": "media_text",
+			"label": "Testo e immagine",
+			"description": "Titolo, testo e un'immagine a destra o a sinistra, con pulsanti facoltativi.",
+			"icon": "image",
+			"category": "Contenuto",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{
+							"slug": "heading",
+							"label": "Titolo",
+							"type": "string"
+						},
+						{
+							"slug": "content",
+							"label": "Testo",
+							"type": "portableText"
+						},
+						{
+							"slug": "image",
+							"label": "Immagine",
+							"type": "image",
+							"required": true,
+							"options": {
+								"darkVariant": true
+							}
+						},
+						{
+							"slug": "image_side",
+							"label": "Posizione immagine",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Destra",
+									"Sinistra"
+								]
+							}
+						},
+						{
+							"slug": "buttons",
+							"label": "Pulsanti",
+							"type": "repeater",
+							"validation": {
+								"maxItems": 3,
+								"subFields": [
+									{
+										"slug": "link_label",
+										"label": "Testo",
+										"type": "string",
+										"required": true
+									},
+									{
+										"slug": "link_url",
+										"label": "Link",
+										"type": "url",
+										"required": true
+									},
+									{
+										"slug": "style",
+										"label": "Stile",
+										"type": "select",
+										"options": [
+											"Principale",
+											"Secondario",
+											"Contorno",
+											"Link"
+										]
+									}
+								]
+							}
+						},
+						{
+							"slug": "background",
+							"label": "Sfondo",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Nessuno",
+									"Tenue",
+									"Blu"
+								]
+							}
+						},
+						{
+							"slug": "spacing",
+							"label": "Spaziatura",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Compatta",
+									"Normale",
+									"Ampia"
+								]
+							}
+						},
+						{
+							"slug": "width",
+							"label": "Larghezza",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Normale",
+									"Stretta"
+								]
+							}
+						},
+						{
+							"slug": "anchor_id",
+							"label": "ID sezione (per i link #)",
+							"type": "string"
+						}
+					]
+				}
+			]
+		},
+		{
+			"slug": "stats",
+			"label": "Numeri chiave",
+			"description": "Da 2 a 4 numeri grandi con una breve etichetta.",
+			"icon": "chart-bar",
+			"category": "Contenuto",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{
+							"slug": "heading",
+							"label": "Titolo della sezione",
+							"type": "string"
+						},
+						{
+							"slug": "intro",
+							"label": "Introduzione",
+							"type": "text"
+						},
+						{
+							"slug": "items",
+							"label": "Numeri",
+							"type": "repeater",
+							"required": true,
+							"validation": {
+								"minItems": 2,
+								"maxItems": 4,
+								"subFields": [
+									{
+										"slug": "value",
+										"label": "Numero",
+										"type": "string",
+										"required": true
+									},
+									{
+										"slug": "label",
+										"label": "Etichetta",
+										"type": "string",
+										"required": true
+									}
+								]
+							}
+						},
+						{
+							"slug": "background",
+							"label": "Sfondo",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Nessuno",
+									"Tenue",
+									"Blu"
+								]
+							}
+						},
+						{
+							"slug": "spacing",
+							"label": "Spaziatura",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Compatta",
+									"Normale",
+									"Ampia"
+								]
+							}
+						},
+						{
+							"slug": "width",
+							"label": "Larghezza",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Normale",
+									"Stretta"
+								]
+							}
+						},
+						{
+							"slug": "anchor_id",
+							"label": "ID sezione (per i link #)",
+							"type": "string"
+						}
+					]
+				}
+			]
+		},
+		{
 			"slug": "cta",
 			"label": "Invito all'azione",
 			"description": "Riquadro finale con titolo, testo e pulsante.",
@@ -654,6 +882,8 @@
 							"card_grid",
 							"steps",
 							"faq",
+							"media_text",
+							"stats",
 							"cta",
 							"text"
 						],
