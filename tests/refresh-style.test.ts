@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { ordinal, refreshBackground, refreshBand, revealDelay, splitClaim } from "../astro-src/lib/refresh-style";
+import { ROUTES } from "../astro-src/i18n/routes";
+import { routeKeyFor, SCENES, sceneFor } from "../astro-src/lib/page-scenes";
+import { ordinal, refreshBackground, refreshBand, revealDelay, splitClaim, splitLead } from "../astro-src/lib/refresh-style";
 
 describe("refreshBackground", () => {
 	it("keeps the editor's choice", () => {
@@ -44,5 +46,36 @@ describe("helpers", () => {
 		expect(splitClaim("Meno complessità. Più impresa.")).toEqual(["Meno complessità.", "Più impresa."]);
 		expect(splitClaim("Parliamone.")).toEqual(["Parliamone."]);
 		expect(splitClaim("Servizi digitali")).toEqual(["Servizi digitali"]);
+	});
+});
+
+
+describe("page scenes", () => {
+	it("gives every page except home an illustration", () => {
+		const keys = Object.keys(ROUTES).filter((key) => key !== "page.home");
+		expect(keys.filter((key) => !(key in SCENES))).toEqual([]);
+	});
+	it("finds the scene from the path, with or without the slash", () => {
+		expect(routeKeyFor("/servizi/consulenza-aziendale/")).toBe("service.consulting");
+		expect(routeKeyFor("/contatti")).toBe("page.contact");
+		expect(sceneFor("/nessuna-pagina/")).toBeNull();
+	});
+	it("uses four satellites per scene", () => {
+		for (const scene of Object.values(SCENES)) expect(scene!.satellites).toHaveLength(4);
+	});
+});
+
+describe("splitLead", () => {
+	const p = (text: string, extra: object = {}) => ({ _type: "block", style: "normal", markDefs: [], children: [{ text, marks: [] }], ...extra });
+	it("moves a plain first paragraph up", () => {
+		const { lead, rest } = splitLead([p("Intro."), p("Body.")]);
+		expect(lead).toBe("Intro.");
+		expect(rest).toHaveLength(1);
+	});
+	it("keeps rich openings in the body", () => {
+		expect(splitLead([p("Link", { markDefs: [{ _key: "a" }] }), p("x")]).lead).toBeNull();
+		expect(splitLead([p("Title", { style: "h2" }), p("x")]).lead).toBeNull();
+		expect(splitLead([p("Only paragraph")])).toEqual({ lead: "Only paragraph", rest: [] });
+		expect(splitLead(null)).toEqual({ lead: null, rest: [] });
 	});
 });

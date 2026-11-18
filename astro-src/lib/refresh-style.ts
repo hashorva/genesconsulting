@@ -72,3 +72,24 @@ export function splitClaim(heading: string): [string, string?] {
 	const match = heading.trim().match(/^(.+?[.!?])\s+(\S.*)$/s);
 	return match ? [match[1], match[2]] : [heading.trim()];
 }
+
+type TextBlock = { _type?: string; style?: string; listItem?: string; markDefs?: unknown[]; children?: { text?: string; marks?: string[] }[] };
+
+/**
+ * A page's opening sentence as the header's lead: when the body starts with a plain
+ * paragraph (no link, no list, no heading), it moves up into the title band.
+ * Anything richer stays in the body, so no formatting or link is ever lost.
+ * A body that is only that sentence moves up whole, so no near-empty body is left behind.
+ */
+export function splitLead(content: readonly unknown[] | null | undefined): { lead: string | null; rest: unknown[] } {
+	const blocks = [...(content ?? [])];
+	const first = blocks[0] as TextBlock | undefined;
+	const plain =
+		first?._type === "block" &&
+		(first.style ?? "normal") === "normal" &&
+		!first.listItem &&
+		(first.markDefs?.length ?? 0) === 0 &&
+		(first.children ?? []).every((child) => (child.marks?.length ?? 0) === 0);
+	const text = plain ? (first!.children ?? []).map((child) => child.text ?? "").join("").trim() : "";
+	return text ? { lead: text, rest: blocks.slice(1) } : { lead: null, rest: blocks };
+}

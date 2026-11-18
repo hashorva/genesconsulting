@@ -4,8 +4,10 @@ import { ArrowRight } from "lucide-react";
 
 import Eyebrow from "@/components/refresh/Eyebrow.astro";
 import Network from "@/components/refresh/Network.astro";
+import Scene from "@/components/refresh/Scene.astro";
 import { buttonVariants } from "@/components/ui/button";
 import { resolveLocale, useTranslations } from "@/i18n";
+import { sceneFor } from "@/lib/page-scenes";
 import { splitClaim } from "@/lib/refresh-style";
 import { safeHref } from "@/lib/safe-href";
 import { buttonVariant } from "@/lib/section-style";
@@ -44,6 +46,8 @@ const t = useTranslations(resolveLocale(Astro.currentLocale));
 const Heading = level;
 const [first, second] = splitClaim(heading);
 const showNetwork = !centered && illustration === "Rete";
+// "Rete" on an inner page draws that page's own constellation (lib/page-scenes.ts) when it has one.
+const scene = showNetwork ? sceneFor(Astro.url.pathname) : null;
 const showImage = !centered && illustration === "Immagine" && image?.id;
 const aside = showNetwork || showImage;
 const links = (buttons ?? [])
@@ -92,7 +96,11 @@ const links = (buttons ?? [])
 			</div>
 			{
 				showNetwork && (
-					<Network class="mx-auto w-full max-w-64 sm:max-w-sm lg:col-span-2 lg:max-w-md" />
+					scene ? (
+						<Scene scene={scene} class="mx-auto w-full max-w-64 sm:max-w-sm lg:col-span-2 lg:max-w-md" />
+					) : (
+						<Network class="mx-auto w-full max-w-64 sm:max-w-sm lg:col-span-2 lg:max-w-md" />
+					)
 				)
 			}
 			{
