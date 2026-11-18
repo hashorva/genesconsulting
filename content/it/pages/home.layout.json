@@ -1,0 +1,107 @@
+[
+  {
+    "_type": "card_grid",
+    "_version": 1,
+    "_key": "home-areas",
+    "heading": "Tre aree, un unico interlocutore",
+    "cards": [
+      {
+        "title": "Servizi amministrativi e societari",
+        "text": "Pratiche camerali e adempimenti amministrativi.",
+        "link_url": "/servizi/amministrativi-societari/",
+        "link_label": "Scopri i servizi societari"
+      },
+      {
+        "title": "Consulenza aziendale integrata",
+        "text": "Un supporto concreto per le imprese.",
+        "link_url": "/servizi/consulenza-aziendale/",
+        "link_label": "Scopri la consulenza"
+      },
+      {
+        "title": "Servizi digitali",
+        "text": "PEC, firme digitali e pratiche telematiche.",
+        "link_url": "/servizi/digitali-documentali/",
+        "link_label": "Scopri i servizi digitali"
+      }
+    ]
+  },
+  {
+    "_type": "card_grid",
+    "_version": 1,
+    "_key": "home-audiences",
+    "heading": "Due destinatari, un unico riferimento",
+    "intro": "Due interlocutori, esigenze differenti: un supporto operativo costruito sul lavoro di ciascuno.",
+    "cards": [
+      {
+        "title": "Per le imprese",
+        "text": "Quando servono adempimenti societari, documenti, rapporti con enti e assistenza amministrativa continuativa.",
+        "link_url": "/per-le-imprese/",
+        "link_label": "Supporto per le imprese"
+      },
+      {
+        "title": "Per gli studi professionali",
+        "text": "Quando occorre supporto per pratiche telematiche, documentazione e attività operative complementari agli incarichi.",
+        "link_url": "/per-gli-studi-professionali/",
+        "link_label": "Supporto per gli studi"
+      }
+    ]
+  },
+  {
+    "_type": "steps",
+    "_version": 1,
+    "_key": "home-method",
+    "heading": "Un unico punto di riferimento",
+    "intro": "Un percorso chiaro: dall'esigenza iniziale alla gestione operativa, con un riferimento che resta nel tempo.",
+    "steps": [
+      {
+        "title": "Ascolto e analisi",
+        "text": "Partiamo dall'esigenza concreta: che cosa serve, entro quando, con quali enti e quali documenti."
+      },
+      {
+        "title": "Proposta operativa",
+        "text": "Definiamo attività, tempi e responsabilità prima di iniziare, così ogni passaggio è chiaro."
+      },
+      {
+        "title": "Gestione e coordinamento",
+        "text": "Seguiamo la pratica e coordiniamo le attività, anche quando coinvolgono più soggetti."
+      },
+      {
+        "title": "Consegna e continuità",
+        "text": "Consegniamo il risultato e restiamo il riferimento per le esigenze successive."
+      }
+    ]
+  },
+  {
+    "_type": "card_grid",
+    "_version": 1,
+    "_key": "home-values",
+    "heading": "Perché scegliere Genes",
+    "cards": [
+      {
+        "title": "Semplificazione",
+        "text": "Esigenze diverse, un riferimento operativo."
+      },
+      {
+        "title": "Flessibilità",
+        "text": "Attività calibrate sulle necessità reali."
+      },
+      {
+        "title": "Trasparenza",
+        "text": "Passaggi, ruoli e responsabilità definiti."
+      },
+      {
+        "title": "Continuità",
+        "text": "Un rapporto che supera la singola pratica."
+      }
+    ]
+  },
+  {
+    "_type": "cta",
+    "_version": 1,
+    "_key": "home-cta",
+    "heading": "Parliamone.",
+    "text": "L'esperienza che semplifica, le competenze che si integrano. Telefono +39 02 94556110, email genesconsulting@genesconsulting.it.",
+    "button_label": "Contattaci",
+    "button_url": "/contatti/"
+  }
+]

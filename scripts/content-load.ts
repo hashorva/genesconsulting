@@ -5,24 +5,43 @@
  *   bun scripts/content-load.ts --url https://genesconsulting.purrfect.workers.dev
  *
  * Safe by design (docs/cd.md, EmDash content safety):
- * - Never runs in CI. Never updates, overwrites or deletes an existing entry:
- *   a page whose slug already exists is skipped, so edits made in the admin win.
+ * - Never runs in CI. Never overwrites live content or deletes an entry: a page
+ *   whose slug already exists is skipped, so edits made in the admin win.
  * - New pages are created as DRAFTS. Visitors see nothing until someone publishes them.
  * - `--publish` (run only after the owner approved the drafts) publishes the pages
- *   listed in content/ that are still the loader's never-published drafts,
+ *   listed in content/ that are still the loader's never-published drafts (pages
+ *   with sections only once the page_blocks flag is public),
  *   replaces the seed's placeholder tagline, and fills the primary/footer menus
  *   (published pages only) when they are empty.
+ * - `--layout` adds the sections in content/it/pages/<slug>.layout.json (and that
+ *   file's shorter body) to pages the loader published and nobody edited since, as a
+ *   DRAFT revision: the live page is unchanged until someone publishes the draft.
+ *   `--layout --publish` (after the owner approved those drafts) publishes only the
+ *   pages whose pending draft is still exactly what the loader wrote, and only
+ *   once the page_blocks flag is public (otherwise visitors would lose content).
  * - `--dry-run` prints what would happen without writing.
  *
  * Auth: EMDASH_TOKEN, else the credentials saved by `bunx emdash login`.
  * Against a local `bun run dev` (localhost) the dev bypass is used.
  */
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 
+import { markdownToPortableText } from "emdash/client";
+
+import {
+	canAddLayoutDraft,
+	publishSkipReason,
+	type LayoutBlock,
+	parseLayoutFile,
+	parsePageFile,
+	type PageFile,
+	type PageState,
+	sameContent,
+} from "./content-file";
+import flags from "../flags.json";
 import { createClient } from "./emdash-client";
-import { isLoaderDraft, parsePageFile, type PageFile, type PageState } from "./content-file";
 
 const CONTENT_DIR = join(import.meta.dirname, "..", "content", "it", "pages");
 const LOCALE = "it";
@@ -44,6 +63,7 @@ const { values: args } = parseArgs({
 	options: {
 		url: { type: "string" },
 		publish: { type: "boolean", default: false },
+		layout: { type: "boolean", default: false },
 		"dry-run": { type: "boolean", default: false },
 	},
 });
@@ -61,6 +81,21 @@ const pages = readdirSync(CONTENT_DIR)
 	.sort()
 	.map((name) => parsePageFile(readFileSync(join(CONTENT_DIR, name), "utf-8"), name));
 
+/** Sections per page slug, from content/it/pages/<slug>.layout.json when present. */
+const layouts = new Map<string, LayoutBlock[]>();
+for (const page of pages) {
+	const name = `${page.slug}.layout.json`;
+	const path = join(CONTENT_DIR, name);
+	if (existsSync(path)) layouts.set(page.slug, parseLayoutFile(readFileSync(path, "utf-8"), name));
+}
+
+/** The layout as EmDash stores it: text blocks' Markdown becomes Portable Text. */
+function layoutData(blocks: LayoutBlock[]) {
+	return blocks.map((block) =>
+		block._type === "text" ? { ...block, content: markdownToPortableText(block.content as string) } : block,
+	);
+}
+
 const existing = new Map<string, PageState & { id: string }>();
 for await (const item of client.listAll("pages", { locale: LOCALE, limit: 100 })) {
 	if (!item.slug) continue;
@@ -68,7 +103,9 @@ for await (const item of client.listAll("pages", { locale: LOCALE, limit: 100 })
 	existing.set(item.slug, { id, status, publishedAt, liveRevisionId, scheduledAt, title: item.data?.title });
 }
 
-if (args.publish) await publish(pages);
+if (args.layout && args.publish) await publishLayouts(pages);
+else if (args.layout) await addLayoutDrafts(pages);
+else if (args.publish) await publish(pages);
 else await createDrafts(pages);
 
 async function createDrafts(files: PageFile[]) {
@@ -84,7 +121,11 @@ async function createDrafts(files: PageFile[]) {
 		await client.create("pages", {
 			slug: page.slug,
 			locale: LOCALE,
-			data: { title: page.title, content: page.body },
+			data: {
+				title: page.title,
+				content: page.body,
+				...(layouts.has(page.slug) ? { layout: layoutData(layouts.get(page.slug) ?? []) } : {}),
+			},
 			seo: { title: page.seoTitle, description: page.seoDescription },
 		});
 		console.log(`draft    ${page.slug}`);
@@ -99,10 +140,9 @@ async function publish(files: PageFile[]) {
 			console.log(`missing  ${page.slug} (run without --publish first)`);
 			continue;
 		}
-		// Only the loader's own, never-published drafts. A page that was ever published
-		// (then unpublished), scheduled, or retitled in the admin is left alone.
-		if (!isLoaderDraft(entry, page)) {
-			console.log(`skip     ${page.slug} (status ${entry.status}, changed in the admin or published before)`);
+		const reason = publishSkipReason(entry, page, layouts.has(page.slug), !!flags.flags.page_blocks?.public);
+		if (reason) {
+			console.log(`skip     ${page.slug} (${reason})`);
 			continue;
 		}
 		if (!dryRun) await client.publish("pages", entry.id);
@@ -145,5 +185,65 @@ async function fillMenu(name: string, items: Array<[string, string]>) {
 			});
 		}
 		console.log(`${dryRun ? "would add" : "added"} menu ${name}: ${label}`);
+	}
+}
+
+async function addLayoutDrafts(files: PageFile[]) {
+	for (const page of files) {
+		const blocks = layouts.get(page.slug);
+		if (!blocks) continue;
+		const entry = existing.get(page.slug);
+		if (!entry) {
+			console.log(`missing  ${page.slug} (not on the site)`);
+			continue;
+		}
+		// Fresh read: its _rev makes the write fail (409) if anyone saves in between.
+		const item = await client.get("pages", entry.id, { locale: LOCALE });
+		const target = { ...item, title: item.data?.title, layout: item.data?.layout };
+		if (!canAddLayoutDraft(target, page)) {
+			console.log(`skip     ${page.slug} (edited in the admin, has a draft, or already has sections)`);
+			continue;
+		}
+		if (!dryRun) {
+			await client.update("pages", entry.id, {
+				locale: LOCALE,
+				_rev: item._rev,
+				data: { content: page.body, layout: layoutData(blocks) },
+			});
+		}
+		console.log(`${dryRun ? "would add" : "added"} sections draft ${page.slug} (${blocks.length} sections)`);
+	}
+	console.log("\nThe live pages are unchanged. Review the drafts in /_emdash/admin, then run with --layout --publish.");
+}
+
+async function publishLayouts(files: PageFile[]) {
+	// Visitors only see sections once page_blocks is public; publishing the shorter
+	// bodies before that would hide content from them. Run this from the release commit.
+	if (!flags.flags.page_blocks?.public) {
+		console.error("refuse   page_blocks is not public in flags.json: release the flag first.");
+		process.exit(1);
+	}
+	for (const page of files) {
+		const blocks = layouts.get(page.slug);
+		const entry = existing.get(page.slug);
+		if (!blocks || !entry) continue;
+		const item = await client.get("pages", entry.id, { locale: LOCALE });
+		if (!item.draftRevisionId || item.scheduledAt) {
+			console.log(`skip     ${page.slug} (no pending draft, or scheduled)`);
+			continue;
+		}
+		// Publish only if the draft is exactly what the loader wrote: title, body and every
+		// section field. Any edit made in the admin since then is left for a person to publish.
+		const { draft } = await client.compare("pages", entry.id);
+		const same =
+			draft?.title === page.title &&
+			sameContent(draft?.content, markdownToPortableText(page.body)) &&
+			sameContent(draft?.layout, layoutData(blocks));
+		if (!same) {
+			console.log(`skip     ${page.slug} (draft changed in the admin; publish it there)`);
+			continue;
+		}
+		if (!dryRun) await client.publish("pages", entry.id);
+		console.log(`${dryRun ? "would publish" : "published"} ${page.slug}`);
 	}
 }
