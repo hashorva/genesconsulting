@@ -21,15 +21,17 @@ Everything visual uses defaults only. Humans and agents alike.
 ## Trunk-based workflow
 - `main` is the trunk: always releasable, protected, changed only by PR.
 - Short-lived branches (hours to a day or two) cut from the latest `main`, small PRs, merged to `main` often. No long-lived feature or release branches.
-- Unfinished work merges to `main` **dark behind a flag** (`flags.json`, off in production) instead of living on a branch.
-- Merging to `main` runs CI, then **auto-deploys to production** (no manual gate). New features therefore ship **hidden behind a flag** (`production: false`) and are tested on the PR preview (flags on in preview).
-- A **release** turns a feature on for everyone: a small PR flipping its flag to `production: true`, then a `vX.Y.Z` tag. Rollback = deploy an earlier tag, or set the `FLAG_<NAME>` Worker var to `false` as a kill switch. See `docs/cd.md`.
-- Previews run on a separate preview Worker with its own D1/R2/KV: never point `env.preview` at production's database or bucket ids.
+- Unfinished work merges to `main` **dark behind a flag** (`flags.json`, `public: false`) instead of living on a branch.
+- Merging to `main` runs CI, then **auto-deploys to production** (no manual gate). There is no preview or staging site: EmDash owns the content and the database, and code PRs only change components. Unfinished components are checked on the live site, where only signed-in EmDash editors and admins see them.
+- A **release** turns a feature on for everyone: a small PR flipping its flag to `public: true`, then a `vX.Y.Z` tag. Rollback = deploy an earlier tag, or set the `FLAG_<NAME>` Worker var to `false` as a kill switch. See `docs/cd.md`.
 - Code releases never overwrite or break EmDash content or its own releases.
 
 ## Git and PR flow
-- Never push to `main`. One branch per agent/task (`claude/<topic>`), one PR per task, opened as **draft**, small and focused.
-- A PR needs green `gate` and a human review/merge. Agents never merge or tag releases unless the owner asks.
+- Agents act on GitHub as the bot account, never as the owner (`docs/github-bot-setup.md`). If a session finds it is pushing as the owner, it says so in its reply.
+- Never push to `main`. One branch per agent/task (`claude/<topic>`), one PR per task, small and focused. Open it **ready for review** (not draft) once its checks pass locally.
+- **Critical** PRs are the ones the AI review sends to Opus: the `risky` label, more than 400 changed lines, or touching workflows (`.github/`), `AGENTS.md`/`CLAUDE.md`, the rule docs `docs/cd.md` and `docs/design/brand-colors.md`, agent skills (`.agents/`, `.claude/`, `.mcp.json`), wrangler or Astro config, package/lock files, `flags.json`, `seed/`, migrations, the flags and Worker entry (`astro-src/flags.ts`, `astro-src/worker.ts`), or auth/session/middleware files or folders (`RISKY_PATHS` in `.github/workflows/ai-review.yml`, mirrored in `.github/CODEOWNERS`). They merge only after the owner **approves the final commit** in GitHub's review UI (required check `review-gate` and, for those paths, GitHub's code-owner rule fail without it; a new push dismisses the approval). Agents never approve, never ask another account to approve, and never merge critical PRs. When unsure whether a PR is critical, treat it as critical.
+- **Non-critical** PRs: the agent enables **auto-merge (squash)** as soon as the PR is open; GitHub merges it once both required checks pass: `gate` (CI) and `review-gate` (the AI review of the current head SHA said "No blocking findings."). Fix any findings with a new push, which is reviewed again. Docs-only PRs (only `docs/` or `README.md`) get no AI review and pass `review-gate` directly.
+- Otherwise agents never merge or tag releases unless the owner asks.
 - Never rewrite history on shared branches; never skip tests or disable checks to get green.
 
 ## Code vs content
@@ -43,6 +45,6 @@ Everything visual uses defaults only. Humans and agents alike.
 - **Haiku**: tiny edits (a button color, copy typo, class tweak, rename).
 - **Sonnet**: normal work (a component, a page, a workflow change, tests).
 - **Opus / Fable**: heavy work (architecture, EmDash schema design, SEO/AI-SEO content map, copy improvement, tricky debugging).
-- AI review runs on every non-draft PR (Sonnet by default, Opus for risky paths or the `risky` label); address its findings before asking for merge.
+- AI review runs on every non-draft, non-docs-only PR (Sonnet by default, Opus for critical PRs); address its findings before auto-merge or asking for merge.
 - UI strings go through an i18n layer (i18next style), Italian default and only language for now; no hardcoded strings in components.
 - Parallel agents only on independent files/areas, each with its own branch and PR.

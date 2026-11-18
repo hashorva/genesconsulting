@@ -2,14 +2,13 @@
 
 Everything that needs a Cloudflare login or a secret. The code side needs nothing else. Takes about 20 minutes.
 
-What exists after this: two Workers on your Cloudflare account.
+What exists after this: one Worker on your Cloudflare account. There is no preview or staging site: unfinished components are checked on the live site, where only signed-in EmDash editors and admins see them (`docs/cd.md`).
 
 | Worker | URL | Deployed by | Data |
 | --- | --- | --- | --- |
 | `genesconsulting` | `https://genesconsulting.<your-subdomain>.workers.dev` | every merge to `main` (and `vX.Y.Z` tags, for rollback) | D1 `genesconsulting`, R2 `genesconsulting-media`, KV for sessions |
-| `genesconsulting-preview` | `https://genesconsulting-preview.<your-subdomain>.workers.dev` | every pull request from this repo | D1 `genesconsulting-preview`, R2 `genesconsulting-media-preview`, its own KV |
 
-The first deploy of each Worker creates its database, bucket and KV namespace automatically. You never create them by hand, and you never rename or delete them (that is where the content lives).
+The first deploy creates its database, bucket and KV namespace automatically. You never create them by hand, and you never rename or delete them (that is where the content lives).
 
 ## 1. Check your workers.dev subdomain
 
@@ -42,7 +41,6 @@ In https://github.com/hashorva/genesconsulting/settings/environments:
    - **Add environment secret** `CLOUDFLARE_API_TOKEN` = the token from step 3.
    - **Add environment secret** `CLOUDFLARE_ACCOUNT_ID` = the ID from step 2.
    - No required reviewers: production deploys automatically after CI passes on `main` (unfinished features stay hidden behind flags, see `docs/cd.md`).
-2. Create the environment **`preview`** with the same two secrets.
 
 Then in **Settings → Secrets and variables → Actions → Variables**, add the repository variable **`CD_DEPLOY_ENABLED`** = `true`. Until it exists, CI runs but nothing deploys. Set it when you are ready for the first deploy (step 6), because from then on every merge to `main` goes live.
 
@@ -50,7 +48,7 @@ Then in **Settings → Secrets and variables → Actions → Variables**, add th
 
 ## 5. Protect `main`
 
-**Settings → Branches → Add branch ruleset** (or classic rule) for `main`: require a pull request, and require the status check **`gate`**.
+Follow [`docs/github-bot-setup.md`](github-bot-setup.md): the agents' bot account, the ruleset on `main` (checks **`gate`** and **`review-gate`**, code-owner review) and **Allow auto-merge**.
 
 ## 6. First production deploy
 
@@ -64,7 +62,6 @@ Until the setup wizard is completed, **whoever opens the admin first becomes the
 
 1. Open `https://genesconsulting.<your-subdomain>.workers.dev/_emdash/admin`.
 2. Complete the wizard: site title, your admin account and passkey. Do **not** import sample content.
-3. Do the same on the preview Worker (`genesconsulting-preview...`) after the first PR deploys to it. Preview URLs are public too.
 
 The site starts hidden from search engines (staging) until you choose to go live in EmDash.
 
@@ -75,9 +72,7 @@ EmDash encrypts plugin secrets (for example SMTP passwords) with `EMDASH_ENCRYPT
 1. Generate one locally: `bunx emdash secrets generate` (or `npx emdash secrets generate`). It prints `emdash_enc_v1_...`.
 2. **Save it in your password manager first.** If it is lost, every plugin secret encrypted with it is lost. It is not in the D1 backups.
 3. Cloudflare dashboard → **Workers & Pages → genesconsulting → Settings → Variables and Secrets → Add** → Type **Secret**, name `EMDASH_ENCRYPTION_KEY`, value the key → **Deploy**.
-4. Repeat on `genesconsulting-preview` with a **different** key.
-
-(CLI alternative: `bunx wrangler secret put EMDASH_ENCRYPTION_KEY` and `bunx wrangler secret put EMDASH_ENCRYPTION_KEY --env preview`.)
+(CLI alternative: `bunx wrangler secret put EMDASH_ENCRYPTION_KEY`.)
 
 ## Later: the client's domain
 
@@ -87,4 +82,14 @@ Passkeys only work on the hostname where they were created. The admin passkey yo
 2. A PR adds to `wrangler.jsonc`: `"routes": [{ "pattern": "www.genesconsulting.it", "custom_domain": true }]` and `"EMDASH_SITE_URL": "https://www.genesconsulting.it"` under `vars`. Merging it deploys.
 3. In EmDash, **Settings → General → Change domain**, then register a new passkey on the new domain (keep an admin able to sign in by another method during the switch).
 
-Never put `siteUrl` in `astro.config.mjs`: it would be baked into preview builds too.
+Never put `siteUrl` in `astro.config.mjs`: the public URL comes from `EMDASH_SITE_URL`.
+
+## Removing the old preview site (once)
+
+Until 2026-11-17 pull requests also deployed to a separate preview Worker. It is gone from the code; delete its leftovers by hand. **Check each name before deleting: everything without `-preview` is production and holds the real content.**
+
+1. Cloudflare → **Workers & Pages** → `genesconsulting-preview` → **Settings** → **Delete**.
+2. Cloudflare → **Storage & Databases → D1** → `genesconsulting-preview` → **Settings** → **Delete**.
+3. Cloudflare → **R2** → `genesconsulting-media-preview` → empty it if it has files, then **Settings** → **Delete bucket**.
+4. Cloudflare → **Storage & Databases → KV**: the namespace whose name contains `genesconsulting-preview` (created for its `SESSION` binding) → **Delete**. Keep the one bound to `genesconsulting`: open it and check **Bindings** if unsure.
+5. GitHub → **Settings → Environments** → `preview` → **Delete environment** (removes its two secrets).

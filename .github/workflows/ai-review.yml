@@ -1,16 +1,26 @@
 # Advisory AI review of pull requests (adapted from hashorva/finduck's ai-review).
-# Never a required check. Skips when secret CLAUDE_CODE_OAUTH_TOKEN is missing (also on forks).
-# Model: Sonnet for ordinary PRs; Opus when the PR is labelled `risky`, changes >400 lines,
-# or touches security/deploy paths (RISKY_PATHS below). Docs-only and draft PRs are not reviewed.
-# pull_request only (never pull_request_target); the job runs no PR code; GitHub-hosted runner.
+# The review itself is advisory; job `review-gate` (required check) turns its verdict into a merge gate.
+# The review skips when secret CLAUDE_CODE_OAUTH_TOKEN is missing (also on forks).
+# Model: Sonnet for ordinary PRs; Opus for *critical* PRs: labelled `risky`, >400 lines changed,
+# or touching security/deploy/rules paths (RISKY_PATHS below). Docs-only PRs (docs/, README.md) and drafts are not reviewed.
+# Job `review-gate` (required check) blocks merging until the review of the head SHA is clean,
+# and, on critical PRs, until the repo owner has approved that exact head SHA (AGENTS.md).
+# Agents work as a separate bot account (docs/github-bot-setup.md), so only the owner can approve.
+# Critical paths are also listed in .github/CODEOWNERS, which GitHub enforces from main's copy,
+# so a PR cannot weaken this workflow without the owner's approval.
+# pull_request(_review) only (never pull_request_target); no job runs PR code; GitHub-hosted runner.
 name: AI review
 
 on:
   pull_request:
-    types: [opened, synchronize, ready_for_review, labeled]
+    types: [opened, synchronize, ready_for_review, labeled, unlabeled, auto_merge_enabled]
+  # Re-run review-gate when the owner approves or an approval is dismissed.
+  pull_request_review:
+    types: [submitted, dismissed]
 
 concurrency:
-  group: ${{ github.event.action == 'labeled' && github.event.label.name != 'risky' && format('ai-review-ignored-{0}', github.run_id) || format('ai-review-{0}', github.event.pull_request.number) }}
+  # Ignored labels, label removals, auto-merge toggles and reviews get their own group so they never cancel a running review.
+  group: ${{ (github.event_name == 'pull_request_review' || (github.event.action == 'labeled' && github.event.label.name != 'risky') || github.event.action == 'unlabeled' || github.event.action == 'auto_merge_enabled') && format('ai-review-ignored-{0}', github.run_id) || format('ai-review-{0}', github.event.pull_request.number) }}
   cancel-in-progress: true
 
 permissions:
@@ -26,37 +36,53 @@ jobs:
     outputs:
       review: ${{ steps.scope.outputs.review }}
       model: ${{ steps.scope.outputs.model }}
+      critical: ${{ steps.scope.outputs.critical }}
+      docs_only: ${{ steps.scope.outputs.docs_only }}
     steps:
       - name: Review or not, and which model
         id: scope
         env:
           GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
           EVENT_ACTION: ${{ github.event.action }}
           LABEL_ADDED: ${{ github.event.label.name }}
           DRAFT: ${{ github.event.pull_request.draft }}
           PR: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
           LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
-          # Edit here (data, not logic). Extended regex on file paths.
-          RISKY_PATHS: '^\.github/|(^|/)wrangler[^/]*\.(jsonc|toml)$|^package(-lock)?\.json$|^flags\.json$|migrations?/|(^|/)(auth|session|middleware)[^/]*\.(ts|js|mjs|astro)$'
+          # Edit here (data, not logic). Extended regex on file paths. Keep in sync with .github/CODEOWNERS.
+          RISKY_PATHS: '^\.github/|^(AGENTS|CLAUDE)\.md$|^docs/(cd|design/brand-colors|github-bot-setup)\.md$|^\.agents/|^\.claude/|^\.mcp\.json$|(^|/)wrangler[^/]*\.(jsonc|toml)$|^astro\.config\.|^package(-lock)?\.json$|^bun\.lockb?$|^flags\.json$|^seed/|migrations?/|emdash-migrate|^astro-src/(flags|worker)\.ts$|(^|/)(auth|session|middleware)([^/]*\.(ts|js|mjs|astro)$|/)'
           MAX_LINES: "400"
           SONNET: claude-sonnet-5-5
           OPUS: claude-opus-5-5
         run: |
           set -euo pipefail
-          out() { echo "review=$1" >> "$GITHUB_OUTPUT"; echo "model=$2" >> "$GITHUB_OUTPUT"; echo "review=$1 model=$2 reason=$3"; }
-          if [[ "$DRAFT" == "true" ]]; then out false "$SONNET" draft; exit 0; fi
-          if [[ "$EVENT_ACTION" == "labeled" && "$LABEL_ADDED" != "risky" ]]; then out false "$SONNET" "label ignored"; exit 0; fi
-          if ! files=$(gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[] | [.filename, (.additions+.deletions)] | @tsv'); then
-            out true "$OPUS" "cannot list files (fail safe)"; exit 0
+          out() {
+            { echo "review=$1"; echo "model=$2"; echo "critical=$3"; echo "docs_only=${docs_only:-false}"; } >> "$GITHUB_OUTPUT"
+            echo "review=$1 model=$2 critical=$3 docs_only=${docs_only:-false} reason=$4"
+          }
+          # Critical (Opus, never auto-merged): risky label, risky path, or too many lines.
+          # Renamed files count under both their old and new path.
+          critical=false; why=""
+          if ! files=$(gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[] | ([.filename, (.additions+.deletions)] | @tsv), (select(.previous_filename) | [.previous_filename, 0] | @tsv)'); then
+            out true "$OPUS" true "cannot list files (fail safe)"; exit 0
           fi
-          # Docs-only: every file is markdown or under docs/
-          if ! echo "$files" | cut -f1 | grep -qvE '\.md$|^docs/'; then out false "$SONNET" "docs only"; exit 0; fi
           lines=$(echo "$files" | awk -F'\t' '{s+=$2} END{print s+0}')
-          if [[ ",$LABELS," == *",risky,"* ]]; then out true "$OPUS" "labelled risky"
-          elif echo "$files" | cut -f1 | grep -qE "$RISKY_PATHS"; then out true "$OPUS" "risky path"
-          elif (( lines > MAX_LINES )); then out true "$OPUS" "$lines lines"
-          else out true "$SONNET" "$lines lines"; fi
+          if [[ ",$LABELS," == *",risky,"* ]]; then critical=true; why="labelled risky"
+          elif echo "$files" | cut -f1 | grep -qE "$RISKY_PATHS"; then critical=true; why="risky path"
+          elif (( lines > MAX_LINES )); then critical=true; why="$lines lines"
+          else why="$lines lines"; fi
+          model=$SONNET; [[ "$critical" == true ]] && model=$OPUS
+          # Docs-only (no review needed, passes review-gate): every file is under docs/ or is README.md.
+          # Not any .md: Astro renders .md under astro-src/ as pages.
+          docs_only=false
+          if [[ "$critical" == false ]] && ! echo "$files" | cut -f1 | grep -qvE '^docs/|^README\.md$'; then docs_only=true; fi
+          if [[ "$DRAFT" == "true" ]]; then out false "$model" "$critical" draft; exit 0; fi
+          if [[ "$EVENT_NAME" == "pull_request_review" ]]; then out false "$model" "$critical" "review $EVENT_ACTION"; exit 0; fi
+          if [[ "$EVENT_ACTION" == "auto_merge_enabled" || "$EVENT_ACTION" == "unlabeled" ]]; then out false "$model" "$critical" "$EVENT_ACTION"; exit 0; fi
+          if [[ "$EVENT_ACTION" == "labeled" && "$LABEL_ADDED" != "risky" ]]; then out false "$model" "$critical" "label ignored"; exit 0; fi
+          if [[ "$docs_only" == true ]]; then out false "$model" "$critical" "docs only"; exit 0; fi
+          out true "$model" "$critical" "$why"
 
   review:
     needs: scope
@@ -91,6 +117,7 @@ jobs:
             echo
             echo "Repository: ${{ github.repository }}"
             echo "Pull request number: ${{ github.event.pull_request.number }}"
+            echo "Head commit: ${{ github.event.pull_request.head.sha }}"
             echo "REVIEW_PROMPT_EOF"
           } >> "$GITHUB_OUTPUT"
 
@@ -107,3 +134,75 @@ jobs:
             --setting-sources user
             --strict-mcp-config
             --allowedTools "Read,Grep,Glob,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*),mcp__github_inline_comment__create_inline_comment"
+
+  # Required check (ruleset on main, next to `gate`): a PR can merge, by hand or by
+  # auto-merge, only once the AI review of its current head SHA said "No blocking findings."
+  # (docs-only PRs need no review; without a Claude token it fails closed).
+  # Critical PRs also need the repo owner's approving review of that same head SHA. Agents
+  # push as a bot account and cannot approve; the ruleset dismisses stale approvals on push.
+  # Always runs, also on ignored-label, auto-merge and review events, so the latest result
+  # reflects the current labels, comments and reviews.
+  review-gate:
+    needs: [scope, review]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR: ${{ github.event.pull_request.number }}
+      REPO: ${{ github.repository }}
+      SHA: ${{ github.event.pull_request.head.sha }}
+      SCOPE_RESULT: ${{ needs.scope.result }}
+      OWNER_LOGIN: ${{ github.repository_owner }}
+      CRITICAL: ${{ needs.scope.outputs.critical }}
+      DOCS_ONLY: ${{ needs.scope.outputs.docs_only }}
+      HAS_CLAUDE_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+      FROM_FORK: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
+      AI_REVIEW_OPTIONAL: ${{ vars.AI_REVIEW_OPTIONAL }}
+    steps:
+      - name: Critical PRs need the owner's approval; every PR needs a clean review of this head
+        run: |
+          set -euo pipefail
+          if [[ "$SCOPE_RESULT" != "success" ]]; then echo "::error::scope job did not succeed"; exit 1; fi
+          OWNER=${REPO%/*}; NAME=${REPO#*/}
+          # The owner's latest state-changing review must be an approval of this exact head.
+          owner_approved() {
+            local last
+            last=$(gh api --paginate "repos/$REPO/pulls/$PR/reviews" \
+              --jq ".[] | select(.user.login == \"$OWNER_LOGIN\" and (.state == \"APPROVED\" or .state == \"CHANGES_REQUESTED\" or .state == \"DISMISSED\")) | [.state, .commit_id] | @tsv" | tail -n1)
+            [[ "$last" == "APPROVED"$'\t'"$SHA" ]]
+          }
+          critical_gate() {
+            if [[ "$CRITICAL" == "true" ]] && ! owner_approved; then
+              echo "::error title=Critical PR::Waiting for $OWNER_LOGIN to approve this commit ($SHA) in GitHub's review UI."
+              exit 1
+            fi
+          }
+          if [[ "$DOCS_ONLY" == "true" ]]; then critical_gate; echo "Docs-only PR: no AI review needed."; exit 0; fi
+          # Fail closed when no review can run (fork PRs get no secrets; a missing or expired
+          # token). Deliberate opt-out for same-repo PRs: repo variable AI_REVIEW_OPTIONAL=true.
+          if [[ "$HAS_CLAUDE_TOKEN" != "true" ]]; then
+            if [[ "$AI_REVIEW_OPTIONAL" == "true" && "$FROM_FORK" != "true" ]]; then
+              critical_gate
+              echo "::warning title=No AI review::CLAUDE_CODE_OAUTH_TOKEN missing; AI_REVIEW_OPTIONAL=true lets this pass."; exit 0
+            fi
+            echo "::error title=No AI review possible::No CLAUDE_CODE_OAUTH_TOKEN for this run (fork PR, or missing secret)."; exit 1
+          fi
+          # Match the reviewed SHA, not timestamps (committer dates are client-set), and accept
+          # the comment only if the bot wrote it and nobody else edited it since.
+          reviewed_at=$(gh api graphql -F o="$OWNER" -F r="$NAME" -F n="$PR" -f query='
+            query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){pullRequest(number:$n){
+              comments(last:100){nodes{author{login} editor{login} body updatedAt}}}}}' \
+            --jq ".data.repository.pullRequest.comments.nodes[]
+              | select(.author.login == \"github-actions\" and (.editor == null or .editor.login == \"github-actions\")
+                and (.body | startswith(\"No blocking findings\")) and (.body | contains(\"Reviewed: $SHA\")))
+              | .updatedAt" | sort | tail -n1 || true)
+          if [[ -z "$reviewed_at" ]]; then
+            echo "::error title=No clean AI review of $SHA::Fix the findings (or wait for the review); a new push is reviewed again."
+            exit 1
+          fi
+          critical_gate
+          echo "AI review of $SHA: no blocking findings."
