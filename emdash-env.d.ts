@@ -30,7 +30,7 @@ export interface PageLayoutCardGridV1Block {
   _key: string;
   "heading"?: string | null;
   "intro"?: string | null;
-  "cards": { "title": string; "text"?: string | null; "link_url"?: string | null; "link_label"?: string | null; "icon"?: "Rete" | "Documento" | "Edificio" | "Persone" | "Scudo" | "Grafico" | "Telefono" | "Posta" | "Calendario" | "Bilancia" | "Valigetta" | "Spunta" | "Stretta di mano" | "Istituzione" | null }[];
+  "cards": { "title": string; "text"?: string | null; "link_url"?: string | null; "link_label"?: string | null }[];
   "columns"?: "Automatiche" | "2" | "3" | "4" | null;
   "card_style"?: "Schede" | "Semplice" | null;
   "background"?: "Nessuno" | "Tenue" | "Blu" | null;
@@ -101,39 +101,7 @@ export interface PageLayoutTextV1Block {
 
 export type PageLayoutTextBlock = PageLayoutTextV1Block;
 
-export interface PageLayoutMediaTextV1Block {
-  _type: "media_text";
-  _version: 1;
-  _key: string;
-  "heading"?: string | null;
-  "content"?: PortableTextBlock[] | null;
-  "image": { id: string; src?: string; alt?: string; caption?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown>; darkVariant?: { id: string; src?: string; alt?: string; caption?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown> } };
-  "image_side"?: "Destra" | "Sinistra" | null;
-  "buttons"?: { "link_label": string; "link_url": string; "style"?: "Principale" | "Secondario" | "Contorno" | "Link" | null }[] | null;
-  "background"?: "Nessuno" | "Tenue" | "Blu" | null;
-  "spacing"?: "Compatta" | "Normale" | "Ampia" | null;
-  "width"?: "Normale" | "Stretta" | null;
-  "anchor_id"?: string | null;
-}
-
-export type PageLayoutMediaTextBlock = PageLayoutMediaTextV1Block;
-
-export interface PageLayoutStatsV1Block {
-  _type: "stats";
-  _version: 1;
-  _key: string;
-  "heading"?: string | null;
-  "intro"?: string | null;
-  "items": { "value": string; "label": string }[];
-  "background"?: "Nessuno" | "Tenue" | "Blu" | null;
-  "spacing"?: "Compatta" | "Normale" | "Ampia" | null;
-  "width"?: "Normale" | "Stretta" | null;
-  "anchor_id"?: string | null;
-}
-
-export type PageLayoutStatsBlock = PageLayoutStatsV1Block;
-
-export type PageLayoutBlock = PageLayoutHeroBlock | PageLayoutCardGridBlock | PageLayoutStepsBlock | PageLayoutFaqBlock | PageLayoutCtaBlock | PageLayoutTextBlock | PageLayoutMediaTextBlock | PageLayoutStatsBlock;
+export type PageLayoutBlock = PageLayoutHeroBlock | PageLayoutCardGridBlock | PageLayoutStepsBlock | PageLayoutFaqBlock | PageLayoutCtaBlock | PageLayoutTextBlock;
 
 export interface Page {
   id: string;
