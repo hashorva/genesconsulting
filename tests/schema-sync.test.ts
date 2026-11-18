@@ -228,4 +228,70 @@ describe("planSync", () => {
 			expect(plan.skip).toContainEqual({ what: "pages.layout", reason: "no allowedTypes list on the site, not touched" });
 		}
 	});
+
+	it("appends a missing optional sub-field to a live repeater and keeps its live sub-fields", () => {
+		const repeaterSeed: Seed = {
+			blockTypes: [
+				{
+					slug: "card_grid",
+					label: "Griglia",
+					currentVersion: 1,
+					versions: [
+						{
+							version: 1,
+							fields: [
+								{
+									slug: "cards",
+									label: "Schede",
+									type: "repeater",
+									validation: {
+										maxItems: 12,
+										subFields: [
+											{ slug: "title", label: "Titolo", type: "string", required: true },
+											{ slug: "icon", label: "Icona", type: "select", options: ["Rete"] },
+											{ slug: "code", label: "Codice", type: "string", required: true },
+										],
+									},
+								},
+							],
+						},
+					],
+				},
+			],
+			collections: [],
+		};
+		const liveCards = {
+			slug: "cards",
+			label: "Schede",
+			type: "repeater",
+			validation: { maxItems: 12, subFields: [{ slug: "title", label: "Titolo (sito)", type: "string", required: true }] },
+		};
+		const plan = planSync(repeaterSeed, {
+			blockTypes: [{ slug: "card_grid", fields: [liveCards], fingerprint: "fp", icon: "x", category: "y" }],
+			collections: new Map(),
+		});
+		expect(plan.refuse).toEqual([{ what: "card_grid.cards.code", reason: "required: would break existing sections" }]);
+		expect(plan.create).toEqual([
+			{
+				kind: "blockTypeFields",
+				slug: "card_grid",
+				expectedFingerprint: "fp",
+				added: ["cards.icon"],
+				fields: [
+					{
+						...liveCards,
+						validation: {
+							maxItems: 12,
+							subFields: [
+								{ slug: "title", label: "Titolo (sito)", type: "string", required: true },
+								{ slug: "icon", label: "Icona", type: "select", options: ["Rete"] },
+							],
+						},
+					},
+				],
+				icon: undefined,
+				category: undefined,
+			},
+		]);
+	});
 });

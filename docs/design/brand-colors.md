@@ -214,6 +214,9 @@ Editors style page sections ("Sezioni") only by picking a word from a list in Em
 | Pulsanti: Stile | Principale / Secondario / Contorno / Link | `Button` `default` / `secondary` / `outline` / `link`, size `lg` |
 | Accento (Apertura) | Oro | bar `h-1 w-12 rounded-full bg-yellow-600`, eyebrow `text-yellow-700 dark:text-yellow-600`. Never a gold background: white on yellow-600 fails contrast |
 | Illustrazione (Apertura) | Rete / Immagine / Nessuna | lucide `Waypoints` `size-48 text-sky-400` / EmDash image `rounded-2xl` / none |
+| Posizione immagine (Testo e immagine) | Destra / Sinistra | `md:grid-cols-2`, text `md:order-2` when the image is left |
+| Icona (schede) | Rete, Documento, Edificio, Persone, Scudo, Grafico, Telefono, Posta, Calendario, Bilancia, Valigetta, Spunta, Stretta di mano, Istituzione | lucide `Waypoints`, `FileText`, `Building2`, `Users`, `ShieldCheck`, `ChartLine`, `Phone`, `Mail`, `Calendar`, `Scale`, `Briefcase`, `CircleCheck`, `Handshake`, `Landmark`, `size-6 text-sky-700 dark:text-sky-300` (`astro-src/components/blocks/icons.ts`) |
+| Numeri chiave | number + label | number `text-4xl md:text-5xl font-bold text-sky-700 dark:text-sky-300`, rule `border-l-2 border-sky-400` |
 
 ## 6. Icon table
 
