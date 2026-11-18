@@ -6,6 +6,7 @@ import ProseHeading from "@/components/refresh/ProseHeading.astro";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { resolveLocale, useTranslations } from "@/i18n";
+import { routeKeyFor } from "@/lib/page-scenes";
 import { anchorId } from "@/lib/section-style";
 import { cn } from "@/lib/utils";
 
@@ -28,14 +29,15 @@ const headings = (content as Block[])
 	.map((block) => (block.children ?? []).map((child) => child.text ?? "").join(""))
 	.filter(Boolean)
 	.map((text) => ({ text, id: anchorId(text) }));
-const onContactPage = contactHref !== null && Astro.url.pathname === contactHref;
+// trailingSlash is "ignore", so /contatti and /contatti/ are both the contact page.
+const onContactPage = routeKeyFor(Astro.url.pathname) === "page.contact";
 const showCard = contactHref !== null && !onContactPage;
 // A body that already links to the contact page keeps the card beside it on wide
 // screens, but drops it on narrow ones, where it would repeat that link below.
 type Linked = { markDefs?: { href?: string }[] };
 const linksContact =
 	contactHref !== null &&
-	(content as Linked[]).some((block) => block.markDefs?.some((def) => def.href === contactHref));
+	(content as Linked[]).some((block) => block.markDefs?.some((def) => def.href !== undefined && routeKeyFor(def.href) === "page.contact"));
 const aside = headings.length >= 2 || showCard;
 ---
 
