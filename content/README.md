@@ -24,7 +24,7 @@ bun scripts/content-load.ts --url https://genesconsulting.purrfect.workers.dev -
 bun scripts/content-load.ts --url https://genesconsulting.purrfect.workers.dev --layout --publish  # after approval, once page_blocks is public
 ```
 
-`--layout` only touches pages published by the loader and not edited since. `--layout --publish` refuses until the `page_blocks` flag is public, and publishes only drafts that still hold exactly these sections.
+`--layout` only touches pages published by the loader and not edited since. `--layout --publish` refuses until the `page_blocks` flag is public, and publishes only drafts still exactly as the loader wrote them (title, body and every section field).
 
 ## Not written yet (needs the client)
 

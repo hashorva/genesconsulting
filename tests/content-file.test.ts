@@ -3,7 +3,9 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { canAddLayoutDraft, isLoaderDraft, parseLayoutFile, parsePageFile } from "../scripts/content-file";
+import { markdownToPortableText } from "emdash/client";
+
+import { canAddLayoutDraft, isLoaderDraft, parseLayoutFile, parsePageFile, sameContent } from "../scripts/content-file";
 import { safeHref } from "../astro-src/lib/safe-href";
 
 const dir = join(import.meta.dirname, "..", "content", "it", "pages");
@@ -98,5 +100,24 @@ describe("canAddLayoutDraft", () => {
 		expect(canAddLayoutDraft({ ...page, scheduledAt: "2026-12-01T09:00:00Z" }, file)).toBe(false);
 		expect(canAddLayoutDraft({ ...page, title: "Il nostro metodo" }, file)).toBe(false);
 		expect(canAddLayoutDraft({ ...page, layout: [{ _type: "cta" }] }, file)).toBe(false);
+	});
+});
+
+describe("sameContent", () => {
+	const md = "Testo con [un link](/contatti/) e **grassetto**.";
+	const layout = [{ _type: "cta", _version: 1, _key: "c", heading: "Parliamone.", button_url: "/contatti/" }];
+
+	it("ignores random Portable Text keys, key order and null fields", () => {
+		expect(sameContent(markdownToPortableText(md), markdownToPortableText(md))).toBe(true);
+		expect(sameContent([{ button_url: "/contatti/", heading: "Parliamone.", _key: "c", _version: 1, _type: "cta", text: null }], layout)).toBe(true);
+	});
+
+	it("detects any edited text, link, field or section key", () => {
+		expect(sameContent(markdownToPortableText(md.replace("/contatti/", "/chi-siamo/")), markdownToPortableText(md))).toBe(false);
+		expect(sameContent(markdownToPortableText(md.replace("Testo", "Testi")), markdownToPortableText(md))).toBe(false);
+		expect(sameContent([{ ...layout[0], heading: "Scrivici." }], layout)).toBe(false);
+		expect(sameContent([{ ...layout[0], _key: "d" }], layout)).toBe(false);
+		expect(sameContent([...layout, ...layout], layout)).toBe(false);
+		expect(sameContent(undefined, layout)).toBe(false);
 	});
 });

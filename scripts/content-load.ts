@@ -16,7 +16,7 @@
  *   file's shorter body) to pages the loader published and nobody edited since, as a
  *   DRAFT revision: the live page is unchanged until someone publishes the draft.
  *   `--layout --publish` (after the owner approved those drafts) publishes only the
- *   pages whose pending draft still holds exactly the loader's sections, and only
+ *   pages whose pending draft is still exactly what the loader wrote, and only
  *   once the page_blocks flag is public (otherwise visitors would lose content).
  * - `--dry-run` prints what would happen without writing.
  *
@@ -37,6 +37,7 @@ import {
 	parsePageFile,
 	type PageFile,
 	type PageState,
+	sameContent,
 } from "./content-file";
 import flags from "../flags.json";
 import { createClient } from "./emdash-client";
@@ -231,10 +232,13 @@ async function publishLayouts(files: PageFile[]) {
 			console.log(`skip     ${page.slug} (no pending draft, or scheduled)`);
 			continue;
 		}
-		// Publish only if the draft still holds exactly the loader's sections and title.
+		// Publish only if the draft is exactly what the loader wrote: title, body and every
+		// section field. Any edit made in the admin since then is left for a person to publish.
 		const { draft } = await client.compare("pages", entry.id);
-		const draftKeys = Array.isArray(draft?.layout) ? (draft.layout as LayoutBlock[]).map((b) => b._key) : [];
-		const same = draft?.title === page.title && JSON.stringify(draftKeys) === JSON.stringify(blocks.map((b) => b._key));
+		const same =
+			draft?.title === page.title &&
+			sameContent(draft?.content, markdownToPortableText(page.body)) &&
+			sameContent(draft?.layout, layoutData(blocks));
 		if (!same) {
 			console.log(`skip     ${page.slug} (draft changed in the admin; publish it there)`);
 			continue;

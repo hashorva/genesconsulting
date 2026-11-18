@@ -115,3 +115,43 @@ export function canAddLayoutDraft(entry: LayoutTarget, file: Pick<PageFile, "tit
 		(!Array.isArray(entry.layout) || entry.layout.length === 0)
 	);
 }
+
+/**
+ * A stable form of stored content for comparison: Portable Text keys are random,
+ * so blocks and spans lose their _key and mark references become markDef positions.
+ * Section blocks keep their _key (it comes from the layout file). Null and missing
+ * fields count as the same; object key order does not matter.
+ */
+export function canonicalContent(value: unknown): unknown {
+	if (Array.isArray(value)) return value.map(canonicalContent);
+	if (!value || typeof value !== "object") return value;
+	const obj = value as Record<string, unknown>;
+	if (obj._type === "block" && Array.isArray(obj.children)) {
+		const defs = Array.isArray(obj.markDefs) ? (obj.markDefs as Array<Record<string, unknown>>) : [];
+		const ref = new Map(defs.map((def, index) => [def._key, `#${index}`]));
+		const { _key, markDefs, children, ...rest } = obj;
+		return sortedFields({
+			...rest,
+			markDefs: defs.map(({ _key: _, ...def }) => sortedFields(def)),
+			children: (children as Array<Record<string, unknown>>).map(({ _key: _, marks, ...span }) =>
+				sortedFields({ ...span, marks: Array.isArray(marks) ? marks.map((mark) => ref.get(mark) ?? mark) : marks }),
+			),
+		});
+	}
+	return sortedFields(obj);
+}
+
+function sortedFields(obj: Record<string, unknown>): Record<string, unknown> {
+	const out: Record<string, unknown> = {};
+	for (const key of Object.keys(obj).sort()) {
+		const v = obj[key];
+		if (v === null || v === undefined) continue;
+		out[key] = Array.isArray(v) || (v && typeof v === "object") ? canonicalContent(v) : v;
+	}
+	return out;
+}
+
+/** True when stored content equals what the loader would write (see canonicalContent). */
+export function sameContent(stored: unknown, expected: unknown): boolean {
+	return JSON.stringify(canonicalContent(stored)) === JSON.stringify(canonicalContent(expected));
+}
