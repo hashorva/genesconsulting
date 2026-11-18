@@ -48,7 +48,7 @@ Then in **Settings → Secrets and variables → Actions → Variables**, add th
 
 ## 5. Protect `main`
 
-**Settings → Rules → Rulesets → New branch ruleset** (or edit the existing one): enforcement **Active**, target **Include default branch**, then turn on **Restrict deletions**, **Block force pushes**, **Require a pull request before merging** (required approvals **0**, allowed merge method **Squash**) and **Require status checks to pass** with **`gate`** and **`review-gate`** (source: GitHub Actions). In the bypass list, add **Repository admin** so you can merge a PR whose checks you deliberately override.
+**Settings → Rules → Rulesets → New branch ruleset** (or edit the existing one): enforcement **Active**, target **Include default branch**, then turn on **Restrict deletions**, **Block force pushes**, **Require a pull request before merging** (required approvals **0**, allowed merge method **Squash**) and **Require status checks to pass** with **`gate`** and **`review-gate`** (source: GitHub Actions). Leave the bypass list **empty**: agents push with your account, so a bypass would let them skip the checks too. To override the checks deliberately (rare), set the ruleset to **Disabled**, merge, and set it back to **Active**.
 
 Then **Settings → General → Pull Requests**: tick **Allow auto-merge** and **Automatically delete head branches**. Non-critical PRs merge themselves after a clean AI review; critical ones wait for you to press **Squash and merge** (see `docs/cd.md`).
 
