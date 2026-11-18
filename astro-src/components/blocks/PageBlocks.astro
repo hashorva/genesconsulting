@@ -5,7 +5,9 @@ import CardGrid from "@/components/blocks/CardGrid.astro";
 import Cta from "@/components/blocks/Cta.astro";
 import Faq from "@/components/blocks/Faq.astro";
 import Hero from "@/components/blocks/Hero.astro";
+import MediaText from "@/components/blocks/MediaText.astro";
 import Section from "@/components/blocks/Section.astro";
+import Stats from "@/components/blocks/Stats.astro";
 import Steps from "@/components/blocks/Steps.astro";
 import TextBlock from "@/components/blocks/TextBlock.astro";
 import { withoutComposer } from "@/lib/section-style";
@@ -34,6 +36,8 @@ const components = defineBlockComponents<PageLayoutBlock>({
 	card_grid: CardGrid,
 	steps: Steps,
 	faq: Faq,
+	media_text: MediaText,
+	stats: Stats,
 	cta: Cta,
 	text: TextBlock,
 });

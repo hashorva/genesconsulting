@@ -140,9 +140,31 @@ export function planSync(seed: Seed, live: LiveSchema): SyncPlan {
 			});
 		}
 		const added = missing.filter((f) => !f.required);
+		// Repeaters (e.g. card_grid.cards): append missing optional sub-fields, keep the live ones.
+		const seedBySlug = new Map((active.fields as SeedField[]).map((f) => [f.slug, f]));
+		const addedSub: string[] = [];
+		const liveFields = existing.fields.map((field) => {
+			const wanted = seedBySlug.get(field.slug);
+			if (field.type !== "repeater" || wanted?.type !== "repeater") return field;
+			const validation = (field.validation ?? {}) as { subFields?: Array<{ slug: string; required?: boolean }> };
+			const liveSub = validation.subFields ?? [];
+			const seedSub = ((wanted.validation as typeof validation | undefined)?.subFields ?? []) as typeof liveSub;
+			const haveSub = new Set(liveSub.map((f) => f.slug));
+			const missingSub = seedSub.filter((f) => !haveSub.has(f.slug));
+			for (const sub of missingSub.filter((f) => f.required)) {
+				plan.refuse.push({
+					what: `${type.slug}.${field.slug}.${sub.slug}`,
+					reason: "required: would break existing sections",
+				});
+			}
+			const appended = missingSub.filter((f) => !f.required);
+			if (appended.length === 0) return field;
+			addedSub.push(...appended.map((f) => `${field.slug}.${f.slug}`));
+			return { ...field, validation: { ...validation, subFields: [...liveSub, ...appended] } };
+		});
 		const icon = !existing.icon && type.icon ? type.icon : undefined;
 		const category = !existing.category && type.category ? type.category : undefined;
-		if (added.length === 0 && !icon && !category) {
+		if (added.length === 0 && addedSub.length === 0 && !icon && !category) {
 			plan.skip.push({ what: `block type ${type.slug}`, reason: "up to date" });
 			continue;
 		}
@@ -150,8 +172,8 @@ export function planSync(seed: Seed, live: LiveSchema): SyncPlan {
 			kind: "blockTypeFields",
 			slug: type.slug,
 			expectedFingerprint: existing.fingerprint,
-			added: added.map((f) => f.slug),
-			fields: [...existing.fields, ...added],
+			added: [...added.map((f) => f.slug), ...addedSub],
+			fields: [...liveFields, ...added],
 			icon,
 			category,
 		});
