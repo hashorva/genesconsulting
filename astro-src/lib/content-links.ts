@@ -2,6 +2,7 @@ import { getEmDashEntry, getMenuWithCacheHint, type CacheHint, type MenuItem } f
 
 import type { Locale } from "@/i18n";
 import { routePath, type RouteKey } from "@/i18n/routes";
+import { pageSlugFromPath } from "@/lib/page-paths";
 
 /**
  * Links are only rendered when the content behind them exists, so a deploy
@@ -20,14 +21,11 @@ export async function menuItems(Astro: AstroLike, name: string, locale: Locale):
 	return data?.items ?? [];
 }
 
-/**
- * Path of a page route, or null when its EmDash page is not published yet.
- * Route keys map to single-segment page slugs (e.g. "page.contact" -> "contatti").
- */
+/** Path of a page route, or null when its EmDash page is not published yet. */
 export async function pageLink(Astro: AstroLike, key: RouteKey, locale: Locale): Promise<string | null> {
 	const path = routePath(key, locale);
-	const slug = path.replace(/^\/|\/$/g, "");
-	if (!slug || slug.includes("/")) return null;
+	const slug = pageSlugFromPath(path);
+	if (!slug) return null;
 	const { entry, cacheHint } = await getEmDashEntry("pages", slug, { locale });
 	if (!entry) return null;
 	if (Astro.cache?.enabled) Astro.cache.set(cacheHint);

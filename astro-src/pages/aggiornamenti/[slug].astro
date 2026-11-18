@@ -1,7 +1,8 @@
 ---
 import { decodeSlug, getEmDashEntry, getSeoMeta, getSiteSettings } from "emdash";
-import { Image, PortableText } from "emdash/ui";
+import { Image } from "emdash/ui";
 
+import RichText from "@/components/content/RichText.astro";
 import { formatDate, resolveLocale, useTranslations } from "@/i18n";
 import Base from "@/layouts/Base.astro";
 import { resolveSiteIdentity } from "@/utils/site-identity";
@@ -53,8 +54,6 @@ const updated: Date | null = post.data.updatedAt ?? null;
 				</div>
 			)
 		}
-		<div class="space-y-4 leading-relaxed">
-			<PortableText value={post.data.content} />
-		</div>
+		<RichText value={post.data.content} />
 	</article>
 </Base>

@@ -1,39 +1,21 @@
 ---
-import { decodeSlug, getEmDashEntry, getSeoMeta, getSiteSettings } from "emdash";
-import { PortableText } from "emdash/ui";
+import { decodeSlug, getEmDashEntry } from "emdash";
 
-import { resolveLocale, useTranslations } from "@/i18n";
-import Base from "@/layouts/Base.astro";
-import { resolveSiteIdentity } from "@/utils/site-identity";
+import PageView from "@/components/content/PageView.astro";
+import { resolveLocale } from "@/i18n";
+import { SERVICE_PREFIX, servicePathFromSlug } from "@/lib/page-paths";
 
 // Single-segment pages from the EmDash "pages" collection: /chi-siamo/, /contatti/, ...
 const slug = decodeSlug(Astro.params.slug);
 if (!slug || slug === "home") return Astro.rewrite("/404/");
 
+// Service pages live under /servizi/<name>/ (page slug "servizi-<name>"): one URL per page.
+if (slug.startsWith(SERVICE_PREFIX)) return Astro.redirect(servicePathFromSlug(slug), 301);
+
 const locale = resolveLocale(Astro.currentLocale);
-const t = useTranslations(locale);
 const { entry: page, cacheHint } = await getEmDashEntry("pages", slug, { locale });
 if (!page) return Astro.rewrite("/404/");
 if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
-
-const { siteTitle } = resolveSiteIdentity(await getSiteSettings(), {
-	title: t("site.name"),
-	tagline: t("seo:defaultDescription"),
-});
-const seo = getSeoMeta(page, { siteTitle, siteUrl: Astro.url.origin, path: Astro.url.pathname });
 ---
 
-<Base
-	title={seo.title}
-	pageTitle={seo.ogTitle}
-	description={seo.description}
-	canonical={seo.canonical}
-	content={{ collection: "pages", id: page.data.id, slug }}
->
-	<article class="container mx-auto max-w-3xl space-y-6 px-4 py-16 md:px-6 md:py-24">
-		<h1 class="text-3xl font-bold tracking-tight md:text-4xl" {...page.edit.title}>{page.data.title}</h1>
-		<div class="space-y-4 leading-relaxed">
-			<PortableText value={page.data.content} />
-		</div>
-	</article>
-</Base>
+<PageView page={page} slug={slug} />
