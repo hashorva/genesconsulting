@@ -23,6 +23,7 @@ Semver: patch = fixes, minor = newly released features, major = breaking.
 - A deploy uploads **code only**. Content lives in EmDash's own storage (D1/R2 bindings on Cloudflare) and is edited and published only inside EmDash.
 - Never delete/recreate/rename D1, R2, KV bindings in wrangler config, and never use destructive migrations, seeding that overwrites content, or `--delete`-style syncs in CI.
 - Schema changes to EmDash collections are additive and called out in the PR; reset/seed scripts must never run against production.
+- Only exception: `scripts/content-load.ts` (starter copy in `content/`), run by hand with the owner's go-ahead, never from CI. It goes through the EmDash API as a signed-in admin, creates only pages whose slug does not exist, as drafts, and never updates or deletes an entry. `--publish` runs only after the owner reviewed the drafts in the admin; it publishes only never-published drafts still titled as in `content/`, replaces only the seed's placeholder tagline, and fills menus only when they are empty.
 - Content releases (EmDash) and code releases (tags) are independent: a code release must work with whatever content exists, and flagged-off features must not require new content.
 
 ## EmDash database migrations
