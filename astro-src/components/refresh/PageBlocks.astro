@@ -4,6 +4,8 @@ import CardGrid from "@/components/refresh/CardGrid.astro";
 import Faq from "@/components/refresh/Faq.astro";
 import Cta from "@/components/refresh/Cta.astro";
 import Hero from "@/components/refresh/Hero.astro";
+import MediaText from "@/components/refresh/MediaText.astro";
+import Stats from "@/components/refresh/Stats.astro";
 import Steps from "@/components/refresh/Steps.astro";
 import { ordinal, refreshBand } from "@/lib/refresh-style";
 import { pick, sectionStyle } from "@/lib/section-style";
@@ -63,6 +65,10 @@ const numbered = blocks.map((block) =>
 									<CardGrid value={block} eyebrow={numbered[index]} />
 								) : block._type === "steps" ? (
 									<Steps value={block} eyebrow={numbered[index]} />
+								) : block._type === "media_text" ? (
+									<MediaText value={block} eyebrow={numbered[index]} />
+								) : block._type === "stats" ? (
+									<Stats value={block} eyebrow={numbered[index]} />
 								) : block._type === "faq" ? (
 									<Faq value={block} eyebrow={numbered[index]} />
 								) : block._type === "cta" ? (
