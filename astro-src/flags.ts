@@ -19,10 +19,20 @@ export function isEnabled(
 	env: object = {},
 	user?: { role?: number } | null,
 ): boolean {
+	return resolveFlag(name, flags.flags[name].public, env, user);
+}
+
+/** The resolution rules above, for any flag state (tested without editing flags.json). */
+export function resolveFlag(
+	name: string,
+	isPublic: boolean,
+	env: object = {},
+	user?: { role?: number } | null,
+): boolean {
 	// `object` so the typed Worker `env` from "cloudflare:workers" can be passed as is.
 	const override = (env as Record<string, unknown>)[`FLAG_${name.toUpperCase()}`];
 	if (override === "true" || override === true) return true;
 	if (override === "false" || override === false) return false;
-	if (flags.flags[name].public) return true;
+	if (isPublic) return true;
 	return (user?.role ?? 0) >= STAFF_MIN_ROLE;
 }
