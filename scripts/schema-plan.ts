@@ -173,7 +173,16 @@ export function planSync(seed: Seed, live: LiveSchema): SyncPlan {
 			if (live) {
 				const wanted = (field.validation as { allowedTypes?: string[] } | undefined)?.allowedTypes;
 				if (field.type !== "blocks" || live.type !== "blocks" || !wanted) continue;
-				const have = (live.validation?.allowedTypes as string[] | undefined) ?? [];
+				const liveAllowed = live.validation?.allowedTypes;
+				if (!Array.isArray(liveAllowed)) {
+					// No list on the site: sending one would narrow the field, not extend it.
+					plan.skip.push({
+						what: `${collection.slug}.${field.slug}`,
+						reason: "no allowedTypes list on the site, not touched",
+					});
+					continue;
+				}
+				const have = liveAllowed as string[];
 				const added = wanted.filter((t) => !have.includes(t));
 				if (added.length === 0) continue;
 				plan.create.push({

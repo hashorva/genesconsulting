@@ -212,4 +212,20 @@ describe("planSync", () => {
 		});
 		expect(same.create).toEqual([]);
 	});
+
+	it("leaves a live blocks field without an allowedTypes list alone instead of narrowing it", () => {
+		const blocksSeed: Seed = {
+			collections: [
+				{ slug: "pages", fields: [{ slug: "layout", label: "Sezioni", type: "blocks", validation: { allowedTypes: ["hero", "cta"] } }] },
+			],
+		};
+		for (const validation of [null, undefined, { maxItems: 30 }]) {
+			const plan = planSync(blocksSeed, {
+				blockTypes: [],
+				collections: new Map([["pages", [{ slug: "layout", type: "blocks", validation }]]]),
+			});
+			expect(plan.create).toEqual([]);
+			expect(plan.skip).toContainEqual({ what: "pages.layout", reason: "no allowedTypes list on the site, not touched" });
+		}
+	});
 });
