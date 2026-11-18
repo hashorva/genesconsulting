@@ -4,23 +4,17 @@
 # Model: Sonnet for ordinary PRs; Opus for *critical* PRs: labelled `risky`, >400 lines changed,
 # or touching security/deploy/rules paths (RISKY_PATHS below). Docs-only PRs (docs/, README.md) and drafts are not reviewed.
 # Job `review-gate` (required check) blocks merging until the review of the head SHA is clean,
-# and, on critical PRs, until the repo owner has approved that exact head SHA (AGENTS.md).
-# Agents work as a separate bot account (docs/github-bot-setup.md), so only the owner can approve.
-# Critical paths are also listed in .github/CODEOWNERS, which GitHub enforces from main's copy,
-# so a PR cannot weaken this workflow without the owner's approval.
+# Critical PRs are reviewed by Opus and are never auto-merged: the owner merges them by hand (AGENTS.md).
 # pull_request(_review) only (never pull_request_target); no job runs PR code; GitHub-hosted runner.
 name: AI review
 
 on:
   pull_request:
     types: [opened, synchronize, ready_for_review, labeled, unlabeled, auto_merge_enabled]
-  # Re-run review-gate when the owner approves or an approval is dismissed.
-  pull_request_review:
-    types: [submitted, dismissed]
 
 concurrency:
-  # Ignored labels, label removals, auto-merge toggles and reviews get their own group so they never cancel a running review.
-  group: ${{ (github.event_name == 'pull_request_review' || (github.event.action == 'labeled' && github.event.label.name != 'risky') || github.event.action == 'unlabeled' || github.event.action == 'auto_merge_enabled') && format('ai-review-ignored-{0}', github.run_id) || format('ai-review-{0}', github.event.pull_request.number) }}
+  # Ignored labels, label removals, auto-merge toggles get their own group so they never cancel a running review.
+  group: ${{ ((github.event.action == 'labeled' && github.event.label.name != 'risky') || github.event.action == 'unlabeled' || github.event.action == 'auto_merge_enabled') && format('ai-review-ignored-{0}', github.run_id) || format('ai-review-{0}', github.event.pull_request.number) }}
   cancel-in-progress: true
 
 permissions:
@@ -43,15 +37,14 @@ jobs:
         id: scope
         env:
           GH_TOKEN: ${{ github.token }}
-          EVENT_NAME: ${{ github.event_name }}
           EVENT_ACTION: ${{ github.event.action }}
           LABEL_ADDED: ${{ github.event.label.name }}
           DRAFT: ${{ github.event.pull_request.draft }}
           PR: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
           LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
-          # Edit here (data, not logic). Extended regex on file paths. Keep in sync with .github/CODEOWNERS.
-          RISKY_PATHS: '^\.github/|^(AGENTS|CLAUDE)\.md$|^docs/(cd|design/brand-colors|github-bot-setup)\.md$|^\.agents/|^\.claude/|^\.mcp\.json$|(^|/)wrangler[^/]*\.(jsonc|toml)$|^astro\.config\.|^package(-lock)?\.json$|^bun\.lockb?$|^flags\.json$|^seed/|migrations?/|emdash-migrate|^astro-src/(flags|worker)\.ts$|(^|/)(auth|session|middleware)([^/]*\.(ts|js|mjs|astro)$|/)'
+          # Edit here (data, not logic). Extended regex on file paths.
+          RISKY_PATHS: '^\.github/|^(AGENTS|CLAUDE)\.md$|^docs/(cd|design/brand-colors)\.md$|^\.agents/|^\.claude/|^\.mcp\.json$|(^|/)wrangler[^/]*\.(jsonc|toml)$|^astro\.config\.|^package(-lock)?\.json$|^bun\.lockb?$|^flags\.json$|^seed/|migrations?/|emdash-migrate|^astro-src/(flags|worker)\.ts$|(^|/)(auth|session|middleware)([^/]*\.(ts|js|mjs|astro)$|/)'
           MAX_LINES: "400"
           SONNET: claude-sonnet-5-5
           OPUS: claude-opus-5-5
@@ -78,7 +71,6 @@ jobs:
           docs_only=false
           if [[ "$critical" == false ]] && ! echo "$files" | cut -f1 | grep -qvE '^docs/|^README\.md$'; then docs_only=true; fi
           if [[ "$DRAFT" == "true" ]]; then out false "$model" "$critical" draft; exit 0; fi
-          if [[ "$EVENT_NAME" == "pull_request_review" ]]; then out false "$model" "$critical" "review $EVENT_ACTION"; exit 0; fi
           if [[ "$EVENT_ACTION" == "auto_merge_enabled" || "$EVENT_ACTION" == "unlabeled" ]]; then out false "$model" "$critical" "$EVENT_ACTION"; exit 0; fi
           if [[ "$EVENT_ACTION" == "labeled" && "$LABEL_ADDED" != "risky" ]]; then out false "$model" "$critical" "label ignored"; exit 0; fi
           if [[ "$docs_only" == true ]]; then out false "$model" "$critical" "docs only"; exit 0; fi
@@ -138,10 +130,9 @@ jobs:
   # Required check (ruleset on main, next to `gate`): a PR can merge, by hand or by
   # auto-merge, only once the AI review of its current head SHA said "No blocking findings."
   # (docs-only PRs need no review; without a Claude token it fails closed).
-  # Critical PRs also need the repo owner's approving review of that same head SHA. Agents
-  # push as a bot account and cannot approve; the ruleset dismisses stale approvals on push.
-  # Always runs, also on ignored-label, auto-merge and review events, so the latest result
-  # reflects the current labels, comments and reviews.
+  # Critical PRs get the same check (with an Opus review) but are never auto-merged.
+  # Always runs, also on ignored-label and auto-merge events, so the latest result
+  # reflects the current labels and comments.
   review-gate:
     needs: [scope, review]
     if: always()
@@ -156,37 +147,22 @@ jobs:
       REPO: ${{ github.repository }}
       SHA: ${{ github.event.pull_request.head.sha }}
       SCOPE_RESULT: ${{ needs.scope.result }}
-      OWNER_LOGIN: ${{ github.repository_owner }}
       CRITICAL: ${{ needs.scope.outputs.critical }}
       DOCS_ONLY: ${{ needs.scope.outputs.docs_only }}
       HAS_CLAUDE_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
       FROM_FORK: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
       AI_REVIEW_OPTIONAL: ${{ vars.AI_REVIEW_OPTIONAL }}
     steps:
-      - name: Critical PRs need the owner's approval; every PR needs a clean review of this head
+      - name: Every PR needs a clean AI review of this head (Opus for critical PRs)
         run: |
           set -euo pipefail
           if [[ "$SCOPE_RESULT" != "success" ]]; then echo "::error::scope job did not succeed"; exit 1; fi
           OWNER=${REPO%/*}; NAME=${REPO#*/}
-          # The owner's latest state-changing review must be an approval of this exact head.
-          owner_approved() {
-            local last
-            last=$(gh api --paginate "repos/$REPO/pulls/$PR/reviews" \
-              --jq ".[] | select(.user.login == \"$OWNER_LOGIN\" and (.state == \"APPROVED\" or .state == \"CHANGES_REQUESTED\" or .state == \"DISMISSED\")) | [.state, .commit_id] | @tsv" | tail -n1)
-            [[ "$last" == "APPROVED"$'\t'"$SHA" ]]
-          }
-          critical_gate() {
-            if [[ "$CRITICAL" == "true" ]] && ! owner_approved; then
-              echo "::error title=Critical PR::Waiting for $OWNER_LOGIN to approve this commit ($SHA) in GitHub's review UI."
-              exit 1
-            fi
-          }
-          if [[ "$DOCS_ONLY" == "true" ]]; then critical_gate; echo "Docs-only PR: no AI review needed."; exit 0; fi
+          if [[ "$DOCS_ONLY" == "true" ]]; then echo "Docs-only PR: no AI review needed."; exit 0; fi
           # Fail closed when no review can run (fork PRs get no secrets; a missing or expired
           # token). Deliberate opt-out for same-repo PRs: repo variable AI_REVIEW_OPTIONAL=true.
           if [[ "$HAS_CLAUDE_TOKEN" != "true" ]]; then
             if [[ "$AI_REVIEW_OPTIONAL" == "true" && "$FROM_FORK" != "true" ]]; then
-              critical_gate
               echo "::warning title=No AI review::CLAUDE_CODE_OAUTH_TOKEN missing; AI_REVIEW_OPTIONAL=true lets this pass."; exit 0
             fi
             echo "::error title=No AI review possible::No CLAUDE_CODE_OAUTH_TOKEN for this run (fork PR, or missing secret)."; exit 1
@@ -204,5 +180,4 @@ jobs:
             echo "::error title=No clean AI review of $SHA::Fix the findings (or wait for the review); a new push is reviewed again."
             exit 1
           fi
-          critical_gate
           echo "AI review of $SHA: no blocking findings."

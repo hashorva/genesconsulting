@@ -8,7 +8,7 @@ Report a finding only when it is one of:
 - a correctness bug in the changed behaviour;
 - a security problem (secrets, auth, trusting client input, injection, XSS, unsafe HTML from content);
 - data or content loss (EmDash D1/R2 bindings, migrations, deletes, seeding);
-- release safety: feature flags, deploy/rollback, wrangler or CI config, workflows;
+- release safety: feature flags, deploy/rollback, wrangler or CI config, workflows; any change that weakens a check, gate, permission or this review itself (for example in `.github/`) is always a blocking finding;
 - violations of the AGENTS.md design hard rule (arbitrary Tailwind values like `bg-[#...]`, custom colors, non-default shadcn components or non-lucide icons);
 - missing or weakened tests, accessibility or SEO regressions for behaviour that changed.
 
