@@ -60,7 +60,7 @@ const seo = getSeoMeta(page, { siteTitle, siteUrl: Astro.url.origin, path: Astro
 				) : (
 					<RefreshPageHeader title={page.data.title} lead={lead} edit={page.edit.title} />
 				)}
-				{body.length > 0 && <RefreshPageBody content={body} contactHref={contactHref} />}
+				{body.length > 0 && <RefreshPageBody content={body} contactHref={contactHref} reserved={layout.map((block) => (block as { anchor_id?: string | null }).anchor_id)} />}
 				<RefreshPageBlocks value={sections} />
 			</article>
 		) : composer ? (

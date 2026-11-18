@@ -7,7 +7,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { resolveLocale, useTranslations } from "@/i18n";
 import { routeKeyFor } from "@/lib/page-scenes";
-import { anchorId } from "@/lib/section-style";
+import { headingAnchors } from "@/lib/refresh-style";
 import { cn } from "@/lib/utils";
 
 /**
@@ -19,16 +19,13 @@ import { cn } from "@/lib/utils";
 interface Props {
 	content: unknown[];
 	contactHref: string | null;
+	/** anchor_ids of the page's sections, so a body heading never reuses one. */
+	reserved?: (string | null | undefined)[];
 }
-const { content, contactHref } = Astro.props;
+const { content, contactHref, reserved = [] } = Astro.props;
 const t = useTranslations(resolveLocale(Astro.currentLocale));
 
-type Block = { _type?: string; style?: string; children?: { text?: string }[] };
-const headings = (content as Block[])
-	.filter((block) => block._type === "block" && block.style === "h2")
-	.map((block) => (block.children ?? []).map((child) => child.text ?? "").join(""))
-	.filter(Boolean)
-	.map((text) => ({ text, id: anchorId(text) }));
+const { content: body, headings } = headingAnchors(content as unknown[], reserved);
 // trailingSlash is "ignore", so /contatti and /contatti/ are both the contact page.
 const onContactPage = routeKeyFor(Astro.url.pathname) === "page.contact";
 const showCard = contactHref !== null && !onContactPage;
@@ -44,7 +41,7 @@ const aside = headings.length >= 2 || showCard;
 <div class="container mx-auto px-4 py-16 md:px-6 md:py-24">
 	<div class={cn("grid gap-12", aside && "lg:grid-cols-12 lg:gap-16")}>
 		<div data-reveal class={cn(aside && "lg:col-span-8")}>
-			<RichText value={content} class="refresh-prose max-w-3xl" components={{ block: { h2: ProseHeading } }} />
+			<RichText value={body} class="refresh-prose max-w-3xl" components={{ block: { h2: ProseHeading } }} />
 		</div>
 		{
 			aside && (

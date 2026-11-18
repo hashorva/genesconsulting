@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { ROUTES } from "../astro-src/i18n/routes";
 import { routeKeyFor, SCENES, sceneFor } from "../astro-src/lib/page-scenes";
-import { ordinal, refreshBackground, refreshBand, revealDelay, splitClaim, splitLead } from "../astro-src/lib/refresh-style";
+import { headingAnchors, ordinal, refreshBackground, refreshBand, revealDelay, splitClaim, splitLead } from "../astro-src/lib/refresh-style";
 
 describe("refreshBackground", () => {
 	it("keeps the editor's choice", () => {
@@ -77,5 +77,18 @@ describe("splitLead", () => {
 		expect(splitLead([p("Title", { style: "h2" }), p("x")]).lead).toBeNull();
 		expect(splitLead([p("Only paragraph")])).toEqual({ lead: "Only paragraph", rest: [] });
 		expect(splitLead(null)).toEqual({ lead: null, rest: [] });
+	});
+});
+
+describe("headingAnchors", () => {
+	const h2 = (text: string) => ({ _type: "block", style: "h2", children: [{ text }] });
+	it("gives repeated headings and section anchors distinct ids", () => {
+		const { content, headings } = headingAnchors(
+			[h2("Contatti"), { _type: "block", style: "normal", children: [{ text: "x" }] }, h2("Contatti"), h2("Servizi")],
+			["servizi"],
+		);
+		expect(headings.map((h) => h.id)).toEqual(["contatti", "contatti-2", "servizi-2"]);
+		expect((content[2] as { anchor?: string }).anchor).toBe("contatti-2");
+		expect((content[1] as { anchor?: string }).anchor).toBeUndefined();
 	});
 });
