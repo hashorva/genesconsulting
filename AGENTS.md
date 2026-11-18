@@ -8,6 +8,7 @@ Public showcase site: Astro + EmDash (content/copy/blog) + Tailwind v4 + shadcn/
 - EmDash agent skills live in `.agents/skills/` (querying content, schema, plugins); the EmDash docs MCP is in `.mcp.json`.
 - UI strings: `astro-src/i18n/locales/<locale>/<namespace>.json`, used via `useTranslations(Astro.currentLocale)`. Links by route key: `routePath("page.about")` from `astro-src/i18n/routes.ts`.
 - shadcn/ui components go in `astro-src/components/ui/` via `bunx shadcn@latest add <name>` (style `base-rhea`, icons lucide). Use them in `.astro` files through `buttonVariants()` etc., or as React islands (`client:idle`) only when they need interaction.
+- **Bun only.** Install with `bun install`, run tools with `bunx`, scripts with `bun run`. Never npm, npx, yarn or pnpm, and never tell the owner to run them: `package.json` pins `packageManager` to Bun, a `preinstall` guard makes `npm install` fail, and other lockfiles are gitignored. Only `bun.lock` is committed.
 - Commands: `bun run dev`, `bun run build`, `bun run typecheck`, `bun run test`. Local secrets in `.dev.vars` (copy `.dev.vars.example`).
 
 ## HARD RULE: no custom design values
