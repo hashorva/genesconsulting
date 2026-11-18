@@ -1,5 +1,5 @@
 ---
-import SiteLogo from "@/components/site/SiteLogo.astro";
+import SiteBrand from "@/components/site/SiteBrand.astro";
 import ThemeToggle from "@/components/site/ThemeToggle";
 import { resolveLocale, useTranslations } from "@/i18n";
 import { menuItems } from "@/lib/content-links";
@@ -20,10 +20,7 @@ const items = await menuItems(Astro, "footer", locale);
 <footer class="border-t text-muted-foreground">
 	<div class="container mx-auto grid gap-8 px-4 py-12 md:grid-cols-2 md:px-6">
 		<div class="space-y-2">
-			<p class="flex items-center gap-2 font-semibold text-foreground">
-				<SiteLogo class="size-8" />
-				<span>{siteTitle}</span>
-			</p>
+			<SiteBrand siteTitle={siteTitle} size="sm" />
 			<p class="text-sm">{siteTagline}</p>
 		</div>
 		{
