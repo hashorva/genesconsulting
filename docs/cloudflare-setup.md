@@ -44,7 +44,7 @@ In https://github.com/hashorva/genesconsulting/settings/environments:
 
 Then in **Settings → Secrets and variables → Actions → Variables**, add the repository variable **`CD_DEPLOY_ENABLED`** = `true`. Until it exists, CI runs but nothing deploys. Set it when you are ready for the first deploy (step 6), because from then on every merge to `main` goes live.
 
-(Optional, for the AI reviewer: repository secret `CLAUDE_CODE_OAUTH_TOKEN`, see `docs/cd.md`.)
+**Required:** repository secret `CLAUDE_CODE_OAUTH_TOKEN` (**Settings → Secrets and variables → Actions → Secrets**; create it with `claude setup-token`). The AI review uses it, and the required check `review-gate` fails on every PR that changes more than docs when it is missing (see `docs/cd.md`).
 
 ## 5. Protect `main`
 
