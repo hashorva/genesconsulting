@@ -7,10 +7,13 @@ import { SERVICE_PREFIX, servicePathFromSlug } from "@/lib/page-paths";
 
 // Single-segment pages from the EmDash "pages" collection: /chi-siamo/, /contatti/, ...
 const slug = decodeSlug(Astro.params.slug);
-if (!slug || slug === "home") return Astro.rewrite("/404/");
+if (!slug) return Astro.rewrite("/404/");
+// The home page is served at "/"; the admin's preview link points at /home/.
+if (slug === "home") return Astro.redirect(`/${Astro.url.search}`, 301);
 
 // Service pages live under /servizi/<name>/ (page slug "servizi-<name>"): one URL per page.
-if (slug.startsWith(SERVICE_PREFIX)) return Astro.redirect(servicePathFromSlug(slug), 301);
+// Keep the query string, so the admin's preview link (?_preview=…) still shows the draft.
+if (slug.startsWith(SERVICE_PREFIX)) return Astro.redirect(`${servicePathFromSlug(slug)}${Astro.url.search}`, 301);
 
 const locale = resolveLocale(Astro.currentLocale);
 const { entry: page, cacheHint } = await getEmDashEntry("pages", slug, { locale });
