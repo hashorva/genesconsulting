@@ -11,7 +11,7 @@ import { isEnabled } from "@/flags";
 import { resolveLocale, useTranslations } from "@/i18n";
 import { routePath } from "@/i18n/routes";
 import { pageLink } from "@/lib/content-links";
-import { leadingHero } from "@/lib/section-style";
+import { leadingHero, withoutComposer } from "@/lib/section-style";
 import Base from "@/layouts/Base.astro";
 import { resolveSiteIdentity } from "@/utils/site-identity";
 
@@ -40,6 +40,8 @@ const composer = isEnabled("page_composer", env, Astro.locals.user);
 const layout = home?.data.layout ?? [];
 const hero = composer ? leadingHero(layout) : null;
 const sections = hero ? layout.slice(1) : layout;
+// Flag off: what visitors get, so a layout of only composer blocks leaves no empty wrapper.
+const visitorSections = composer ? [] : withoutComposer(layout);
 const { siteTitle, siteTagline } = resolveSiteIdentity(settings, {
 	title: t("site.name"),
 	tagline: t("seo:defaultDescription"),
@@ -88,10 +90,9 @@ const { siteTitle, siteTagline } = resolveSiteIdentity(settings, {
 	{
 		composer
 			? sections.length > 0 && <PageBlocks value={sections} composer class="pb-8 md:pb-12" />
-			: home?.data.layout &&
-				home.data.layout.length > 0 && (
+			: visitorSections.length > 0 && (
 					<div class="container mx-auto px-4 pb-16 md:px-6 md:pb-24">
-						<PageBlocks value={home.data.layout} />
+						<PageBlocks value={visitorSections} />
 					</div>
 				)
 	}
