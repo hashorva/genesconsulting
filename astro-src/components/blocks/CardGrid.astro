@@ -3,7 +3,8 @@ import { ArrowRight } from "lucide-react";
 
 import SectionHeading from "@/components/blocks/SectionHeading.astro";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { safeHref } from "@/lib/safe-href";
 import type { PageLayoutCardGridBlock } from "../../../emdash-env";
 
 /** "Griglia di schede": shadcn Cards in a responsive grid (brand-colors.md, section 6). */
@@ -21,7 +22,9 @@ const columns =
 	<SectionHeading heading={value.heading} intro={value.intro} />
 	<ul class={`grid gap-4 ${columns}`}>
 		{
-			value.cards.map((card) => (
+			value.cards.map((card) => {
+				const href = safeHref(card.link_url);
+				return (
 				<li class="flex">
 					<Card className="w-full">
 						<CardHeader>
@@ -30,9 +33,9 @@ const columns =
 							</CardTitle>
 							{card.text && <CardDescription className="leading-relaxed">{card.text}</CardDescription>}
 						</CardHeader>
-						{card.link_url && (
+						{href && (
 							<CardFooter className="mt-auto">
-								<a href={card.link_url} class={buttonVariants({ variant: "link" })}>
+								<a href={href} class={buttonVariants({ variant: "link" })}>
 									{card.link_label || card.title}
 									<ArrowRight data-icon="inline-end" />
 								</a>
@@ -40,7 +43,8 @@ const columns =
 						)}
 					</Card>
 				</li>
-			))
+				);
+			})
 		}
 	</ul>
 </section>
