@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isEnabled, resolveFlag } from "../astro-src/flags";
+import { resolveFlag } from "../astro-src/flags";
 
 const editor = { role: 40 };
 const author = { role: 30 };
@@ -25,9 +25,3 @@ describe("flag rules", () => {
 	});
 });
 
-describe("flags.json", () => {
-	it("releases page sections to visitors", () => {
-		expect(isEnabled("page_blocks", {})).toBe(true);
-		expect(isEnabled("page_blocks", { FLAG_PAGE_BLOCKS: "false" }, editor)).toBe(false);
-	});
-});

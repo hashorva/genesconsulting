@@ -53,23 +53,6 @@ export function isLoaderDraft(entry: PageState, file: Pick<PageFile, "title">): 
 	);
 }
 
-/**
- * Why plain `--publish` must leave a page alone, or null when it may publish it.
- * Only the loader's own never-published drafts (isLoaderDraft). A page with sections
- * has a shorter body and visitors see sections only once page_blocks is public, so
- * until then it stays a draft.
- */
-export function publishSkipReason(
-	entry: PageState,
-	file: Pick<PageFile, "title">,
-	hasSections: boolean,
-	sectionsPublic: boolean,
-): string | null {
-	if (!isLoaderDraft(entry, file)) return `status ${entry.status}, changed in the admin or published before`;
-	if (hasSections && !sectionsPublic) return "has sections; publish after page_blocks is public";
-	return null;
-}
-
 /** Section ("Sezioni") block types the pages `layout` field allows (seed/seed.json). */
 export const LAYOUT_TYPES = ["card_grid", "steps", "faq", "cta", "text"] as const;
 

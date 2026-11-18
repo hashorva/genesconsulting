@@ -9,16 +9,14 @@
  *   whose slug already exists is skipped, so edits made in the admin win.
  * - New pages are created as DRAFTS. Visitors see nothing until someone publishes them.
  * - `--publish` (run only after the owner approved the drafts) publishes the pages
- *   listed in content/ that are still the loader's never-published drafts (pages
- *   with sections only once the page_blocks flag is public),
+ *   listed in content/ that are still the loader's never-published drafts,
  *   replaces the seed's placeholder tagline, and fills the primary/footer menus
  *   (published pages only) when they are empty.
  * - `--layout` adds the sections in content/it/pages/<slug>.layout.json (and that
  *   file's shorter body) to pages the loader published and nobody edited since, as a
  *   DRAFT revision: the live page is unchanged until someone publishes the draft.
  *   `--layout --publish` (after the owner approved those drafts) publishes only the
- *   pages whose pending draft is still exactly what the loader wrote, and only
- *   once the page_blocks flag is public (otherwise visitors would lose content).
+ *   pages whose pending draft is still exactly what the loader wrote.
  * - `--dry-run` prints what would happen without writing.
  *
  * Auth: EMDASH_TOKEN, else the credentials saved by `bunx emdash login`.
@@ -32,7 +30,7 @@ import { markdownToPortableText } from "emdash/client";
 
 import {
 	canAddLayoutDraft,
-	publishSkipReason,
+	isLoaderDraft,
 	type LayoutBlock,
 	parseLayoutFile,
 	parsePageFile,
@@ -40,7 +38,6 @@ import {
 	type PageState,
 	sameContent,
 } from "./content-file";
-import flags from "../flags.json";
 import { createClient } from "./emdash-client";
 
 const CONTENT_DIR = join(import.meta.dirname, "..", "content", "it", "pages");
@@ -140,9 +137,10 @@ async function publish(files: PageFile[]) {
 			console.log(`missing  ${page.slug} (run without --publish first)`);
 			continue;
 		}
-		const reason = publishSkipReason(entry, page, layouts.has(page.slug), !!flags.flags.page_blocks?.public);
-		if (reason) {
-			console.log(`skip     ${page.slug} (${reason})`);
+		// Only the loader's own, never-published drafts. A page that was ever published
+		// (then unpublished), scheduled, or retitled in the admin is left alone.
+		if (!isLoaderDraft(entry, page)) {
+			console.log(`skip     ${page.slug} (status ${entry.status}, changed in the admin or published before)`);
 			continue;
 		}
 		if (!dryRun) await client.publish("pages", entry.id);
@@ -217,12 +215,6 @@ async function addLayoutDrafts(files: PageFile[]) {
 }
 
 async function publishLayouts(files: PageFile[]) {
-	// Visitors only see sections once page_blocks is public; publishing the shorter
-	// bodies before that would hide content from them. Run this from the release commit.
-	if (!flags.flags.page_blocks?.public) {
-		console.error("refuse   page_blocks is not public in flags.json: release the flag first.");
-		process.exit(1);
-	}
 	for (const page of files) {
 		const blocks = layouts.get(page.slug);
 		const entry = existing.get(page.slug);

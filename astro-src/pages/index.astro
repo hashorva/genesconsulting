@@ -1,12 +1,10 @@
 ---
 import { getEmDashCollection, getEmDashEntry, getSiteSettings } from "emdash";
 import { Waypoints } from "lucide-react";
-import { env } from "cloudflare:workers";
 
 import PostCard from "@/components/blog/PostCard.astro";
 import RichText from "@/components/content/RichText.astro";
 import PageBlocks from "@/components/blocks/PageBlocks.astro";
-import { isEnabled } from "@/flags";
 import { buttonVariants } from "@/components/ui/button";
 import { resolveLocale, useTranslations } from "@/i18n";
 import { routePath } from "@/i18n/routes";
@@ -33,7 +31,6 @@ const [contactHref, servicesHref] = await Promise.all([
 	pageLink(Astro, "page.contact", locale),
 	pageLink(Astro, "page.services", locale),
 ]);
-const showBlocks = isEnabled("page_blocks", env, Astro.locals.user);
 const { siteTitle, siteTagline } = resolveSiteIdentity(settings, {
 	title: t("site.name"),
 	tagline: t("seo:defaultDescription"),
@@ -76,7 +73,7 @@ const { siteTitle, siteTagline } = resolveSiteIdentity(settings, {
 	}
 
 	{
-		showBlocks && home?.data.layout && home.data.layout.length > 0 && (
+		home?.data.layout && home.data.layout.length > 0 && (
 			<div class="container mx-auto px-4 pb-16 md:px-6 md:pb-24">
 				<PageBlocks value={home.data.layout} />
 			</div>
