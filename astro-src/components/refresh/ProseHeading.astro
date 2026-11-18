@@ -1,0 +1,17 @@
+---
+import { anchorId } from "@/lib/section-style";
+
+/**
+ * h2 of a page body in the redesign: its id is the unique `anchor` that PageBody sets
+ * (headingAnchors), so the "In questa pagina" list can link to it, and a short cyan bar above it like the deck's titles.
+ */
+interface Props {
+	node: { anchor?: string; children?: { text?: string }[] };
+}
+const { node } = Astro.props;
+const id = node.anchor ?? anchorId((node.children ?? []).map((child) => child.text ?? "").join(""));
+---
+
+<h2 id={id} class="scroll-mt-28 before:mb-4 before:block before:h-0.5 before:w-8 before:rounded-full before:bg-sky-500 dark:before:bg-sky-400">
+	<slot />
+</h2>

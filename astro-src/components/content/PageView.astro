@@ -6,8 +6,11 @@ import PageBlocks from "@/components/blocks/PageBlocks.astro";
 
 import RichText from "@/components/content/RichText.astro";
 import RefreshPageBlocks from "@/components/refresh/PageBlocks.astro";
+import RefreshPageBody from "@/components/refresh/PageBody.astro";
 import RefreshPageHeader from "@/components/refresh/PageHeader.astro";
+import { pageLink } from "@/lib/content-links";
 import { isRefresh } from "@/lib/design";
+import { splitLead } from "@/lib/refresh-style";
 import { isEnabled } from "@/flags";
 import { resolveLocale, useTranslations } from "@/i18n";
 import Base from "@/layouts/Base.astro";
@@ -36,6 +39,9 @@ const refresh = isRefresh(env, Astro.locals.user);
 const layout = page.data.layout ?? [];
 const hero = composer ? leadingHero(layout) : null;
 const sections = hero ? layout.slice(1) : layout;
+// Redesign: the body's first plain paragraph becomes the header's lead; the rest is the body.
+const { lead, rest: body } = refresh && !hero ? splitLead(page.data.content) : { lead: null, rest: page.data.content ?? [] };
+const contactHref = refresh ? await pageLink(Astro, "page.contact", resolveLocale(Astro.currentLocale)) : null;
 const seo = getSeoMeta(page, { siteTitle, siteUrl: Astro.url.origin, path: Astro.url.pathname });
 ---
 
@@ -52,13 +58,9 @@ const seo = getSeoMeta(page, { siteTitle, siteUrl: Astro.url.origin, path: Astro
 				{hero ? (
 					<RefreshPageBlocks value={[hero]} leadHero />
 				) : (
-					<RefreshPageHeader title={page.data.title} edit={page.edit.title} />
+					<RefreshPageHeader title={page.data.title} lead={lead} edit={page.edit.title} />
 				)}
-				{(page.data.content?.length ?? 0) > 0 && (
-					<div class="container mx-auto px-4 py-16 md:px-6 md:py-24">
-						<RichText value={page.data.content} class="max-w-3xl text-lg" />
-					</div>
-				)}
+				{body.length > 0 && <RefreshPageBody content={body} contactHref={contactHref} reserved={layout.map((block) => (block as { anchor_id?: string | null }).anchor_id)} />}
 				<RefreshPageBlocks value={sections} />
 			</article>
 		) : composer ? (
