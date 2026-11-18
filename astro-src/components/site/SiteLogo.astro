@@ -1,15 +1,19 @@
 ---
 interface Props {
-	/** "full" = mark + wordmark, "mark" = arcs only */
-	variant?: "full" | "mark";
-	alt: string;
+	alt?: string;
 	class?: string;
 }
 
-const { variant = "full", alt, class: className } = Astro.props;
-const base = variant === "mark" ? "/brand/mark" : "/brand/logo";
+// The mark stands alone; the site name is live text set beside it by the caller.
+const { alt = "", class: className } = Astro.props;
 ---
 
-{/* Light and dark artwork: Tailwind's dark variant swaps them, no JS (follows the footer toggle too). */}
-<img src={`${base}-light.svg`} alt={alt} class:list={["dark:hidden", className]} />
-<img src={`${base}-dark.svg`} alt={alt} class:list={["hidden dark:block", className]} />
+{/* SVG with a PNG fallback. Light and dark artwork swap with Tailwind's dark variant (follows the footer toggle). */}
+<picture class:list={["block dark:hidden", className]}>
+	<source srcset="/brand/mark-light.svg" type="image/svg+xml" />
+	<img src="/brand/mark-light.png" alt={alt} class="size-full" />
+</picture>
+<picture class:list={["hidden dark:block", className]}>
+	<source srcset="/brand/mark-dark.svg" type="image/svg+xml" />
+	<img src="/brand/mark-dark.png" alt={alt} class="size-full" />
+</picture>
