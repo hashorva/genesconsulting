@@ -289,6 +289,25 @@ Do not use `sky-400`, `sky-500`, `cyan-500`, `teal-200` or `yellow-600` for smal
 - The choice is stored in the browser. "System" removes the stored choice and follows the device again.
 - A small inline script in the page head applies the `dark` class before first paint, so the page does not flash the wrong theme.
 
+## Redesign (design_refresh)
+
+Behind the `design_refresh` flag (on top of `page_composer`), the site takes its look from the client deck. Components in `astro-src/components/refresh/`, band rhythm in `astro-src/lib/refresh-style.ts`. Defaults only, as everywhere.
+
+| Deck element | Tailwind / shadcn |
+| --- | --- |
+| Brand band (header, opening, steps, CTA, footer) | `dark` scope + `bg-sky-950`, bands `bg-linear-to-b from-sky-900 to-sky-950` |
+| Soft band (linked card grids) | `bg-sky-50 dark:bg-sky-900/40` |
+| Eyebrow over titles | `h-0.5 w-8 bg-sky-500 dark:bg-sky-400` + `text-xs font-semibold tracking-widest uppercase text-sky-700 dark:text-sky-400` (gold: `yellow-600` / `yellow-700`) |
+| Claim on two lines | second sentence `text-sky-400` |
+| Numbers 01 02 03 | `font-light tabular-nums text-sky-600 dark:text-sky-400` |
+| Hub-and-spoke "G" network | divs only: `h-px` spokes turned with default `rotate-*`, nodes `bg-sky-400` / `bg-yellow-600` with `ring-4`, hub `bg-sky-400 text-sky-950` (Zam, 2026-11-18: no SVG) |
+| Glow / depth | `rounded-full blur-3xl bg-sky-400/15` (or `/10`, `/20`) |
+| CTA rule | `h-1 w-16 bg-yellow-600` |
+| Running line | `border-t border-sky-400/20 text-xs tracking-widest uppercase text-slate-400` |
+| Motion | tw-animate-css `animate-in fade-in slide-in-from-bottom-6 duration-700`, `delay-0..300`; all `motion-safe:` or skipped by the script under reduced motion |
+
+Page rhythm when the editor leaves "Sfondo" empty: CTA and steps on the brand band, three or more linked cards on the soft band, everything else on the page colour. An editor's choice always wins.
+
 ## 10. Decided
 
 - Gold is `yellow-600`.

@@ -4,6 +4,10 @@
     "page_composer": {
       "public": false,
       "description": "Editors compose pages: Apertura (hero) block, button lists and style presets (background, spacing, width, columns) on every section. Until released, visitors see the old layout and no Apertura blocks."
+    },
+    "design_refresh": {
+      "public": false,
+      "description": "Redesign with the client deck's look: dark brand bands, eyebrow labels, the animated G network, redesigned cards, steps, CTA, header and footer, scroll reveals and page transitions. Needs page_composer on (release page_composer first). Until released, visitors see the current design."
     }
   }
 }

@@ -1,0 +1,75 @@
+---
+import SiteBrand from "@/components/site/SiteBrand.astro";
+import ThemeToggle from "@/components/site/ThemeToggle";
+import { resolveLocale, useTranslations } from "@/i18n";
+import { menuItems } from "@/lib/content-links";
+
+/**
+ * Footer of the redesign: dark in both themes, a cyan rule on top and the deck's
+ * running line ("GENES CONSULTING • MILANO") at the bottom. Links come from the EmDash
+ * "primary" and "footer" menus, so nothing points to unpublished pages.
+ */
+interface Props {
+	siteTitle: string;
+	siteTagline: string;
+}
+
+const { siteTitle, siteTagline } = Astro.props;
+const locale = resolveLocale(Astro.currentLocale);
+const t = useTranslations(locale);
+const year = new Date().getFullYear();
+const [primary, legal] = await Promise.all([menuItems(Astro, "primary", locale), menuItems(Astro, "footer", locale)]);
+const linkClass = "text-slate-300 transition-colors hover:text-sky-300";
+---
+
+<footer class="dark relative bg-sky-950 text-foreground">
+	<div aria-hidden="true" class="h-px bg-linear-to-r from-transparent via-sky-400/50 to-transparent"></div>
+	<div class="container mx-auto grid gap-12 px-4 py-16 md:grid-cols-12 md:px-6">
+		<div class="space-y-4 md:col-span-6 lg:col-span-5">
+			<SiteBrand siteTitle={siteTitle} />
+			<p class="max-w-sm leading-relaxed text-slate-400">{siteTagline}</p>
+		</div>
+		{
+			primary.length > 0 && (
+				<nav aria-label={t("nav.label")} class="space-y-4 md:col-span-3 lg:col-span-3 lg:col-start-8">
+					<p class="text-xs font-semibold tracking-widest text-sky-400 uppercase">{t("footer.explore")}</p>
+					<ul class="space-y-2 text-sm">
+						{primary.map((item) => (
+							<li>
+								<a class={linkClass} href={item.url}>
+									{item.label}
+								</a>
+							</li>
+						))}
+					</ul>
+				</nav>
+			)
+		}
+		{
+			legal.length > 0 && (
+				<nav aria-label={t("footer.legal")} class="space-y-4 md:col-span-3 lg:col-span-2">
+					<p class="text-xs font-semibold tracking-widest text-sky-400 uppercase">{t("footer.legal")}</p>
+					<ul class="space-y-2 text-sm">
+						{legal.map((item) => (
+							<li>
+								<a class={linkClass} href={item.url}>
+									{item.label}
+								</a>
+							</li>
+						))}
+					</ul>
+				</nav>
+			)
+		}
+	</div>
+	<div class="container mx-auto px-4 md:px-6">
+		<div class="flex flex-wrap items-center justify-between gap-4 border-t border-sky-400/20 py-6 text-xs tracking-widest text-slate-400 uppercase">
+			<span>{t("site.name")} <span aria-hidden="true" class="px-1 text-sky-400">•</span> {t("site.city")}</span>
+			<span class="normal-case tracking-normal">{t("footer.copyright", { year, name: siteTitle })}</span>
+			<ThemeToggle
+				client:idle
+				labels={{ group: t("theme.label"), light: t("theme.light"), system: t("theme.system"), dark: t("theme.dark") }}
+			/>
+		</div>
+	</div>
+</footer>

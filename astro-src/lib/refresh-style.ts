@@ -1,0 +1,74 @@
+/**
+ * Look of the redesign (flag `design_refresh`, on top of `page_composer`).
+ *
+ * Pure helpers only (no Astro, no env), so they are unit tested.
+ * Every class is a Tailwind default (HARD RULE, AGENTS.md); the mapping table
+ * for humans is in docs/design/brand-colors.md, "Redesign (design_refresh)".
+ */
+import { OPTIONS, pick } from "./section-style";
+
+type Background = (typeof OPTIONS.background)[number];
+type Spacing = (typeof OPTIONS.spacing)[number];
+
+/**
+ * Bands of the redesign. "Blu" scopes the dark theme to the band (like page_composer),
+ * on a deep sky-950 that is the same in light and dark mode, like the deck.
+ */
+const BAND: Record<Background, string> = {
+	Nessuno: "bg-background",
+	Tenue: "bg-sky-50 dark:bg-sky-900/40",
+	// The gradient keeps the band visible in dark mode too, where the page is sky-950 as well.
+	Blu: "dark relative isolate overflow-hidden bg-linear-to-b from-sky-900 to-sky-950 text-foreground",
+};
+
+const SPACE: Record<Spacing, string> = {
+	Compatta: "py-10 md:py-14",
+	Normale: "py-16 md:py-24",
+	Ampia: "py-20 md:py-32",
+};
+
+interface BandBlock {
+	_type: string;
+	background?: string | null;
+	spacing?: string | null;
+	cards?: readonly { link_url?: string | null }[] | null;
+}
+
+/**
+ * The band a section gets. An editor's choice always wins; a section left empty gets
+ * the page rhythm: the closing call to action and the steps sit on the dark brand band,
+ * a grid of three or more linked cards on the soft tint, everything else on the page colour.
+ */
+export function refreshBackground(block: BandBlock): Background {
+	if (block.background) return pick("background", block.background, "Nessuno");
+	if (block._type === "cta" || block._type === "steps") return "Blu";
+	// Linked cards (services) on the tint; cards without links render as open features on the page colour.
+	if (block._type === "card_grid" && (block.cards?.length ?? 0) >= 3 && block.cards!.some((card) => card.link_url)) return "Tenue";
+	return "Nessuno";
+}
+
+export function refreshBand(block: BandBlock): { band: string; background: Background } {
+	const background = refreshBackground(block);
+	const spacing = pick("spacing", block.spacing, block._type === "cta" ? "Ampia" : "Normale");
+	return { band: `${BAND[background]} ${SPACE[spacing]}`, background };
+}
+
+/** Stagger for items revealed together: default animation delays, capped so long lists do not drag. */
+const DELAYS = ["delay-0", "delay-75", "delay-150", "delay-200", "delay-300"] as const;
+export function revealDelay(index: number): string {
+	return DELAYS[Math.min(Math.max(index, 0), DELAYS.length - 1)];
+}
+
+/** "01", "02"... for section and card numbers. */
+export function ordinal(index: number): string {
+	return String(index + 1).padStart(2, "0");
+}
+
+/**
+ * The deck sets its claim on two lines, one sentence each ("Meno complessità. / Più impresa.").
+ * Splits a heading after its first full stop when there is a second sentence; otherwise one line.
+ */
+export function splitClaim(heading: string): [string, string?] {
+	const match = heading.trim().match(/^(.+?[.!?])\s+(\S.*)$/s);
+	return match ? [match[1], match[2]] : [heading.trim()];
+}
