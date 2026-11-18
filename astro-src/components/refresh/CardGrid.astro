@@ -1,6 +1,7 @@
 ---
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 
+import { cardIcon } from "@/components/blocks/icons";
 import SectionHeading from "@/components/refresh/SectionHeading.astro";
 import { Card } from "@/components/ui/card";
 import { ordinal, revealDelay } from "@/lib/refresh-style";
@@ -21,7 +22,12 @@ interface Props {
 	eyebrow?: string | null;
 }
 const { value, eyebrow } = Astro.props;
-const cards = value.cards.map((card, index) => ({ ...card, href: safeHref(card.link_url), number: ordinal(index) }));
+const cards = value.cards.map((card, index) => ({
+	...card,
+	href: safeHref(card.link_url),
+	number: ordinal(index),
+	Icon: cardIcon(card.icon),
+}));
 const simple = pick("cardStyle", value.card_style, "Schede") === "Semplice";
 const split = !simple && cards.length === 2 && pick("columns", value.columns, "Automatiche") === "Automatiche";
 // Cards that lead nowhere (values, reasons) read as features, not as buttons: no box,
@@ -57,9 +63,13 @@ const Tag = (href: string | null) => (href ? "a" : "div");
 										index === 0 ? "bg-sky-200/40 opacity-0 group-hover:opacity-100 dark:bg-sky-500/10" : "bg-sky-400/15",
 									)}
 								/>
-								<span class="text-5xl font-light tracking-tight text-sky-600 tabular-nums md:text-6xl dark:text-sky-400">
-									{card.number}
-								</span>
+								{card.Icon ? (
+									<card.Icon aria-hidden="true" className="size-10 text-sky-600 md:size-12 dark:text-sky-400" />
+								) : (
+									<span class="text-5xl font-light tracking-tight text-sky-600 tabular-nums md:text-6xl dark:text-sky-400">
+										{card.number}
+									</span>
+								)}
 								<h3 class="text-2xl font-semibold tracking-tight md:text-3xl">{card.title}</h3>
 								{card.text && <p class="text-lg leading-relaxed text-muted-foreground">{card.text}</p>}
 								{card.href && (
@@ -80,9 +90,13 @@ const Tag = (href: string | null) => (href ? "a" : "div");
 						<div class="relative -mt-6 h-px">
 							<span class="absolute inset-y-0 left-0 w-12 bg-sky-500 transition-all duration-500 group-hover:w-full dark:bg-sky-400" />
 						</div>
-						<span class="block pt-2 text-4xl font-light tracking-tight text-sky-600 tabular-nums dark:text-sky-400">
-							{card.number}
-						</span>
+						{card.Icon ? (
+							<card.Icon aria-hidden="true" className="mt-2 size-8 text-sky-600 dark:text-sky-400" />
+						) : (
+							<span class="block pt-2 text-4xl font-light tracking-tight text-sky-600 tabular-nums dark:text-sky-400">
+								{card.number}
+							</span>
+						)}
 						<h3 class="text-xl font-semibold tracking-tight">{card.title}</h3>
 						{card.text && <p class="leading-relaxed text-muted-foreground">{card.text}</p>}
 					</li>
@@ -102,7 +116,7 @@ const Tag = (href: string | null) => (href ? "a" : "div");
 								)}
 							>
 								<span class="col-span-2 text-sm font-semibold text-sky-700 tabular-nums md:col-span-1 dark:text-sky-400">
-									{card.number}
+									{card.Icon ? <card.Icon aria-hidden="true" className="size-5" /> : card.number}
 								</span>
 								<div class="col-span-9 grid gap-2 md:col-span-10 md:grid-cols-2 md:gap-8">
 									<h3 class="text-xl font-semibold tracking-tight transition-colors group-hover:text-sky-700 dark:group-hover:text-sky-300">
@@ -135,7 +149,13 @@ const Tag = (href: string | null) => (href ? "a" : "div");
 										aria-hidden="true"
 										class="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-linear-to-r from-sky-400 to-cyan-300 transition-transform duration-500 group-hover:scale-x-100"
 									/>
-									<span class="text-sm font-semibold text-sky-700 tabular-nums dark:text-sky-400">{card.number}</span>
+									{card.Icon ? (
+										<span class="grid size-11 place-items-center rounded-xl bg-sky-100 text-sky-700 transition-colors duration-300 group-hover:bg-sky-400 group-hover:text-sky-950 dark:bg-sky-800 dark:text-sky-300">
+											<card.Icon aria-hidden="true" className="size-5" />
+										</span>
+									) : (
+										<span class="text-sm font-semibold text-sky-700 tabular-nums dark:text-sky-400">{card.number}</span>
+									)}
 									<h3 class="text-xl font-semibold tracking-tight">{card.title}</h3>
 									{card.text && <p class="text-base leading-relaxed text-muted-foreground">{card.text}</p>}
 									{card.href && (
