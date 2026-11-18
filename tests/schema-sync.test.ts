@@ -379,3 +379,17 @@ describe("planPresentation", () => {
 		expect(plan.skip).toContainEqual({ what: "presentation of cta", reason: "fields buttons not on the site yet" });
 	});
 });
+
+describe("seed defaults", () => {
+	const real = JSON.parse(readFileSync(join(import.meta.dirname, "..", "seed", "seed.json"), "utf-8")) as Seed;
+
+	it("leaves Sfondo and Spaziatura empty on new sections, so the redesign's page rhythm applies (refresh-style.ts)", () => {
+		for (const type of real.blockTypes ?? []) {
+			if (type.slug === "hero") continue;
+			const active = type.versions.find((v) => v.version === type.currentVersion);
+			for (const field of (active?.fields ?? []) as Array<{ slug: string; defaultValue?: unknown }>) {
+				if (field.slug === "background" || field.slug === "spacing") expect(field.defaultValue, `${type.slug}.${field.slug}`).toBeUndefined();
+			}
+		}
+	});
+});
