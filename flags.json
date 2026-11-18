@@ -1,4 +1,9 @@
 {
   "_doc": "Feature flags for code (see docs/cd.md). public=false: the feature is live in production but only signed-in EmDash editors and admins see it; visitors don't. public=true: everyone sees it (that is the release). A Worker var FLAG_<NAME>=true|false overrides at runtime for everyone (false = kill switch, also for editors). Never store content or secrets here. Remove a flag once its feature is fully released.",
-  "flags": {}
+  "flags": {
+    "page_composer": {
+      "public": false,
+      "description": "Editors compose pages: Apertura (hero) block, button lists and style presets (background, spacing, width, columns) on every section. Until released, visitors see the old layout and no Apertura blocks."
+    }
+  }
 }

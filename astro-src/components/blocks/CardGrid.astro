@@ -5,6 +5,7 @@ import SectionHeading from "@/components/blocks/SectionHeading.astro";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { safeHref } from "@/lib/safe-href";
+import { gridColumns, pick } from "@/lib/section-style";
 import type { PageLayoutCardGridBlock } from "../../../emdash-env";
 
 /** "Griglia di schede": shadcn Cards in a responsive grid (brand-colors.md, section 6). */
@@ -12,10 +13,11 @@ interface Props {
 	value: PageLayoutCardGridBlock;
 }
 const { value } = Astro.props;
-// Columns follow the number of cards, so a row is never left with one orphan (4 = 2x2 or 1x4).
-const count = value.cards.length;
-const columns =
-	count === 4 ? "@xl:grid-cols-2 @5xl:grid-cols-4" : count <= 2 ? "@xl:grid-cols-2" : "@xl:grid-cols-2 @4xl:grid-cols-3";
+// Columns follow the number of cards unless the editor fixed them (page_composer), so a
+// row is never left with one orphan (4 = 2x2 or 1x4).
+const columns = gridColumns(value.columns, value.cards.length);
+// "Semplice": the same text without the Card, separated by a top border.
+const plain = pick("cardStyle", value.card_style, "Schede") === "Semplice";
 ---
 
 <section class="@container space-y-6">
@@ -26,6 +28,18 @@ const columns =
 				const href = safeHref(card.link_url);
 				return (
 				<li class="flex">
+					{plain ? (
+						<div class="flex w-full flex-col gap-2 border-t pt-4">
+							<h3 class="text-lg font-semibold dark:text-sky-300">{card.title}</h3>
+							{card.text && <p class="text-sm leading-relaxed text-muted-foreground">{card.text}</p>}
+							{href && (
+								<a href={href} class={buttonVariants({ variant: "link", className: "mt-auto self-start px-0" })}>
+									{card.link_label || card.title}
+									<ArrowRight data-icon="inline-end" />
+								</a>
+							)}
+						</div>
+					) : (
 					<Card className="w-full">
 						<CardHeader>
 							<CardTitle>
@@ -42,6 +56,7 @@ const columns =
 							</CardFooter>
 						)}
 					</Card>
+					)}
 				</li>
 				);
 			})

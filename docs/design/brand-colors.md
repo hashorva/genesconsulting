@@ -197,6 +197,24 @@ Each visual element found in the documents, and the default shadcn/ui component 
 
 Exact component names (`Item`, `Field`) are to be confirmed against the shadcn version installed by the preset. If one is not available, `Card` and the plain form primitives cover the same need.
 
+### Section presets (editor choices)
+
+Editors style page sections ("Sezioni") only by picking a word from a list in EmDash. Each word maps to the classes below, in `astro-src/lib/section-style.ts` (tested in `tests/section-style.test.ts`). A new option is a code PR that adds a row here; editors never type a class or a colour.
+
+| Field (EmDash) | Option | Classes / component |
+| --- | --- | --- |
+| Sfondo | Nessuno | page background |
+| Sfondo | Tenue | `bg-muted dark:bg-sky-900/50` |
+| Sfondo | Blu | `dark border-y border-border bg-background text-foreground`: the band switches to the dark theme tokens (sky-950, cards sky-900, primary sky-400), so contents keep their contrast. Default for Apertura |
+| Spaziatura | Compatta / Normale / Ampia | `py-4 md:py-6` / `py-8 md:py-12` / `py-12 md:py-20`; with a background `py-8 md:py-10` / `py-12 md:py-16` / `py-16 md:py-24` |
+| Larghezza | Normale / Stretta | none / `mx-auto max-w-3xl` |
+| Allineamento | Sinistra / Centrato | none / `text-center`, buttons `justify-center` |
+| Colonne (schede) | Automatiche / 2 / 3 / 4 | by card count / `@xl:grid-cols-2` / `+ @4xl:grid-cols-3` / `+ @5xl:grid-cols-4` |
+| Stile schede | Schede / Semplice | `Card` / no card, `border-t pt-4` |
+| Pulsanti: Stile | Principale / Secondario / Contorno / Link | `Button` `default` / `secondary` / `outline` / `link`, size `lg` |
+| Accento (Apertura) | Oro | bar `h-1 w-12 rounded-full bg-yellow-600`, eyebrow `text-yellow-700 dark:text-yellow-600`. Never a gold background: white on yellow-600 fails contrast |
+| Illustrazione (Apertura) | Rete / Immagine / Nessuna | lucide `Waypoints` `size-48 text-sky-400` / EmDash image `rounded-2xl` / none |
+
 ## 6. Icon table
 
 All icons from lucide, which is the icon library the shadcn preset installs. Default stroke, sized with `size-4`, `size-5`, `size-6` or `size-8`.

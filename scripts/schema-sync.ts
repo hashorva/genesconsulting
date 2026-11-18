@@ -7,8 +7,11 @@
  *
  * The seed is only applied when a site is first set up, so later additions
  * (new block types, new optional fields) reach a running site through this.
- * - Creates block types and collection fields that are missing. Nothing else:
- *   never changes, renames or deletes a type, field, collection or any content.
+ * - Creates block types and collection fields that are missing, and appends
+ *   missing optional fields (plus a missing icon/category) to an existing block
+ *   type's active version. EmDash accepts that only as a compatible change, with a
+ *   fingerprint check, so existing sections stay valid. Nothing else: never changes,
+ *   renames or deletes a type, field, collection or any content.
  * - Refuses a missing field that is required (not additive on existing entries).
  * - The decisions live in scripts/schema-plan.ts (tested in tests/schema-sync.test.ts).
  * - Never runs in CI. Auth as in scripts/content-load.ts.
@@ -18,7 +21,7 @@ import { join } from "node:path";
 import { parseArgs } from "node:util";
 
 import { createClient } from "./emdash-client";
-import { planSync, type Seed } from "./schema-plan";
+import { type LiveBlockType, type LiveField, planSync, type Seed } from "./schema-plan";
 
 const { values: args } = parseArgs({
 	options: {
@@ -35,11 +38,26 @@ const dryRun = args["dry-run"];
 const client = createClient(args.url.replace(/\/$/, ""));
 const seed = JSON.parse(readFileSync(args.seed, "utf-8")) as Seed;
 
-const liveTypes = ((await client.blockTypes()) as Array<{ slug: string }>).map((t) => t.slug);
-const liveCollections = new Map<string, string[]>();
+const liveTypes: LiveBlockType[] = (await client.blockTypes()).map((type) => {
+	const active = type.versions.find((v) => v.version === type.currentVersion);
+	if (!active) throw new Error(`site: block type ${type.slug} has no active version`);
+	return {
+		slug: type.slug,
+		fields: active.fields as LiveBlockType["fields"],
+		fingerprint: active.fingerprint,
+		icon: type.icon,
+		category: type.category,
+	};
+});
+const liveCollections = new Map<string, LiveField[]>();
 for (const collection of seed.collections) {
 	const live = (await client.collection(collection.slug)) as { fields?: Array<{ slug: string }> } | null;
-	if (live) liveCollections.set(collection.slug, (live.fields ?? []).map((f) => f.slug));
+	if (live) {
+		liveCollections.set(
+			collection.slug,
+			(live.fields ?? []).map((f) => ({ slug: f.slug, type: f.type, validation: f.validation as LiveField["validation"] })),
+		);
+	}
 }
 
 const plan = planSync(seed, { blockTypes: liveTypes, collections: liveCollections });
@@ -54,10 +72,40 @@ for (const item of plan.create) {
 				slug: item.slug,
 				label: item.label,
 				description: item.description,
+				icon: item.icon,
+				category: item.category,
 				fields: item.fields as never,
 			});
 		}
 		console.log(`${dryRun ? "would create" : "created"} block type ${item.slug}`);
+	} else if (item.kind === "blockTypeFields") {
+		if (!dryRun) {
+			// Never `breaking: true`: EmDash refuses anything that is not a compatible change.
+			await client.updateBlockType(item.slug, {
+				expectedFingerprint: item.expectedFingerprint,
+				fields: item.fields as never,
+				...(item.icon ? { icon: item.icon } : {}),
+				...(item.category ? { category: item.category } : {}),
+			});
+		}
+		const what = [
+			item.added.length > 0 ? `fields ${item.added.join(", ")}` : "",
+			item.icon ? "icon" : "",
+			item.category ? "category" : "",
+		].filter(Boolean);
+		console.log(`${dryRun ? "would add" : "added"} ${what.join(" + ")} to block type ${item.slug}`);
+	} else if (item.kind === "allowedTypes") {
+		if (!dryRun) {
+			// The client has no updateField; this is the same PUT the admin's field editor sends.
+			// Only allowedTypes grows: EmDash keeps blocks of every type already stored.
+			const path = `/schema/collections/${encodeURIComponent(item.collection)}/fields/${encodeURIComponent(item.slug)}`;
+			await (client as unknown as { request(method: string, path: string, body: unknown): Promise<unknown> }).request(
+				"PUT",
+				path,
+				{ validation: item.validation },
+			);
+		}
+		console.log(`${dryRun ? "would allow" : "allowed"} ${item.added.join(", ")} in ${item.collection}.${item.slug}`);
 	} else {
 		if (!dryRun) {
 			await client.createField(item.collection, {
