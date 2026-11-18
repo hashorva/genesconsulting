@@ -54,7 +54,7 @@ export function isLoaderDraft(entry: PageState, file: Pick<PageFile, "title">): 
 }
 
 /** Section ("Sezioni") block types the pages `layout` field allows (seed/seed.json). */
-export const LAYOUT_TYPES = ["card_grid", "steps", "faq", "cta", "text"] as const;
+export const LAYOUT_TYPES = ["hero", "card_grid", "steps", "faq", "media_text", "stats", "cta", "text"] as const;
 
 export interface LayoutBlock {
 	_type: (typeof LAYOUT_TYPES)[number];
@@ -82,6 +82,9 @@ export function parseLayoutFile(source: string, name = "layout"): LayoutBlock[] 
 		keys.add(_key);
 		if (_type === "text" && typeof (block as Record<string, unknown>).content !== "string") {
 			throw new Error(`${where}: text block content must be Markdown`);
+		}
+		if (_type === "hero" && typeof (block as Record<string, unknown>).heading !== "string") {
+			throw new Error(`${where}: hero block needs a heading`);
 		}
 	}
 	return blocks as LayoutBlock[];
@@ -113,6 +116,40 @@ export function canAddLayoutDraft(entry: LayoutTarget, file: Pick<PageFile, "tit
 		!entry.scheduledAt &&
 		entry.title === file.title &&
 		(!Array.isArray(entry.layout) || entry.layout.length === 0)
+	);
+}
+
+/** The live state of a published page that decides whether the loader may add an Apertura draft. */
+export interface HeroTarget {
+	status: string;
+	publishedAt: string | null;
+	draftRevisionId: string | null;
+	scheduledAt: string | null;
+	title?: unknown;
+	content?: unknown;
+	layout?: unknown;
+}
+
+/**
+ * True only for a published page that still is exactly what the loader published:
+ * no pending draft, not scheduled, the title from content/, the body (`content`) and
+ * the sections of the layout file without its leading Apertura. The loader then adds
+ * the Apertura as a DRAFT revision; a page edited in the admin is left alone.
+ * `expected` is in stored form (Portable Text), see the loader's layoutData.
+ */
+export function canAddHeroDraft(
+	entry: HeroTarget,
+	file: Pick<PageFile, "title">,
+	expected: { content: unknown; layout: unknown },
+): boolean {
+	return (
+		entry.status === "published" &&
+		!!entry.publishedAt &&
+		!entry.draftRevisionId &&
+		!entry.scheduledAt &&
+		entry.title === file.title &&
+		sameContent(entry.content, expected.content) &&
+		sameContent(entry.layout, expected.layout)
 	);
 }
 

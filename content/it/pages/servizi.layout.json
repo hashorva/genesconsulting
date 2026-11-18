@@ -1,5 +1,12 @@
 [
   {
+    "_type": "hero",
+    "_version": 1,
+    "_key": "servizi-hero",
+    "heading": "Sei aree di assistenza",
+    "illustration": "Nessuna"
+  },
+  {
     "_type": "card_grid",
     "_version": 1,
     "_key": "services-six",

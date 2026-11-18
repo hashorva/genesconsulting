@@ -17,6 +17,9 @@
  *   DRAFT revision: the live page is unchanged until someone publishes the draft.
  *   `--layout --publish` (after the owner approved those drafts) publishes only the
  *   pages whose pending draft is still exactly what the loader wrote.
+ * - `--hero` adds the Apertura that opens <slug>.layout.json as the first section of
+ *   pages that are still exactly what the loader published (title, body, the other
+ *   sections), as a DRAFT revision. Publish those drafts with `--layout --publish`.
  * - `--dry-run` prints what would happen without writing.
  *
  * Auth: EMDASH_TOKEN, else the credentials saved by `bunx emdash login`.
@@ -29,6 +32,7 @@ import { parseArgs } from "node:util";
 import { markdownToPortableText } from "emdash/client";
 
 import {
+	canAddHeroDraft,
 	canAddLayoutDraft,
 	isLoaderDraft,
 	type LayoutBlock,
@@ -61,6 +65,7 @@ const { values: args } = parseArgs({
 		url: { type: "string" },
 		publish: { type: "boolean", default: false },
 		layout: { type: "boolean", default: false },
+		hero: { type: "boolean", default: false },
 		"dry-run": { type: "boolean", default: false },
 	},
 });
@@ -100,7 +105,13 @@ for await (const item of client.listAll("pages", { locale: LOCALE, limit: 100 })
 	existing.set(item.slug, { id, status, publishedAt, liveRevisionId, scheduledAt, title: item.data?.title });
 }
 
-if (args.layout && args.publish) await publishLayouts(pages);
+if (args.hero && (args.layout || args.publish)) {
+	console.error("--hero only adds drafts. Publish them afterwards with --layout --publish.");
+	process.exit(1);
+}
+
+if (args.hero) await addHeroDrafts(pages);
+else if (args.layout && args.publish) await publishLayouts(pages);
 else if (args.layout) await addLayoutDrafts(pages);
 else if (args.publish) await publish(pages);
 else await createDrafts(pages);
@@ -238,4 +249,34 @@ async function publishLayouts(files: PageFile[]) {
 		if (!dryRun) await client.publish("pages", entry.id);
 		console.log(`${dryRun ? "would publish" : "published"} ${page.slug}`);
 	}
+}
+
+async function addHeroDrafts(files: PageFile[]) {
+	for (const page of files) {
+		const blocks = layouts.get(page.slug);
+		if (blocks?.[0]?._type !== "hero") continue;
+		const entry = existing.get(page.slug);
+		if (!entry) {
+			console.log(`missing  ${page.slug} (not on the site)`);
+			continue;
+		}
+		// Fresh, raw read (stored Portable Text, not Markdown): its _rev makes the write
+		// fail (409) if anyone saves in between.
+		const item = await client.get("pages", entry.id, { locale: LOCALE, raw: true });
+		const target = { ...item, title: item.data?.title, content: item.data?.content, layout: item.data?.layout };
+		const expected = { content: markdownToPortableText(page.body), layout: layoutData(blocks.slice(1)) };
+		if (!canAddHeroDraft(target, page, expected)) {
+			console.log(`skip     ${page.slug} (edited in the admin, has a draft, or already has an Apertura)`);
+			continue;
+		}
+		if (!dryRun) {
+			await client.update("pages", entry.id, {
+				locale: LOCALE,
+				_rev: item._rev,
+				data: { layout: layoutData(blocks) },
+			});
+		}
+		console.log(`${dryRun ? "would add" : "added"} Apertura draft ${page.slug}`);
+	}
+	console.log("\nThe live pages are unchanged. Review the drafts in /_emdash/admin, then run with --layout --publish.");
 }

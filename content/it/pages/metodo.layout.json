@@ -1,5 +1,12 @@
 [
   {
+    "_type": "hero",
+    "_version": 1,
+    "_key": "metodo-hero",
+    "heading": "Un unico punto di riferimento",
+    "illustration": "Nessuna"
+  },
+  {
     "_type": "steps",
     "_version": 1,
     "_key": "method-steps",

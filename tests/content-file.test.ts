@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { markdownToPortableText } from "emdash/client";
 
 import {
+	canAddHeroDraft,
 	canAddLayoutDraft,
 	isLoaderDraft,
 	parseLayoutFile,
@@ -67,7 +68,22 @@ describe("starter sections", () => {
 					if (card.link_label) expect(card.link_label).not.toMatch(/^Area \d/);
 				}
 				if (block._type === "cta" && block.button_url) expect(safeHref(block.button_url as string)).toBe(block.button_url);
+				const buttons = (block.buttons as Array<{ link_label: string; link_url: string }>) ?? [];
+				for (const button of buttons) {
+					expect(button.link_label).toBeTruthy();
+					expect(safeHref(button.link_url)).toBe(button.link_url);
+				}
 			}
+		}
+	});
+
+	it("opens every page with an Apertura whose heading is the page title", () => {
+		for (const name of layoutFiles) {
+			const [first, ...rest] = parseLayoutFile(readFileSync(join(dir, name), "utf-8"), name);
+			const page = parsePageFile(readFileSync(join(dir, name.replace(".layout.json", ".md")), "utf-8"), name);
+			expect(first._type).toBe("hero");
+			expect(first.heading).toBe(page.title);
+			expect(rest.some((block) => block._type === "hero")).toBe(false);
 		}
 	});
 
@@ -75,7 +91,8 @@ describe("starter sections", () => {
 		const ok = { _type: "cta", _version: 1, _key: "a", heading: "Parliamone." };
 		expect(parseLayoutFile(JSON.stringify([ok]))).toHaveLength(1);
 		expect(() => parseLayoutFile("{}")).toThrow(/array/);
-		expect(() => parseLayoutFile(JSON.stringify([{ ...ok, _type: "hero" }]))).toThrow(/unknown _type/);
+		expect(() => parseLayoutFile(JSON.stringify([{ ...ok, _type: "banner" }]))).toThrow(/unknown _type/);
+		expect(() => parseLayoutFile(JSON.stringify([{ _type: "hero", _version: 1, _key: "h" }]))).toThrow(/heading/);
 		expect(() => parseLayoutFile(JSON.stringify([{ ...ok, _key: "" }]))).toThrow(/_key/);
 		expect(() => parseLayoutFile(JSON.stringify([ok, ok]))).toThrow(/duplicate/);
 		expect(() => parseLayoutFile(JSON.stringify([{ _type: "text", _version: 1, _key: "t", content: [] }]))).toThrow(/Markdown/);
@@ -106,6 +123,36 @@ describe("canAddLayoutDraft", () => {
 		expect(canAddLayoutDraft({ ...page, scheduledAt: "2026-12-01T09:00:00Z" }, file)).toBe(false);
 		expect(canAddLayoutDraft({ ...page, title: "Il nostro metodo" }, file)).toBe(false);
 		expect(canAddLayoutDraft({ ...page, layout: [{ _type: "cta" }] }, file)).toBe(false);
+	});
+});
+
+describe("canAddHeroDraft", () => {
+	const file = { title: "Metodo" };
+	const sections = [{ _type: "cta", _version: 1, _key: "c", heading: "Parliamone." }];
+	const expected = { content: markdownToPortableText("Testo."), layout: sections };
+	const page = {
+		status: "published",
+		publishedAt: "2026-11-18T12:00:00.000Z",
+		draftRevisionId: null,
+		scheduledAt: null,
+		title: "Metodo",
+		content: markdownToPortableText("Testo."),
+		layout: sections,
+	};
+
+	it("accepts a published page that is still exactly what the loader published", () => {
+		expect(canAddHeroDraft(page, file, expected)).toBe(true);
+	});
+
+	it("rejects drafts, pending edits, schedules, retitles, edited body or sections, and an existing Apertura", () => {
+		expect(canAddHeroDraft({ ...page, status: "draft", publishedAt: null }, file, expected)).toBe(false);
+		expect(canAddHeroDraft({ ...page, draftRevisionId: "rev1" }, file, expected)).toBe(false);
+		expect(canAddHeroDraft({ ...page, scheduledAt: "2026-12-01T09:00:00Z" }, file, expected)).toBe(false);
+		expect(canAddHeroDraft({ ...page, title: "Il nostro metodo" }, file, expected)).toBe(false);
+		expect(canAddHeroDraft({ ...page, content: markdownToPortableText("Altro.") }, file, expected)).toBe(false);
+		expect(canAddHeroDraft({ ...page, layout: [{ ...sections[0], heading: "Scrivici." }] }, file, expected)).toBe(false);
+		const hero = { _type: "hero", _version: 1, _key: "h", heading: "Metodo" };
+		expect(canAddHeroDraft({ ...page, layout: [hero, ...sections] }, file, expected)).toBe(false);
 	});
 });
 

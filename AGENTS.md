@@ -36,7 +36,7 @@ Everything visual uses defaults only. Humans and agents alike.
 - Never rewrite history on shared branches; never skip tests or disable checks to get green.
 
 ## Code vs content
-- Code goes through PRs. Content/copy lives in EmDash; do not hardcode page copy in components, and never touch production content from CI or scripts. One exception: the starter-content loader `scripts/content-load.ts`, run by hand with the owner's go-ahead. It only creates missing pages as drafts, and its `--layout` mode only adds a draft revision with sections to pages it published that nobody edited since; the live page never changes until a `--publish` step that runs only after the owner approved those drafts (see `docs/cd.md`).
+- Code goes through PRs. Content/copy lives in EmDash; do not hardcode page copy in components, and never touch production content from CI or scripts. One exception: the starter-content loader `scripts/content-load.ts`, run by hand with the owner's go-ahead. It only creates missing pages as drafts, and its `--layout` and `--hero` modes only add a draft revision (sections, or an Apertura on top) to pages it published that nobody edited since; the live page never changes until a `--publish` step that runs only after the owner approved those drafts (see `docs/cd.md`).
 - New components/behaviour ship behind a flag in `flags.json` (off in production). See `docs/cd.md` for the EmDash safety rules.
 - UI: shadcn/ui components, Tailwind v4, Noto fonts, preset `b2DcSAJ7K` with the Genes Consulting brand colors (from the PDFs/docs), mobile-first, automatic light/dark.
 - Runners: GitHub-hosted only (public repo). Never add self-hosted/Mac mini runners.
