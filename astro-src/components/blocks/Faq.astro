@@ -1,0 +1,26 @@
+---
+import FaqAccordion from "@/components/blocks/FaqAccordion";
+import SectionHeading from "@/components/blocks/SectionHeading.astro";
+import type { PageLayoutFaqBlock } from "../../../emdash-env";
+
+/** "Domande frequenti": Accordion plus FAQPage structured data with the same text (content map, section 7). */
+interface Props {
+	value: PageLayoutFaqBlock;
+}
+const { value } = Astro.props;
+const jsonLd = JSON.stringify({
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	mainEntity: value.items.map((item) => ({
+		"@type": "Question",
+		name: item.question,
+		acceptedAnswer: { "@type": "Answer", text: item.answer },
+	})),
+}).replace(/</g, "\\u003c");
+---
+
+<section class="max-w-3xl space-y-6">
+	<SectionHeading heading={value.heading} />
+	<FaqAccordion client:visible items={value.items} />
+	<script is:inline type="application/ld+json" set:html={jsonLd} />
+</section>

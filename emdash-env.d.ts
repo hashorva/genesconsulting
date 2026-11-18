@@ -5,12 +5,68 @@
 
 import type { BylineSummary, ContentBylineCredit, TaxonomyTerm, PortableTextBlock } from "emdash";
 
+export interface PageLayoutCardGridV1Block {
+  _type: "card_grid";
+  _version: 1;
+  _key: string;
+  "heading"?: string | null;
+  "intro"?: string | null;
+  "cards": { "title": string; "text"?: string | null; "link_url"?: string | null; "link_label"?: string | null }[];
+}
+
+export type PageLayoutCardGridBlock = PageLayoutCardGridV1Block;
+
+export interface PageLayoutStepsV1Block {
+  _type: "steps";
+  _version: 1;
+  _key: string;
+  "heading"?: string | null;
+  "intro"?: string | null;
+  "steps": { "title": string; "text"?: string | null }[];
+}
+
+export type PageLayoutStepsBlock = PageLayoutStepsV1Block;
+
+export interface PageLayoutFaqV1Block {
+  _type: "faq";
+  _version: 1;
+  _key: string;
+  "heading"?: string | null;
+  "items": { "question": string; "answer": string }[];
+}
+
+export type PageLayoutFaqBlock = PageLayoutFaqV1Block;
+
+export interface PageLayoutCtaV1Block {
+  _type: "cta";
+  _version: 1;
+  _key: string;
+  "heading": string;
+  "text"?: string | null;
+  "button_label"?: string | null;
+  "button_url"?: string | null;
+}
+
+export type PageLayoutCtaBlock = PageLayoutCtaV1Block;
+
+export interface PageLayoutTextV1Block {
+  _type: "text";
+  _version: 1;
+  _key: string;
+  "content": PortableTextBlock[];
+}
+
+export type PageLayoutTextBlock = PageLayoutTextV1Block;
+
+export type PageLayoutBlock = PageLayoutCardGridBlock | PageLayoutStepsBlock | PageLayoutFaqBlock | PageLayoutCtaBlock | PageLayoutTextBlock;
+
 export interface Page {
   id: string;
   slug: string | null;
   status: string;
   title: string;
   content?: PortableTextBlock[];
+  layout?: PageLayoutBlock[];
   createdAt: Date;
   updatedAt: Date;
   publishedAt: Date | null;
@@ -24,9 +80,9 @@ export interface Post {
   slug: string | null;
   status: string;
   title: string;
-  featured_image?: { id: string; src?: string; alt?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown>; darkVariant?: { id: string; src?: string; alt?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown> } };
-  content?: PortableTextBlock[];
   excerpt?: string;
+  featured_image?: { id: string; src?: string; alt?: string; caption?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown>; darkVariant?: { id: string; src?: string; alt?: string; caption?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown> } };
+  content?: PortableTextBlock[];
   createdAt: Date;
   updatedAt: Date;
   publishedAt: Date | null;

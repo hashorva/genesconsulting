@@ -16,10 +16,11 @@ const STAFF_MIN_ROLE = 40;
  */
 export function isEnabled(
 	name: FlagName,
-	env: Record<string, unknown> = {},
+	env: object = {},
 	user?: { role?: number } | null,
 ): boolean {
-	const override = env[`FLAG_${name.toUpperCase()}`];
+	// `object` so the typed Worker `env` from "cloudflare:workers" can be passed as is.
+	const override = (env as Record<string, unknown>)[`FLAG_${name.toUpperCase()}`];
 	if (override === "true" || override === true) return true;
 	if (override === "false" || override === false) return false;
 	if (flags.flags[name].public) return true;

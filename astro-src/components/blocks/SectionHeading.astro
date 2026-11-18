@@ -1,0 +1,17 @@
+---
+/** Title and intro shared by every section block. Renders nothing when both are empty. */
+interface Props {
+	heading?: string | null;
+	intro?: string | null;
+}
+const { heading, intro } = Astro.props;
+---
+
+{
+	(heading || intro) && (
+		<div class="max-w-3xl space-y-3">
+			{heading && <h2 class="text-2xl font-bold tracking-tight md:text-3xl">{heading}</h2>}
+			{intro && <p class="leading-relaxed text-muted-foreground">{intro}</p>}
+		</div>
+	)
+}

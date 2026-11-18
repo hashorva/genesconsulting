@@ -17,13 +17,11 @@
  * Auth: EMDASH_TOKEN, else the credentials saved by `bunx emdash login`.
  * Against a local `bun run dev` (localhost) the dev bypass is used.
  */
-import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { homedir } from "node:os";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 
-import { EmDashClient } from "emdash/client";
-
+import { createClient } from "./emdash-client";
 import { isLoaderDraft, parsePageFile, type PageFile, type PageState } from "./content-file";
 
 const CONTENT_DIR = join(import.meta.dirname, "..", "content", "it", "pages");
@@ -148,19 +146,4 @@ async function fillMenu(name: string, items: Array<[string, string]>) {
 		}
 		console.log(`${dryRun ? "would add" : "added"} menu ${name}: ${label}`);
 	}
-}
-
-function createClient(url: string): EmDashClient {
-	const isLocal = /^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(url);
-	let token = process.env.EMDASH_TOKEN;
-	if (!token && !isLocal) {
-		const store = join(process.env.XDG_CONFIG_HOME ?? join(homedir(), ".config"), "emdash", "auth.json");
-		const saved = existsSync(store) ? JSON.parse(readFileSync(store, "utf-8"))[new URL(url).origin] : undefined;
-		token = saved?.accessToken;
-		if (!token) {
-			console.error(`Not logged in. Run: bunx emdash login --url ${url}`);
-			process.exit(1);
-		}
-	}
-	return new EmDashClient({ baseUrl: url, token, devBypass: !token && isLocal });
 }

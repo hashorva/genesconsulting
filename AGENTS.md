@@ -4,7 +4,8 @@ Public showcase site: Astro + EmDash (content/copy/blog) + Tailwind v4 + shadcn/
 
 ## Project layout
 - Bun + Astro (`output: "server"`) + EmDash on one Cloudflare Worker. Source in `astro-src/` (Astro `srcDir`), worker entry `astro-src/worker.ts`, config `astro.config.mjs` and `wrangler.jsonc` at the root.
-- EmDash schema: `seed/seed.json` (changes are additive only). After a schema change, regenerate `emdash-env.d.ts` with `bunx emdash types` and commit it.
+- EmDash schema: `seed/seed.json` (changes are additive only). After a schema change, regenerate `emdash-env.d.ts` with `bunx emdash types` and commit it. The seed only applies when a site is first set up: additions reach the live site with `scripts/schema-sync.ts`, run by hand (creates missing block types and optional fields, never changes or deletes anything).
+- Page sections: the pages' `layout` ("Sezioni") field holds EmDash blocks (`card_grid`, `steps`, `faq`, `cta`, `text`), each rendered by one component in `astro-src/components/blocks/` built on shadcn `Card`/`Accordion`/`Button` (`PageBlocks.astro` maps them). A new repeated section = a block type in the seed + one component + one line in `PageBlocks.astro`.
 - EmDash agent skills live in `.agents/skills/` (querying content, schema, plugins); the EmDash docs MCP is in `.mcp.json`.
 - UI strings: `astro-src/i18n/locales/<locale>/<namespace>.json`, used via `useTranslations(Astro.currentLocale)`. Links by route key: `routePath("page.about")` from `astro-src/i18n/routes.ts`.
 - shadcn/ui components go in `astro-src/components/ui/` via `bunx shadcn@latest add <name>` (style `base-rhea`, icons lucide). Use them in `.astro` files through `buttonVariants()` etc., or as React islands (`client:idle`) only when they need interaction.

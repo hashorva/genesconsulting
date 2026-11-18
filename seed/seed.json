@@ -3,13 +3,210 @@
 	"version": "1",
 	"meta": {
 		"name": "Genes Consulting",
-		"description": "Base schema: pages and the Aggiornamenti blog. The full content model (services, audiences, FAQ, legal pages) comes in a later, additive change.",
+		"description": "Pages (rich text plus reusable sections), the Aggiornamenti blog and its taxonomies. Schema changes are additive only.",
 		"author": "Genes Consulting"
 	},
 	"settings": {
 		"title": "Genes Consulting",
 		"tagline": "Meno complessità. Più impresa."
 	},
+	"blockTypes": [
+		{
+			"slug": "card_grid",
+			"label": "Griglia di schede",
+			"description": "Titolo, introduzione e schede con testo e link facoltativo.",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{
+							"slug": "heading",
+							"label": "Titolo della sezione",
+							"type": "string"
+						},
+						{
+							"slug": "intro",
+							"label": "Introduzione",
+							"type": "text"
+						},
+						{
+							"slug": "cards",
+							"label": "Schede",
+							"type": "repeater",
+							"required": true,
+							"validation": {
+								"maxItems": 12,
+								"subFields": [
+									{
+										"slug": "title",
+										"label": "Titolo",
+										"type": "string",
+										"required": true
+									},
+									{
+										"slug": "text",
+										"label": "Testo",
+										"type": "text"
+									},
+									{
+										"slug": "link_url",
+										"label": "Link (URL)",
+										"type": "url"
+									},
+									{
+										"slug": "link_label",
+										"label": "Testo del link",
+										"type": "string"
+									}
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"slug": "steps",
+			"label": "Passaggi",
+			"description": "Percorso numerato, ad esempio il metodo di lavoro.",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{
+							"slug": "heading",
+							"label": "Titolo della sezione",
+							"type": "string"
+						},
+						{
+							"slug": "intro",
+							"label": "Introduzione",
+							"type": "text"
+						},
+						{
+							"slug": "steps",
+							"label": "Passaggi",
+							"type": "repeater",
+							"required": true,
+							"validation": {
+								"maxItems": 12,
+								"subFields": [
+									{
+										"slug": "title",
+										"label": "Titolo",
+										"type": "string",
+										"required": true
+									},
+									{
+										"slug": "text",
+										"label": "Descrizione",
+										"type": "text"
+									}
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"slug": "faq",
+			"label": "Domande frequenti",
+			"description": "Domande e risposte, apribili una alla volta.",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{
+							"slug": "heading",
+							"label": "Titolo della sezione",
+							"type": "string",
+							"defaultValue": "Domande frequenti"
+						},
+						{
+							"slug": "items",
+							"label": "Domande",
+							"type": "repeater",
+							"required": true,
+							"validation": {
+								"maxItems": 30,
+								"subFields": [
+									{
+										"slug": "question",
+										"label": "Domanda",
+										"type": "string",
+										"required": true
+									},
+									{
+										"slug": "answer",
+										"label": "Risposta",
+										"type": "text",
+										"required": true
+									}
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"slug": "cta",
+			"label": "Invito all'azione",
+			"description": "Riquadro finale con titolo, testo e pulsante.",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{
+							"slug": "heading",
+							"label": "Titolo",
+							"type": "string",
+							"required": true
+						},
+						{
+							"slug": "text",
+							"label": "Testo",
+							"type": "text"
+						},
+						{
+							"slug": "button_label",
+							"label": "Testo del pulsante",
+							"type": "string"
+						},
+						{
+							"slug": "button_url",
+							"label": "Link del pulsante",
+							"type": "url"
+						}
+					]
+				}
+			]
+		},
+		{
+			"slug": "text",
+			"label": "Testo",
+			"description": "Testo libero con titoli, elenchi e link.",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{
+							"slug": "content",
+							"label": "Contenuto",
+							"type": "portableText",
+							"required": true
+						}
+					]
+				}
+			]
+		}
+	],
 	"collections": [
 		{
 			"slug": "pages",
@@ -36,6 +233,21 @@
 					"label": "Contenuto",
 					"type": "portableText",
 					"searchable": true
+				},
+				{
+					"slug": "layout",
+					"label": "Sezioni",
+					"type": "blocks",
+					"validation": {
+						"allowedTypes": [
+							"card_grid",
+							"steps",
+							"faq",
+							"cta",
+							"text"
+						],
+						"maxItems": 30
+					}
 				}
 			]
 		},
