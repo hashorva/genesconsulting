@@ -9,7 +9,8 @@
  *   whose slug already exists is skipped, so edits made in the admin win.
  * - New pages are created as DRAFTS. Visitors see nothing until someone publishes them.
  * - `--publish` (run only after the owner approved the drafts) publishes the pages
- *   listed in content/ that are still the loader's never-published drafts,
+ *   listed in content/ that are still the loader's never-published drafts (pages
+ *   with sections only once the page_blocks flag is public),
  *   replaces the seed's placeholder tagline, and fills the primary/footer menus
  *   (published pages only) when they are empty.
  * - `--layout` adds the sections in content/it/pages/<slug>.layout.json (and that
@@ -143,6 +144,12 @@ async function publish(files: PageFile[]) {
 		// (then unpublished), scheduled, or retitled in the admin is left alone.
 		if (!isLoaderDraft(entry, page)) {
 			console.log(`skip     ${page.slug} (status ${entry.status}, changed in the admin or published before)`);
+			continue;
+		}
+		// A page with sections has a shorter body; visitors see the sections only once
+		// page_blocks is public, so until then it stays a draft.
+		if (layouts.has(page.slug) && !flags.flags.page_blocks?.public) {
+			console.log(`skip     ${page.slug} (has sections; publish after page_blocks is public)`);
 			continue;
 		}
 		if (!dryRun) await client.publish("pages", entry.id);
