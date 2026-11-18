@@ -44,11 +44,13 @@ In https://github.com/hashorva/genesconsulting/settings/environments:
 
 Then in **Settings → Secrets and variables → Actions → Variables**, add the repository variable **`CD_DEPLOY_ENABLED`** = `true`. Until it exists, CI runs but nothing deploys. Set it when you are ready for the first deploy (step 6), because from then on every merge to `main` goes live.
 
-(Optional, for the AI reviewer: repository secret `CLAUDE_CODE_OAUTH_TOKEN`, see `docs/cd.md`.)
+**Required:** repository secret `CLAUDE_CODE_OAUTH_TOKEN` (**Settings → Secrets and variables → Actions → Secrets**; create it with `claude setup-token`). The AI review uses it, and the required check `review-gate` fails on every PR that changes more than docs when it is missing (see `docs/cd.md`).
 
 ## 5. Protect `main`
 
-Follow [`docs/github-bot-setup.md`](github-bot-setup.md): the agents' bot account, the ruleset on `main` (checks **`gate`** and **`review-gate`**, code-owner review) and **Allow auto-merge**.
+**Settings → Rules → Rulesets → New branch ruleset** (or edit the existing one): enforcement **Active**, target **Include default branch**, then turn on **Restrict deletions**, **Block force pushes**, **Require a pull request before merging** (required approvals **0**, allowed merge method **Squash**) and **Require status checks to pass** with **`gate`** and **`review-gate`** (source: GitHub Actions). Leave the bypass list **empty**: agents push with your account, so a bypass would let them skip the checks too. To override the checks deliberately (rare), set the ruleset to **Disabled**, merge, and set it back to **Active**.
+
+Then **Settings → General → Pull Requests**: tick **Allow auto-merge** and **Automatically delete head branches**. Non-critical PRs merge themselves after a clean AI review; critical ones wait for you to press **Squash and merge** (see `docs/cd.md`).
 
 ## 6. First production deploy
 
@@ -69,7 +71,7 @@ The site starts hidden from search engines (staging) until you choose to go live
 
 EmDash encrypts plugin secrets (for example SMTP passwords) with `EMDASH_ENCRYPTION_KEY`. It is a Worker secret, not a GitHub one, and it is only needed before you save a plugin secret, but set it now so you don't forget.
 
-1. Generate one locally: `bunx emdash secrets generate` (or `npx emdash secrets generate`). It prints `emdash_enc_v1_...`.
+1. Generate one locally: `bunx emdash secrets generate`. It prints `emdash_enc_v1_...`.
 2. **Save it in your password manager first.** If it is lost, every plugin secret encrypted with it is lost. It is not in the D1 backups.
 3. Cloudflare dashboard → **Workers & Pages → genesconsulting → Settings → Variables and Secrets → Add** → Type **Secret**, name `EMDASH_ENCRYPTION_KEY`, value the key → **Deploy**.
 (CLI alternative: `bunx wrangler secret put EMDASH_ENCRYPTION_KEY`.)

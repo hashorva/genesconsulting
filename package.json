@@ -3,10 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "packageManager": "bun@1.4.4",
   "emdash": {
     "seed": "seed/seed.json"
   },
   "scripts": {
+    "preinstall": "node -e \"if(!(process.env.npm_config_user_agent||'').startsWith('bun/')){console.error('This project uses Bun only: run bun install (and bunx instead of npx).');process.exit(1)}\"",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
