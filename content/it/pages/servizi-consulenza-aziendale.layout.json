@@ -1,0 +1,69 @@
+[
+  {
+    "_type": "card_grid",
+    "_version": 1,
+    "_key": "consulting-what",
+    "heading": "Cosa facciamo",
+    "cards": [
+      {
+        "title": "Analisi delle necessità e delle priorità"
+      },
+      {
+        "title": "Coordinamento di attività e adempimenti"
+      },
+      {
+        "title": "Supporto operativo e documentale"
+      },
+      {
+        "title": "Interventi calibrati sul cliente"
+      }
+    ]
+  },
+  {
+    "_type": "text",
+    "_version": 1,
+    "_key": "consulting-scope",
+    "content": "## A chi si rivolge\n\nImprese che vogliono un solo interlocutore per le esigenze amministrative e operative, senza moltiplicare i contatti. [Per le imprese](/per-le-imprese/)\n\n## Cosa non è\n\nLa consulenza di Genes riguarda attività non riservate. Quando servono prestazioni riservate per legge a professionisti abilitati, Genes si raccorda con loro: [collaborazione con professionisti abilitati](/collaborazione-professionale/)."
+  },
+  {
+    "_type": "faq",
+    "_version": 1,
+    "_key": "consulting-faq",
+    "heading": "Domande frequenti",
+    "items": [
+      {
+        "question": "Che cosa fa Genes Consulting?",
+        "answer": "Genes Consulting offre consulenza aziendale e servizi amministrativi, societari e digitali a imprese e studi professionali. Segue pratiche, documenti e rapporti con gli enti come unico riferimento operativo."
+      }
+    ]
+  },
+  {
+    "_type": "card_grid",
+    "_version": 1,
+    "_key": "consulting-other",
+    "heading": "Le altre aree",
+    "cards": [
+      {
+        "title": "Servizi amministrativi e societari",
+        "text": "Registro delle Imprese, pratiche camerali, visure e certificati.",
+        "link_url": "/servizi/amministrativi-societari/",
+        "link_label": "Scopri i servizi societari"
+      },
+      {
+        "title": "Digitale e gestione documentale",
+        "text": "Pratiche telematiche, PEC, firme digitali e corrispondenza.",
+        "link_url": "/servizi/digitali-documentali/",
+        "link_label": "Scopri i servizi digitali"
+      }
+    ]
+  },
+  {
+    "_type": "cta",
+    "_version": 1,
+    "_key": "consulting-cta",
+    "heading": "Parliamone.",
+    "text": "L'esperienza che semplifica, le competenze che si integrano.",
+    "button_label": "Contattaci",
+    "button_url": "/contatti/"
+  }
+]
