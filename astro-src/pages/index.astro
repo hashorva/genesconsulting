@@ -1,9 +1,9 @@
 ---
 import { getEmDashCollection, getEmDashEntry, getSiteSettings } from "emdash";
-import { PortableText } from "emdash/ui";
 import { Waypoints } from "lucide-react";
 
 import PostCard from "@/components/blog/PostCard.astro";
+import RichText from "@/components/content/RichText.astro";
 import { buttonVariants } from "@/components/ui/button";
 import { resolveLocale, useTranslations } from "@/i18n";
 import { routePath } from "@/i18n/routes";
@@ -66,9 +66,7 @@ const { siteTitle, siteTagline } = resolveSiteIdentity(settings, {
 	{
 		home?.data.content && (
 			<section class="container mx-auto px-4 py-16 md:px-6 md:py-24">
-				<div class="max-w-3xl space-y-4 leading-relaxed">
-					<PortableText value={home.data.content} />
-				</div>
+				<RichText value={home.data.content} class="max-w-3xl" />
 			</section>
 		)
 	}
