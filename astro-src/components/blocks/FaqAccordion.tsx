@@ -7,7 +7,7 @@ export default function FaqAccordion({ items }: { items: { question: string; ans
 			{items.map((item, index) => (
 				<AccordionItem key={index} value={String(index)}>
 					<AccordionTrigger>{item.question}</AccordionTrigger>
-					<AccordionContent>
+					<AccordionContent hiddenUntilFound>
 						<p>{item.answer}</p>
 					</AccordionContent>
 				</AccordionItem>
