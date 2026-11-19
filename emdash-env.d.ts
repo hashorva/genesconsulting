@@ -5,12 +5,143 @@
 
 import type { BylineSummary, ContentBylineCredit, TaxonomyTerm, PortableTextBlock } from "emdash";
 
+export interface PageLayoutHeroV1Block {
+  _type: "hero";
+  _version: 1;
+  _key: string;
+  "eyebrow"?: string | null;
+  "heading": string;
+  "text"?: string | null;
+  "buttons"?: { "link_label": string; "link_url": string; "style"?: "Principale" | "Secondario" | "Contorno" | "Link" | null }[] | null;
+  "image"?: { id: string; src?: string; alt?: string; caption?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown>; darkVariant?: { id: string; src?: string; alt?: string; caption?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown> } } | null;
+  "illustration"?: "Rete" | "Immagine" | "Nessuna" | null;
+  "align"?: "Sinistra" | "Centrato" | null;
+  "accent"?: "Nessuno" | "Oro" | null;
+  "background"?: "Nessuno" | "Tenue" | "Blu" | null;
+  "spacing"?: "Compatta" | "Normale" | "Ampia" | null;
+  "anchor_id"?: string | null;
+}
+
+export type PageLayoutHeroBlock = PageLayoutHeroV1Block;
+
+export interface PageLayoutCardGridV1Block {
+  _type: "card_grid";
+  _version: 1;
+  _key: string;
+  "heading"?: string | null;
+  "intro"?: string | null;
+  "cards": { "title": string; "text"?: string | null; "icon"?: "Rete" | "Documento" | "Edificio" | "Persone" | "Scudo" | "Grafico" | "Telefono" | "Posta" | "Calendario" | "Bilancia" | "Valigetta" | "Spunta" | "Stretta di mano" | "Istituzione" | null; "link_label"?: string | null; "link_url"?: string | null }[];
+  "columns"?: "Automatiche" | "2" | "3" | "4" | null;
+  "card_style"?: "Schede" | "Semplice" | null;
+  "background"?: "Nessuno" | "Tenue" | "Blu" | null;
+  "spacing"?: "Compatta" | "Normale" | "Ampia" | null;
+  "width"?: "Normale" | "Stretta" | null;
+  "anchor_id"?: string | null;
+}
+
+export type PageLayoutCardGridBlock = PageLayoutCardGridV1Block;
+
+export interface PageLayoutStepsV1Block {
+  _type: "steps";
+  _version: 1;
+  _key: string;
+  "heading"?: string | null;
+  "intro"?: string | null;
+  "steps": { "title": string; "text"?: string | null }[];
+  "background"?: "Nessuno" | "Tenue" | "Blu" | null;
+  "spacing"?: "Compatta" | "Normale" | "Ampia" | null;
+  "width"?: "Normale" | "Stretta" | null;
+  "anchor_id"?: string | null;
+}
+
+export type PageLayoutStepsBlock = PageLayoutStepsV1Block;
+
+export interface PageLayoutFaqV1Block {
+  _type: "faq";
+  _version: 1;
+  _key: string;
+  "heading"?: string | null;
+  "items": { "question": string; "answer": string }[];
+  "background"?: "Nessuno" | "Tenue" | "Blu" | null;
+  "spacing"?: "Compatta" | "Normale" | "Ampia" | null;
+  "width"?: "Normale" | "Stretta" | null;
+  "anchor_id"?: string | null;
+}
+
+export type PageLayoutFaqBlock = PageLayoutFaqV1Block;
+
+export interface PageLayoutMediaTextV1Block {
+  _type: "media_text";
+  _version: 1;
+  _key: string;
+  "heading"?: string | null;
+  "content"?: PortableTextBlock[] | null;
+  "image": { id: string; src?: string; alt?: string; caption?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown>; darkVariant?: { id: string; src?: string; alt?: string; caption?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown> } };
+  "image_side"?: "Destra" | "Sinistra" | null;
+  "buttons"?: { "link_label": string; "link_url": string; "style"?: "Principale" | "Secondario" | "Contorno" | "Link" | null }[] | null;
+  "background"?: "Nessuno" | "Tenue" | "Blu" | null;
+  "spacing"?: "Compatta" | "Normale" | "Ampia" | null;
+  "width"?: "Normale" | "Stretta" | null;
+  "anchor_id"?: string | null;
+}
+
+export type PageLayoutMediaTextBlock = PageLayoutMediaTextV1Block;
+
+export interface PageLayoutStatsV1Block {
+  _type: "stats";
+  _version: 1;
+  _key: string;
+  "heading"?: string | null;
+  "intro"?: string | null;
+  "items": { "value": string; "label": string }[];
+  "background"?: "Nessuno" | "Tenue" | "Blu" | null;
+  "spacing"?: "Compatta" | "Normale" | "Ampia" | null;
+  "width"?: "Normale" | "Stretta" | null;
+  "anchor_id"?: string | null;
+}
+
+export type PageLayoutStatsBlock = PageLayoutStatsV1Block;
+
+export interface PageLayoutCtaV1Block {
+  _type: "cta";
+  _version: 1;
+  _key: string;
+  "heading": string;
+  "text"?: string | null;
+  "button_label"?: string | null;
+  "button_url"?: string | null;
+  "buttons"?: { "link_label": string; "link_url": string; "style"?: "Principale" | "Secondario" | "Contorno" | "Link" | null }[] | null;
+  "align"?: "Sinistra" | "Centrato" | null;
+  "background"?: "Nessuno" | "Tenue" | "Blu" | null;
+  "spacing"?: "Compatta" | "Normale" | "Ampia" | null;
+  "width"?: "Normale" | "Stretta" | null;
+  "anchor_id"?: string | null;
+}
+
+export type PageLayoutCtaBlock = PageLayoutCtaV1Block;
+
+export interface PageLayoutTextV1Block {
+  _type: "text";
+  _version: 1;
+  _key: string;
+  "content": PortableTextBlock[];
+  "background"?: "Nessuno" | "Tenue" | "Blu" | null;
+  "spacing"?: "Compatta" | "Normale" | "Ampia" | null;
+  "width"?: "Normale" | "Stretta" | null;
+  "anchor_id"?: string | null;
+}
+
+export type PageLayoutTextBlock = PageLayoutTextV1Block;
+
+export type PageLayoutBlock = PageLayoutHeroBlock | PageLayoutCardGridBlock | PageLayoutStepsBlock | PageLayoutFaqBlock | PageLayoutMediaTextBlock | PageLayoutStatsBlock | PageLayoutCtaBlock | PageLayoutTextBlock;
+
 export interface Page {
   id: string;
   slug: string | null;
   status: string;
   title: string;
   content?: PortableTextBlock[];
+  layout?: PageLayoutBlock[];
   createdAt: Date;
   updatedAt: Date;
   publishedAt: Date | null;
@@ -24,9 +155,9 @@ export interface Post {
   slug: string | null;
   status: string;
   title: string;
-  featured_image?: { id: string; src?: string; alt?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown>; darkVariant?: { id: string; src?: string; alt?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown> } };
-  content?: PortableTextBlock[];
   excerpt?: string;
+  featured_image?: { id: string; src?: string; alt?: string; caption?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown>; darkVariant?: { id: string; src?: string; alt?: string; caption?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown> } };
+  content?: PortableTextBlock[];
   createdAt: Date;
   updatedAt: Date;
   publishedAt: Date | null;

@@ -1,0 +1,69 @@
+---
+import { ArrowRight } from "lucide-react";
+
+import { cardIcon } from "@/components/blocks/icons";
+import SectionHeading from "@/components/blocks/SectionHeading.astro";
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { safeHref } from "@/lib/safe-href";
+import { gridColumns, pick } from "@/lib/section-style";
+import type { PageLayoutCardGridBlock } from "../../../emdash-env";
+
+/** "Griglia di schede": shadcn Cards in a responsive grid (brand-colors.md, section 6). */
+interface Props {
+	value: PageLayoutCardGridBlock;
+}
+const { value } = Astro.props;
+// Columns follow the number of cards unless the editor fixed them (page_composer), so a
+// row is never left with one orphan (4 = 2x2 or 1x4).
+const columns = gridColumns(value.columns, value.cards.length);
+// "Semplice": the same text without the Card, separated by a top border.
+const plain = pick("cardStyle", value.card_style, "Schede") === "Semplice";
+---
+
+<section class="@container space-y-6">
+	<SectionHeading heading={value.heading} intro={value.intro} />
+	<ul class={`grid gap-4 ${columns}`}>
+		{
+			value.cards.map((card) => {
+				const href = safeHref(card.link_url);
+				const Icon = cardIcon(card.icon);
+				return (
+				<li class="flex">
+					{plain ? (
+						<div class="flex w-full flex-col gap-2 border-t pt-4">
+							{Icon && <Icon aria-hidden="true" className="size-6 text-sky-700 dark:text-sky-300" />}
+							<h3 class="text-lg font-semibold dark:text-sky-300">{card.title}</h3>
+							{card.text && <p class="text-sm leading-relaxed text-muted-foreground">{card.text}</p>}
+							{href && (
+								<a href={href} class={buttonVariants({ variant: "link", className: "mt-auto self-start px-0" })}>
+									{card.link_label || card.title}
+									<ArrowRight data-icon="inline-end" />
+								</a>
+							)}
+						</div>
+					) : (
+					<Card className="w-full">
+						<CardHeader>
+							{Icon && <Icon aria-hidden="true" className="size-6 text-sky-700 dark:text-sky-300" />}
+							<CardTitle>
+								<h3 class="text-lg font-semibold dark:text-sky-300">{card.title}</h3>
+							</CardTitle>
+							{card.text && <CardDescription className="leading-relaxed">{card.text}</CardDescription>}
+						</CardHeader>
+						{href && (
+							<CardFooter className="mt-auto">
+								<a href={href} class={buttonVariants({ variant: "link" })}>
+									{card.link_label || card.title}
+									<ArrowRight data-icon="inline-end" />
+								</a>
+							</CardFooter>
+						)}
+					</Card>
+					)}
+				</li>
+				);
+			})
+		}
+	</ul>
+</section>

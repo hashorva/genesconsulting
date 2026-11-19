@@ -1,0 +1,77 @@
+[
+  {
+    "_type": "hero",
+    "_version": 1,
+    "_key": "servizi-digitali-documentali-hero",
+    "heading": "Digitale e gestione documentale",
+    "illustration": "Nessuna"
+  },
+  {
+    "_type": "card_grid",
+    "_version": 1,
+    "_key": "digital-what",
+    "cards": [
+      {
+        "title": "Pratiche telematiche",
+        "text": "Predisposizione e invio nei limiti consentiti."
+      },
+      {
+        "title": "Identità digitale",
+        "text": "Supporto per PEC, firme digitali e dispositivi."
+      },
+      {
+        "title": "Documenti e corrispondenza",
+        "text": "Organizzazione, domiciliazione e gestione operativa."
+      }
+    ]
+  },
+  {
+    "_type": "faq",
+    "_version": 1,
+    "_key": "digital-faq",
+    "heading": "Domande frequenti",
+    "items": [
+      {
+        "question": "Potete aiutarci con PEC e firma digitale?",
+        "answer": "Sì. Genes offre supporto per PEC, firme digitali e dispositivi."
+      },
+      {
+        "question": "Inviate pratiche telematiche per conto dei clienti?",
+        "answer": "Sì, Genes si occupa della predisposizione e dell'invio nei limiti consentiti."
+      },
+      {
+        "question": "Offrite un servizio di domiciliazione?",
+        "answer": "Sì. Genes si occupa di organizzazione dei documenti, domiciliazione e gestione operativa della corrispondenza."
+      }
+    ]
+  },
+  {
+    "_type": "card_grid",
+    "_version": 1,
+    "_key": "digital-other",
+    "heading": "Le altre aree",
+    "cards": [
+      {
+        "title": "Consulenza aziendale trasversale",
+        "text": "Analisi, coordinamento e supporto operativo calibrato sul cliente.",
+        "link_url": "/servizi/consulenza-aziendale/",
+        "link_label": "Scopri la consulenza"
+      },
+      {
+        "title": "Servizi amministrativi e societari",
+        "text": "Registro delle Imprese, pratiche camerali, visure e certificati.",
+        "link_url": "/servizi/amministrativi-societari/",
+        "link_label": "Scopri i servizi societari"
+      }
+    ]
+  },
+  {
+    "_type": "cta",
+    "_version": 1,
+    "_key": "digital-cta",
+    "heading": "Parliamone.",
+    "text": "L'esperienza che semplifica, le competenze che si integrano.",
+    "button_label": "Contattaci",
+    "button_url": "/contatti/"
+  }
+]

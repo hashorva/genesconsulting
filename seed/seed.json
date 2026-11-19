@@ -3,13 +3,864 @@
 	"version": "1",
 	"meta": {
 		"name": "Genes Consulting",
-		"description": "Base schema: pages and the Aggiornamenti blog. The full content model (services, audiences, FAQ, legal pages) comes in a later, additive change.",
+		"description": "Pages (rich text plus reusable sections), the Aggiornamenti blog and its taxonomies. Schema changes are additive only.",
 		"author": "Genes Consulting"
 	},
 	"settings": {
 		"title": "Genes Consulting",
 		"tagline": "Meno complessità. Più impresa."
 	},
+	"blockTypes": [
+		{
+			"slug": "hero",
+			"label": "Apertura",
+			"description": "Il grande titolo in cima alla pagina, con sottotitolo, pulsanti e illustrazione. Mettila come prima sezione.",
+			"icon": "flag-banner",
+			"category": "Apertura",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{
+							"slug": "eyebrow",
+							"label": "Occhiello (testo piccolo sopra il titolo)",
+							"type": "string"
+						},
+						{
+							"slug": "heading",
+							"label": "Titolo",
+							"type": "string",
+							"required": true
+						},
+						{
+							"slug": "text",
+							"label": "Sottotitolo",
+							"type": "text"
+						},
+						{
+							"slug": "buttons",
+							"label": "Pulsanti",
+							"type": "repeater",
+							"validation": {
+								"maxItems": 3,
+								"subFields": [
+									{
+										"slug": "link_label",
+										"label": "Testo",
+										"type": "string",
+										"required": true
+									},
+									{
+										"slug": "link_url",
+										"label": "Link",
+										"type": "url",
+										"required": true
+									},
+									{
+										"slug": "style",
+										"label": "Stile",
+										"type": "select",
+										"options": [
+											"Principale",
+											"Secondario",
+											"Contorno",
+											"Link"
+										]
+									}
+								]
+							}
+						},
+						{
+							"slug": "image",
+							"label": "Immagine (con Illustrazione: Immagine)",
+							"type": "image"
+						},
+						{
+							"slug": "illustration",
+							"label": "Illustrazione",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Rete",
+									"Immagine",
+									"Nessuna"
+								]
+							},
+							"defaultValue": "Rete"
+						},
+						{
+							"slug": "align",
+							"label": "Allineamento",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Sinistra",
+									"Centrato"
+								]
+							},
+							"defaultValue": "Sinistra"
+						},
+						{
+							"slug": "accent",
+							"label": "Linea d'accento",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Nessuno",
+									"Oro"
+								]
+							},
+							"defaultValue": "Nessuno"
+						},
+						{
+							"slug": "background",
+							"label": "Sfondo",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Nessuno",
+									"Tenue",
+									"Blu"
+								]
+							},
+							"defaultValue": "Blu"
+						},
+						{
+							"slug": "spacing",
+							"label": "Spazio sopra e sotto",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Compatta",
+									"Normale",
+									"Ampia"
+								]
+							},
+							"defaultValue": "Normale"
+						},
+						{
+							"slug": "anchor_id",
+							"label": "ID sezione (per i link #)",
+							"type": "string"
+						}
+					]
+				}
+			]
+		},
+		{
+			"slug": "card_grid",
+			"label": "Griglia di schede",
+			"description": "Schede affiancate con titolo, testo, icona e link. Per servizi, vantaggi o destinatari.",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{
+							"slug": "heading",
+							"label": "Titolo",
+							"type": "string"
+						},
+						{
+							"slug": "intro",
+							"label": "Introduzione",
+							"type": "text"
+						},
+						{
+							"slug": "cards",
+							"label": "Schede",
+							"type": "repeater",
+							"required": true,
+							"validation": {
+								"maxItems": 12,
+								"subFields": [
+									{
+										"slug": "title",
+										"label": "Titolo",
+										"type": "string",
+										"required": true
+									},
+									{
+										"slug": "text",
+										"label": "Testo",
+										"type": "text"
+									},
+									{
+										"slug": "icon",
+										"label": "Icona",
+										"type": "select",
+										"options": [
+											"Rete",
+											"Documento",
+											"Edificio",
+											"Persone",
+											"Scudo",
+											"Grafico",
+											"Telefono",
+											"Posta",
+											"Calendario",
+											"Bilancia",
+											"Valigetta",
+											"Spunta",
+											"Stretta di mano",
+											"Istituzione"
+										]
+									},
+									{
+										"slug": "link_label",
+										"label": "Testo del link",
+										"type": "string"
+									},
+									{
+										"slug": "link_url",
+										"label": "Link",
+										"type": "url"
+									}
+								]
+							}
+						},
+						{
+							"slug": "columns",
+							"label": "Colonne",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Automatiche",
+									"2",
+									"3",
+									"4"
+								]
+							},
+							"defaultValue": "Automatiche"
+						},
+						{
+							"slug": "card_style",
+							"label": "Stile schede",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Schede",
+									"Semplice"
+								]
+							},
+							"defaultValue": "Schede"
+						},
+						{
+							"slug": "background",
+							"label": "Sfondo",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Nessuno",
+									"Tenue",
+									"Blu"
+								]
+							}
+						},
+						{
+							"slug": "spacing",
+							"label": "Spazio sopra e sotto",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Compatta",
+									"Normale",
+									"Ampia"
+								]
+							}
+						},
+						{
+							"slug": "width",
+							"label": "Larghezza del contenuto",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Normale",
+									"Stretta"
+								]
+							},
+							"defaultValue": "Normale"
+						},
+						{
+							"slug": "anchor_id",
+							"label": "ID sezione (per i link #)",
+							"type": "string"
+						}
+					]
+				}
+			],
+			"icon": "squares-four",
+			"category": "Elenchi"
+		},
+		{
+			"slug": "steps",
+			"label": "Passaggi",
+			"description": "Percorso numerato (01, 02, 03…), per il metodo di lavoro o le fasi di un servizio.",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{
+							"slug": "heading",
+							"label": "Titolo",
+							"type": "string"
+						},
+						{
+							"slug": "intro",
+							"label": "Introduzione",
+							"type": "text"
+						},
+						{
+							"slug": "steps",
+							"label": "Passaggi",
+							"type": "repeater",
+							"required": true,
+							"validation": {
+								"maxItems": 12,
+								"subFields": [
+									{
+										"slug": "title",
+										"label": "Titolo",
+										"type": "string",
+										"required": true
+									},
+									{
+										"slug": "text",
+										"label": "Descrizione",
+										"type": "text"
+									}
+								]
+							}
+						},
+						{
+							"slug": "background",
+							"label": "Sfondo",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Nessuno",
+									"Tenue",
+									"Blu"
+								]
+							}
+						},
+						{
+							"slug": "spacing",
+							"label": "Spazio sopra e sotto",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Compatta",
+									"Normale",
+									"Ampia"
+								]
+							}
+						},
+						{
+							"slug": "width",
+							"label": "Larghezza del contenuto",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Normale",
+									"Stretta"
+								]
+							},
+							"defaultValue": "Normale"
+						},
+						{
+							"slug": "anchor_id",
+							"label": "ID sezione (per i link #)",
+							"type": "string"
+						}
+					]
+				}
+			],
+			"icon": "list-numbers",
+			"category": "Elenchi"
+		},
+		{
+			"slug": "faq",
+			"label": "Domande frequenti",
+			"description": "Domande e risposte che si aprono con un clic.",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{
+							"slug": "heading",
+							"label": "Titolo",
+							"type": "string",
+							"defaultValue": "Domande frequenti"
+						},
+						{
+							"slug": "items",
+							"label": "Domande",
+							"type": "repeater",
+							"required": true,
+							"validation": {
+								"maxItems": 30,
+								"subFields": [
+									{
+										"slug": "question",
+										"label": "Domanda",
+										"type": "string",
+										"required": true
+									},
+									{
+										"slug": "answer",
+										"label": "Risposta",
+										"type": "text",
+										"required": true
+									}
+								]
+							}
+						},
+						{
+							"slug": "background",
+							"label": "Sfondo",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Nessuno",
+									"Tenue",
+									"Blu"
+								]
+							}
+						},
+						{
+							"slug": "spacing",
+							"label": "Spazio sopra e sotto",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Compatta",
+									"Normale",
+									"Ampia"
+								]
+							}
+						},
+						{
+							"slug": "width",
+							"label": "Larghezza del contenuto",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Normale",
+									"Stretta"
+								]
+							},
+							"defaultValue": "Normale"
+						},
+						{
+							"slug": "anchor_id",
+							"label": "ID sezione (per i link #)",
+							"type": "string"
+						}
+					]
+				}
+			],
+			"icon": "question",
+			"category": "Elenchi"
+		},
+		{
+			"slug": "media_text",
+			"label": "Testo e immagine",
+			"description": "Testo accanto a un'immagine, a destra o a sinistra, con pulsanti facoltativi.",
+			"icon": "image",
+			"category": "Testo e immagini",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{
+							"slug": "heading",
+							"label": "Titolo",
+							"type": "string"
+						},
+						{
+							"slug": "content",
+							"label": "Testo",
+							"type": "portableText"
+						},
+						{
+							"slug": "image",
+							"label": "Immagine",
+							"type": "image",
+							"required": true,
+							"options": {
+								"darkVariant": true
+							}
+						},
+						{
+							"slug": "image_side",
+							"label": "Lato dell'immagine",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Destra",
+									"Sinistra"
+								]
+							},
+							"defaultValue": "Destra"
+						},
+						{
+							"slug": "buttons",
+							"label": "Pulsanti",
+							"type": "repeater",
+							"validation": {
+								"maxItems": 3,
+								"subFields": [
+									{
+										"slug": "link_label",
+										"label": "Testo",
+										"type": "string",
+										"required": true
+									},
+									{
+										"slug": "link_url",
+										"label": "Link",
+										"type": "url",
+										"required": true
+									},
+									{
+										"slug": "style",
+										"label": "Stile",
+										"type": "select",
+										"options": [
+											"Principale",
+											"Secondario",
+											"Contorno",
+											"Link"
+										]
+									}
+								]
+							}
+						},
+						{
+							"slug": "background",
+							"label": "Sfondo",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Nessuno",
+									"Tenue",
+									"Blu"
+								]
+							}
+						},
+						{
+							"slug": "spacing",
+							"label": "Spazio sopra e sotto",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Compatta",
+									"Normale",
+									"Ampia"
+								]
+							}
+						},
+						{
+							"slug": "width",
+							"label": "Larghezza del contenuto",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Normale",
+									"Stretta"
+								]
+							},
+							"defaultValue": "Normale"
+						},
+						{
+							"slug": "anchor_id",
+							"label": "ID sezione (per i link #)",
+							"type": "string"
+						}
+					]
+				}
+			]
+		},
+		{
+			"slug": "stats",
+			"label": "Numeri chiave",
+			"description": "Da 2 a 4 numeri grandi con un'etichetta, per dare concretezza.",
+			"icon": "chart-bar",
+			"category": "Elenchi",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{
+							"slug": "heading",
+							"label": "Titolo",
+							"type": "string"
+						},
+						{
+							"slug": "intro",
+							"label": "Introduzione",
+							"type": "text"
+						},
+						{
+							"slug": "items",
+							"label": "Numeri",
+							"type": "repeater",
+							"required": true,
+							"validation": {
+								"minItems": 2,
+								"maxItems": 4,
+								"subFields": [
+									{
+										"slug": "value",
+										"label": "Numero",
+										"type": "string",
+										"required": true
+									},
+									{
+										"slug": "label",
+										"label": "Etichetta",
+										"type": "string",
+										"required": true
+									}
+								]
+							}
+						},
+						{
+							"slug": "background",
+							"label": "Sfondo",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Nessuno",
+									"Tenue",
+									"Blu"
+								]
+							}
+						},
+						{
+							"slug": "spacing",
+							"label": "Spazio sopra e sotto",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Compatta",
+									"Normale",
+									"Ampia"
+								]
+							}
+						},
+						{
+							"slug": "width",
+							"label": "Larghezza del contenuto",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Normale",
+									"Stretta"
+								]
+							},
+							"defaultValue": "Normale"
+						},
+						{
+							"slug": "anchor_id",
+							"label": "ID sezione (per i link #)",
+							"type": "string"
+						}
+					]
+				}
+			]
+		},
+		{
+			"slug": "cta",
+			"label": "Invito all'azione",
+			"description": "Riquadro finale che invita a contattarvi, con uno o più pulsanti.",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{
+							"slug": "heading",
+							"label": "Titolo",
+							"type": "string",
+							"required": true
+						},
+						{
+							"slug": "text",
+							"label": "Testo",
+							"type": "text"
+						},
+						{
+							"slug": "button_label",
+							"label": "Pulsante",
+							"type": "string"
+						},
+						{
+							"slug": "button_url",
+							"label": "Link del pulsante",
+							"type": "url"
+						},
+						{
+							"slug": "buttons",
+							"label": "Più pulsanti (al posto del Pulsante)",
+							"type": "repeater",
+							"validation": {
+								"maxItems": 3,
+								"subFields": [
+									{
+										"slug": "link_label",
+										"label": "Testo",
+										"type": "string",
+										"required": true
+									},
+									{
+										"slug": "link_url",
+										"label": "Link",
+										"type": "url",
+										"required": true
+									},
+									{
+										"slug": "style",
+										"label": "Stile",
+										"type": "select",
+										"options": [
+											"Principale",
+											"Secondario",
+											"Contorno",
+											"Link"
+										]
+									}
+								]
+							}
+						},
+						{
+							"slug": "align",
+							"label": "Allineamento",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Sinistra",
+									"Centrato"
+								]
+							},
+							"defaultValue": "Sinistra"
+						},
+						{
+							"slug": "background",
+							"label": "Sfondo",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Nessuno",
+									"Tenue",
+									"Blu"
+								]
+							}
+						},
+						{
+							"slug": "spacing",
+							"label": "Spazio sopra e sotto",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Compatta",
+									"Normale",
+									"Ampia"
+								]
+							}
+						},
+						{
+							"slug": "width",
+							"label": "Larghezza del contenuto",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Normale",
+									"Stretta"
+								]
+							},
+							"defaultValue": "Normale"
+						},
+						{
+							"slug": "anchor_id",
+							"label": "ID sezione (per i link #)",
+							"type": "string"
+						}
+					]
+				}
+			],
+			"icon": "megaphone",
+			"category": "Chiusura"
+		},
+		{
+			"slug": "text",
+			"label": "Testo",
+			"description": "Testo libero con titoli, elenchi e link.",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{
+							"slug": "content",
+							"label": "Testo",
+							"type": "portableText",
+							"required": true
+						},
+						{
+							"slug": "background",
+							"label": "Sfondo",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Nessuno",
+									"Tenue",
+									"Blu"
+								]
+							}
+						},
+						{
+							"slug": "spacing",
+							"label": "Spazio sopra e sotto",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Compatta",
+									"Normale",
+									"Ampia"
+								]
+							}
+						},
+						{
+							"slug": "width",
+							"label": "Larghezza del contenuto",
+							"type": "select",
+							"validation": {
+								"options": [
+									"Normale",
+									"Stretta"
+								]
+							},
+							"defaultValue": "Normale"
+						},
+						{
+							"slug": "anchor_id",
+							"label": "ID sezione (per i link #)",
+							"type": "string"
+						}
+					]
+				}
+			],
+			"icon": "text-align-left",
+			"category": "Testo e immagini"
+		}
+	],
 	"collections": [
 		{
 			"slug": "pages",
@@ -36,6 +887,24 @@
 					"label": "Contenuto",
 					"type": "portableText",
 					"searchable": true
+				},
+				{
+					"slug": "layout",
+					"label": "Sezioni",
+					"type": "blocks",
+					"validation": {
+						"allowedTypes": [
+							"hero",
+							"card_grid",
+							"steps",
+							"faq",
+							"media_text",
+							"stats",
+							"cta",
+							"text"
+						],
+						"maxItems": 30
+					}
 				}
 			]
 		},

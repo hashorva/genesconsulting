@@ -1,0 +1,25 @@
+---
+import { cn } from "@/lib/utils";
+
+/**
+ * The deck's label over every title ("AREA 01", "IL NOSTRO APPROCCIO"): a short bar and
+ * small uppercase text. Gold for the accent variant, cyan otherwise.
+ */
+interface Props {
+	text: string;
+	gold?: boolean;
+	class?: string;
+}
+const { text, gold = false, class: className } = Astro.props;
+---
+
+<p
+	class={cn(
+		"flex items-center gap-3 text-xs font-semibold tracking-widest uppercase",
+		gold ? "text-yellow-700 dark:text-yellow-500" : "text-sky-700 dark:text-sky-400",
+		className,
+	)}
+>
+	<span aria-hidden="true" class={cn("h-0.5 w-8 rounded-full", gold ? "bg-yellow-600" : "bg-sky-500 dark:bg-sky-400")}></span>
+	{text}
+</p>

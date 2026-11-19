@@ -1,6 +1,17 @@
 {
   "_doc": "Feature flags for code (see docs/cd.md). public=false: the feature is live in production but only signed-in EmDash editors and admins see it; visitors don't. public=true: everyone sees it (that is the release). A Worker var FLAG_<NAME>=true|false overrides at runtime for everyone (false = kill switch, also for editors). Never store content or secrets here. Remove a flag once its feature is fully released.",
   "flags": {
-    "example_new_component": { "public": false, "description": "Template flag; delete when real flags exist." }
+    "page_composer": {
+      "public": false,
+      "description": "Editors compose pages: Apertura (hero) block, button lists and style presets (background, spacing, width, columns) on every section. Until released, visitors see the old layout and no Apertura blocks."
+    },
+    "design_refresh": {
+      "public": false,
+      "description": "Redesign with the client deck's look: dark brand bands, eyebrow labels, the animated G network, redesigned cards, steps, CTA, header and footer, scroll reveals and page transitions. Needs page_composer on (release page_composer first). Until released, visitors see the current design."
+    },
+    "cookie_notice": {
+      "public": false,
+      "description": "Garante cookie and privacy compliance: the cookie notice (bottom card, shown again after 6 months), and the footer's legal row with company data, P.IVA, privacy and cookie policy links and 'Preferenze cookie'. Release only after the Privacy policy (/privacy/) and Cookie policy (/cookie/) pages are completed and published in EmDash. See docs/legal/garante-compliance.md."
+    }
   }
 }

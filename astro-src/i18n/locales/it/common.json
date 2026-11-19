@@ -1,12 +1,16 @@
 {
   "site": {
     "name": "Genes Consulting",
-    "skipToContent": "Vai al contenuto"
+    "skipToContent": "Vai al contenuto",
+    "city": "Milano",
+    "line": "Consulenza aziendale e servizi integrati"
   },
   "nav": {
     "label": "Navigazione principale",
     "cta": "Parliamone",
-    "openMenu": "Apri il menu"
+    "openMenu": "Apri il menu",
+    "breadcrumb": "Percorso",
+    "home": "Home"
   },
   "actions": {
     "discoverServices": "Scopri i servizi",
@@ -16,12 +20,34 @@
   },
   "footer": {
     "legal": "Informazioni legali",
-    "copyright": "© {{year}} {{name}}"
+    "copyright": "© {{year}} {{name}}",
+    "explore": "Esplora"
   },
   "theme": {
     "label": "Tema",
     "light": "Chiaro",
     "system": "Sistema",
     "dark": "Scuro"
+  },
+  "aside": {
+    "onThisPage": "In questa pagina",
+    "title": "Parliamone.",
+    "text": "Raccontaci l'esigenza: ti indichiamo il percorso più adatto e chi se ne occupa.",
+    "cta": "Contattaci"
+  },
+  "company": {
+    "identity": "GENES CONSULTING S.r.l. · Via Lanzone 31, 20123 Milano (MI) · P.IVA e C.F. 07558570961"
+  },
+  "legal": {
+    "privacy": "Privacy policy"
+  },
+  "cookies": {
+    "label": "Informativa sui cookie",
+    "title": "Cookie e privacy",
+    "text": "Questo sito usa solo cookie tecnici e strumenti simili necessari al funzionamento, ad esempio per ricordare il tema chiaro o scuro che scegli. Nessun cookie di profilazione, nessuna statistica di terze parti: non serve il tuo consenso.",
+    "policy": "Cookie policy",
+    "ok": "Ho capito",
+    "close": "Chiudi l'informativa sui cookie",
+    "preferences": "Preferenze cookie"
   }
 }

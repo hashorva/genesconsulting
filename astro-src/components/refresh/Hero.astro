@@ -1,0 +1,115 @@
+---
+import { Image } from "emdash/ui";
+import { ArrowRight } from "lucide-react";
+
+import Eyebrow from "@/components/refresh/Eyebrow.astro";
+import Network from "@/components/refresh/Network.astro";
+import Scene from "@/components/refresh/Scene.astro";
+import { buttonVariants } from "@/components/ui/button";
+import { resolveLocale, useTranslations } from "@/i18n";
+import { sceneFor } from "@/lib/page-scenes";
+import { splitClaim } from "@/lib/refresh-style";
+import { safeHref } from "@/lib/safe-href";
+import { buttonVariant } from "@/lib/section-style";
+import { cn } from "@/lib/utils";
+import type { PageLayoutHeroBlock } from "../../../emdash-env";
+
+/**
+ * Opening of a page in the redesign: always on the dark brand band (like the deck's
+ * cover), eyebrow + bar, the claim on two lines with the second in cyan, up to three
+ * buttons, the animated network (or the editor's image).
+ * Used by the Apertura block and by the homepage when it has no Apertura.
+ */
+interface Props {
+	heading: string;
+	eyebrow?: string | null;
+	text?: string | null;
+	buttons?: { link_label: string; link_url: string; style?: string | null }[] | null;
+	illustration?: "Rete" | "Immagine" | "Nessuna";
+	image?: PageLayoutHeroBlock["image"];
+	centered?: boolean;
+	gold?: boolean;
+	level?: "h1" | "h2";
+}
+const {
+	heading,
+	eyebrow,
+	text,
+	buttons,
+	illustration = "Rete",
+	image,
+	centered = false,
+	gold = false,
+	level = "h1",
+} = Astro.props;
+const t = useTranslations(resolveLocale(Astro.currentLocale));
+const Heading = level;
+const [first, second] = splitClaim(heading);
+const showNetwork = !centered && illustration === "Rete";
+// "Rete" on an inner page draws that page's own constellation (lib/page-scenes.ts) when it has one.
+const scene = showNetwork ? sceneFor(Astro.url.pathname) : null;
+const showImage = !centered && illustration === "Immagine" && image?.id;
+const aside = showNetwork || showImage;
+const links = (buttons ?? [])
+	.map((button, index) => ({
+		label: button.link_label?.trim(),
+		href: safeHref(button.link_url),
+		variant: buttonVariant(button.style, index === 0 ? "Principale" : "Contorno"),
+	}))
+	.filter((button) => button.label && button.href);
+---
+
+<div class="dark relative isolate overflow-hidden bg-sky-950 text-foreground">
+	<!-- Depth: a slow gradient and a blurred light source, default classes only. -->
+	<div aria-hidden="true" class="absolute inset-0 -z-10 bg-linear-to-b from-sky-950 via-sky-950 to-sky-900"></div>
+	<div aria-hidden="true" class="absolute -right-24 -bottom-48 -z-10 size-96 rounded-full bg-cyan-400/10 blur-3xl"></div>
+
+	<div class="container mx-auto px-4 md:px-6">
+		<div class={cn("grid items-center gap-12 py-20 md:py-28 lg:py-32", aside && "lg:grid-cols-5")}>
+			<div
+				class={cn(
+					"space-y-8 motion-safe:animate-in motion-safe:fill-mode-both motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-700",
+					aside && "lg:col-span-3",
+					centered && "mx-auto max-w-3xl text-center",
+				)}
+			>
+				{eyebrow && <Eyebrow text={eyebrow} gold={gold} class={cn(centered && "justify-center")} />}
+				<Heading class="text-4xl font-semibold tracking-tight text-balance sm:text-5xl md:text-6xl lg:text-7xl">
+					<span class="block">{first}</span>
+					{second && <span class="block text-sky-400">{second}</span>}
+				</Heading>
+				{text && <p class="max-w-2xl text-lg leading-relaxed text-slate-300 md:text-xl">{text}</p>}
+				{
+					links.length > 0 && (
+						<div class={cn("flex flex-wrap gap-3", centered && "justify-center")}>
+							{links.map((button, index) => (
+								<a href={button.href!} class={cn(buttonVariants({ variant: button.variant, size: "lg" }), "group")}>
+									{button.label}
+									{index === 0 && (
+										<ArrowRight data-icon="inline-end" className="transition-transform group-hover:translate-x-0.5" />
+									)}
+								</a>
+							))}
+						</div>
+					)
+				}
+			</div>
+			{
+				showNetwork && (
+					scene ? (
+						<Scene scene={scene} class="mx-auto w-full max-w-64 sm:max-w-sm lg:col-span-2 lg:max-w-md" />
+					) : (
+						<Network class="mx-auto w-full max-w-64 sm:max-w-sm lg:col-span-2 lg:max-w-md" />
+					)
+				)
+			}
+			{
+				showImage && (
+					<div class="lg:col-span-2">
+						<Image image={image!} class="w-full rounded-3xl object-cover ring-1 ring-sky-400/20" />
+					</div>
+				)
+			}
+		</div>
+	</div>
+</div>

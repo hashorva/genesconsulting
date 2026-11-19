@@ -1,0 +1,85 @@
+[
+  {
+    "_type": "hero",
+    "_version": 1,
+    "_key": "servizi-amministrativi-societari-hero",
+    "heading": "Servizi amministrativi e societari",
+    "illustration": "Nessuna"
+  },
+  {
+    "_type": "card_grid",
+    "_version": 1,
+    "_key": "filings-what",
+    "cards": [
+      {
+        "title": "Registro delle Imprese: iscrizioni, variazioni e depositi",
+        "text": "Prepariamo e seguiamo le pratiche verso il Registro delle Imprese, dalla costituzione alle variazioni successive."
+      },
+      {
+        "title": "Pratiche camerali e documentazione amministrativa",
+        "text": "Gestiamo gli adempimenti verso la Camera di Commercio e la documentazione collegata."
+      },
+      {
+        "title": "Certificati, visure e richieste presso gli enti",
+        "text": "Richiediamo visure e certificati e curiamo le richieste presso gli uffici competenti."
+      },
+      {
+        "title": "Supporto documentale immobiliare e catastale",
+        "text": "Recuperiamo e organizziamo la documentazione immobiliare e catastale necessaria."
+      },
+      {
+        "title": "Rapporti con enti",
+        "text": "Procedure e interlocuzioni amministrative."
+      }
+    ]
+  },
+  {
+    "_type": "faq",
+    "_version": 1,
+    "_key": "filings-faq",
+    "heading": "Domande frequenti",
+    "items": [
+      {
+        "question": "Quali pratiche seguite presso il Registro delle Imprese?",
+        "answer": "Iscrizioni, variazioni e depositi."
+      },
+      {
+        "question": "Potete richiedere visure e certificati?",
+        "answer": "Sì. Genes richiede certificati e visure e cura le richieste presso gli enti."
+      },
+      {
+        "question": "Seguite anche pratiche immobiliari e catastali?",
+        "answer": "Genes offre supporto documentale immobiliare e catastale."
+      }
+    ]
+  },
+  {
+    "_type": "card_grid",
+    "_version": 1,
+    "_key": "filings-other",
+    "heading": "Le altre aree",
+    "cards": [
+      {
+        "title": "Consulenza aziendale trasversale",
+        "text": "Analisi, coordinamento e supporto operativo calibrato sul cliente.",
+        "link_url": "/servizi/consulenza-aziendale/",
+        "link_label": "Scopri la consulenza"
+      },
+      {
+        "title": "Digitale e gestione documentale",
+        "text": "Pratiche telematiche, PEC, firme digitali e corrispondenza.",
+        "link_url": "/servizi/digitali-documentali/",
+        "link_label": "Scopri i servizi digitali"
+      }
+    ]
+  },
+  {
+    "_type": "cta",
+    "_version": 1,
+    "_key": "filings-cta",
+    "heading": "Parliamone.",
+    "text": "L'esperienza che semplifica, le competenze che si integrano.",
+    "button_label": "Contattaci",
+    "button_url": "/contatti/"
+  }
+]

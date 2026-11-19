@@ -1,0 +1,25 @@
+---
+import SectionHeading from "@/components/blocks/SectionHeading.astro";
+import type { PageLayoutStatsBlock } from "../../../emdash-env";
+
+/** "Numeri chiave": 2 to 4 large figures with a short label (number in the step-number style). */
+interface Props {
+	value: PageLayoutStatsBlock;
+}
+const { value } = Astro.props;
+const columns = value.items.length === 4 ? "@xl:grid-cols-2 @4xl:grid-cols-4" : value.items.length === 3 ? "@xl:grid-cols-3" : "@xl:grid-cols-2";
+---
+
+<section class="@container space-y-8">
+	<SectionHeading heading={value.heading} intro={value.intro} />
+	<dl class={`grid gap-6 ${columns}`}>
+		{
+			value.items.map((item) => (
+				<div class="flex flex-col gap-1 border-l-2 border-sky-400 pl-4">
+					<dt class="order-2 text-sm text-muted-foreground">{item.label}</dt>
+					<dd class="order-1 text-4xl font-bold tracking-tight text-sky-700 md:text-5xl dark:text-sky-300">{item.value}</dd>
+				</div>
+			))
+		}
+	</dl>
+</section>

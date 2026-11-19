@@ -1,0 +1,53 @@
+[
+  {
+    "_type": "hero",
+    "_version": 1,
+    "_key": "metodo-hero",
+    "heading": "Un unico punto di riferimento",
+    "illustration": "Nessuna"
+  },
+  {
+    "_type": "steps",
+    "_version": 1,
+    "_key": "method-steps",
+    "steps": [
+      {
+        "title": "Ascolto e analisi",
+        "text": "Partiamo dall'esigenza concreta: che cosa serve, entro quando, con quali enti e quali documenti."
+      },
+      {
+        "title": "Proposta operativa",
+        "text": "Definiamo attività, tempi e responsabilità prima di iniziare, così ogni passaggio è chiaro."
+      },
+      {
+        "title": "Gestione e coordinamento",
+        "text": "Seguiamo la pratica e coordiniamo le attività, anche quando coinvolgono più soggetti."
+      },
+      {
+        "title": "Consegna e continuità",
+        "text": "Consegniamo il risultato e restiamo il riferimento per le esigenze successive."
+      }
+    ]
+  },
+  {
+    "_type": "faq",
+    "_version": 1,
+    "_key": "method-faq",
+    "heading": "Domande frequenti",
+    "items": [
+      {
+        "question": "Come si inizia a lavorare con Genes?",
+        "answer": "Con un primo confronto sull'esigenza. Da lì Genes prepara una proposta operativa, gestisce le attività e resta il riferimento anche dopo la consegna."
+      }
+    ]
+  },
+  {
+    "_type": "cta",
+    "_version": 1,
+    "_key": "method-cta",
+    "heading": "Parliamone.",
+    "text": "L'esperienza che semplifica, le competenze che si integrano.",
+    "button_label": "Contattaci",
+    "button_url": "/contatti/"
+  }
+]

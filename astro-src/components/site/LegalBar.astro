@@ -1,0 +1,48 @@
+---
+import { resolveLocale, useTranslations } from "@/i18n";
+import { pageLink } from "@/lib/content-links";
+
+/**
+ * Legal row of the footer (flag cookie_notice): the company's identity with its VAT number
+ * (art. 35 DPR 633/1972: on the homepage of a company site), one-click links to the privacy
+ * and cookie policies (Garante cookie guidelines, par. 7.1 iii) and "Preferenze cookie",
+ * which reopens the cookie notice. Policy links show only once their EmDash pages are
+ * published. Lives in the footer, so it is on every page, homepage included.
+ */
+const locale = resolveLocale(Astro.currentLocale);
+const t = useTranslations(locale);
+const [privacyHref, cookieHref] = await Promise.all([
+	pageLink(Astro, "legal.privacy", locale),
+	pageLink(Astro, "legal.cookies", locale),
+]);
+const linkClass = "transition-colors hover:text-foreground";
+---
+
+<div class="flex flex-col gap-3 border-t border-border py-6 text-xs text-muted-foreground md:flex-row md:items-center md:justify-between">
+	<p>{t("company.identity")}</p>
+	<ul class="flex flex-wrap gap-x-6 gap-y-2" aria-label={t("footer.legal")}>
+		{
+			privacyHref && (
+				<li>
+					<a class={linkClass} href={privacyHref}>
+						{t("legal.privacy")}
+					</a>
+				</li>
+			)
+		}
+		{
+			cookieHref && (
+				<li>
+					<a class={linkClass} href={cookieHref}>
+						{t("cookies.policy")}
+					</a>
+				</li>
+			)
+		}
+		<li>
+			<button type="button" data-cookie-notice-open class:list={[linkClass, "cursor-pointer"]}>
+				{t("cookies.preferences")}
+			</button>
+		</li>
+	</ul>
+</div>

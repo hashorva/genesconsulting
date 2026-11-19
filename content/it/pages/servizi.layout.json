@@ -1,0 +1,61 @@
+[
+  {
+    "_type": "hero",
+    "_version": 1,
+    "_key": "servizi-hero",
+    "heading": "Sei aree di assistenza",
+    "illustration": "Nessuna"
+  },
+  {
+    "_type": "card_grid",
+    "_version": 1,
+    "_key": "services-six",
+    "cards": [
+      {
+        "title": "Consulenza aziendale",
+        "text": "Analisi delle esigenze e supporto non riservato.",
+        "link_url": "/servizi/consulenza-aziendale/",
+        "link_label": "Scopri la consulenza"
+      },
+      {
+        "title": "Servizi societari",
+        "text": "Pratiche camerali e adempimenti amministrativi.",
+        "link_url": "/servizi/amministrativi-societari/",
+        "link_label": "Scopri i servizi societari"
+      },
+      {
+        "title": "Documentazione",
+        "text": "Visure, certificati e flussi documentali.",
+        "link_url": "/servizi/amministrativi-societari/",
+        "link_label": "Scopri i servizi societari"
+      },
+      {
+        "title": "Rapporti con enti",
+        "text": "Procedure e interlocuzioni amministrative.",
+        "link_url": "/servizi/amministrativi-societari/",
+        "link_label": "Scopri i servizi societari"
+      },
+      {
+        "title": "Servizi digitali",
+        "text": "PEC, firme digitali e pratiche telematiche.",
+        "link_url": "/servizi/digitali-documentali/",
+        "link_label": "Scopri i servizi digitali"
+      },
+      {
+        "title": "Servizi integrati",
+        "text": "Raccordo con professionisti qualificati.",
+        "link_url": "/collaborazione-professionale/",
+        "link_label": "Collaborazione"
+      }
+    ]
+  },
+  {
+    "_type": "cta",
+    "_version": 1,
+    "_key": "services-cta",
+    "heading": "Parliamone.",
+    "text": "L'esperienza che semplifica, le competenze che si integrano.",
+    "button_label": "Contattaci",
+    "button_url": "/contatti/"
+  }
+]

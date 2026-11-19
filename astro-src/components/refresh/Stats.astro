@@ -1,0 +1,36 @@
+---
+import SectionHeading from "@/components/refresh/SectionHeading.astro";
+import { revealDelay } from "@/lib/refresh-style";
+import type { PageLayoutStatsBlock } from "../../../emdash-env";
+
+/**
+ * "Numeri chiave" in the redesign: very large light figures over a cyan rule that grows
+ * on hover, the label below. Figures are the emphasis, so they get the most size on the page.
+ */
+interface Props {
+	value: PageLayoutStatsBlock;
+	eyebrow?: string | null;
+}
+const { value, eyebrow } = Astro.props;
+const columns =
+	value.items.length === 4 ? "@xl:grid-cols-2 @4xl:grid-cols-4" : value.items.length === 3 ? "@xl:grid-cols-3" : "@xl:grid-cols-2";
+---
+
+<section class="@container space-y-12 md:space-y-16">
+	<SectionHeading heading={value.heading} intro={value.intro} eyebrow={eyebrow} />
+	<dl class={`grid gap-x-8 gap-y-12 ${columns}`}>
+		{
+			value.items.map((item, index) => (
+				<div data-reveal class={`group flex flex-col gap-4 ${revealDelay(index)}`}>
+					<div class="relative h-px bg-border">
+						<span class="absolute inset-y-0 left-0 w-12 bg-sky-500 transition-all duration-500 group-hover:w-full dark:bg-sky-400" />
+					</div>
+					<dt class="order-3 leading-relaxed text-muted-foreground">{item.label}</dt>
+					<dd class="order-2 text-5xl font-light tracking-tight text-sky-700 tabular-nums md:text-6xl dark:text-sky-300">
+						{item.value}
+					</dd>
+				</div>
+			))
+		}
+	</dl>
+</section>

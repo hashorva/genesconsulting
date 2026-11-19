@@ -1,0 +1,19 @@
+---
+import { decodeSlug, getEmDashEntry } from "emdash";
+
+import PageView from "@/components/content/PageView.astro";
+import { resolveLocale } from "@/i18n";
+import { SERVICE_PREFIX } from "@/lib/page-paths";
+
+// Service pages: /servizi/consulenza-aziendale/ is the EmDash page "servizi-consulenza-aziendale".
+const name = decodeSlug(Astro.params.slug);
+if (!name) return Astro.rewrite("/404/");
+
+const slug = `${SERVICE_PREFIX}${name}`;
+const locale = resolveLocale(Astro.currentLocale);
+const { entry: page, cacheHint } = await getEmDashEntry("pages", slug, { locale });
+if (!page) return Astro.rewrite("/404/");
+if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+---
+
+<PageView page={page} slug={slug} />

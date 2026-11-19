@@ -1,0 +1,66 @@
+---
+import { Blocks, defineBlockComponents } from "emdash/ui";
+
+import CardGrid from "@/components/blocks/CardGrid.astro";
+import Cta from "@/components/blocks/Cta.astro";
+import Faq from "@/components/blocks/Faq.astro";
+import Hero from "@/components/blocks/Hero.astro";
+import MediaText from "@/components/blocks/MediaText.astro";
+import Section from "@/components/blocks/Section.astro";
+import Stats from "@/components/blocks/Stats.astro";
+import Steps from "@/components/blocks/Steps.astro";
+import TextBlock from "@/components/blocks/TextBlock.astro";
+import { withoutComposer } from "@/lib/section-style";
+import { cn } from "@/lib/utils";
+import type { PageLayoutBlock } from "../../../emdash-env";
+
+/**
+ * The "Sezioni" (layout) field of a page: each EmDash block type maps to one
+ * component here. A new block type = seed/seed.json + one component + one line below.
+ *
+ * `composer` (page_composer flag): every section becomes a full-width band with the
+ * editor's presets (Section.astro), and Apertura blocks render. Without it, the
+ * composer-only blocks and fields are dropped, so the page looks exactly as before.
+ * `leadHero`: the first block is an Apertura that the page shows as its h1 opening.
+ */
+interface Props {
+	value?: PageLayoutBlock[] | null;
+	composer?: boolean;
+	leadHero?: boolean;
+	class?: string;
+}
+const { value, composer = false, leadHero = false, class: className } = Astro.props;
+
+const components = defineBlockComponents<PageLayoutBlock>({
+	hero: Hero,
+	card_grid: CardGrid,
+	steps: Steps,
+	faq: Faq,
+	media_text: MediaText,
+	stats: Stats,
+	cta: Cta,
+	text: TextBlock,
+});
+const blocks = composer ? (value ?? []) : withoutComposer(value ?? []);
+---
+
+{
+	blocks.length > 0 &&
+		(composer ? (
+			<div class={className}>
+				{blocks.map((block, index) => (
+					<Section value={block}>
+						{block._type === "hero" ? (
+							<Hero value={block} level={leadHero && index === 0 ? "h1" : "h2"} />
+						) : (
+							<Blocks value={[block]} components={components} />
+						)}
+					</Section>
+				))}
+			</div>
+		) : (
+			<div class={cn("space-y-16 md:space-y-24", className)}>
+				<Blocks value={blocks} components={components} />
+			</div>
+		))
+}

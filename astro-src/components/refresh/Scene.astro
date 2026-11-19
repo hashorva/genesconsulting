@@ -1,0 +1,147 @@
+---
+import {
+	Briefcase,
+	Building2,
+	Calendar,
+	ChartLine,
+	ClipboardList,
+	Cookie,
+	Ear,
+	FileText,
+	FolderArchive,
+	FolderOpen,
+	Handshake,
+	Landmark,
+	Lightbulb,
+	ListChecks,
+	Lock,
+	type LucideIcon,
+	Mail,
+	MapPin,
+	MessageCircle,
+	MonitorSmartphone,
+	Newspaper,
+	PackageCheck,
+	PenLine,
+	Phone,
+	Puzzle,
+	Route,
+	Scale,
+	ScrollText,
+	Send,
+	ShieldCheck,
+	Stamp,
+	Target,
+	Users,
+	Waypoints,
+	Workflow,
+} from "lucide-react";
+
+import type { Scene, SceneIcon } from "@/lib/page-scenes";
+import { cn } from "@/lib/utils";
+
+/**
+ * A page's illustration in the redesign: the deck's network idea with meaning.
+ * A glowing hub tile with the page's main icon, four satellite tiles on an orbit
+ * (one gold), joined to the hub by thin spokes. Default classes and lucide icons only:
+ * spokes and tiles are placed with default rotate-* values and turned back upright.
+ * Spokes grow and tiles appear one by one on load (motion-safe). With a mouse, tiles near
+ * the pointer lean toward it and their spokes stretch along (Motion.astro, `data-proximity`).
+ */
+interface Props {
+	scene: Scene;
+	class?: string;
+}
+const { scene, class: className } = Astro.props;
+
+const ICONS: Record<SceneIcon, LucideIcon> = {
+	Briefcase,
+	Building2,
+	Calendar,
+	ChartLine,
+	ClipboardList,
+	Cookie,
+	Ear,
+	FileText,
+	FolderArchive,
+	FolderOpen,
+	Handshake,
+	Landmark,
+	Lightbulb,
+	ListChecks,
+	Lock,
+	Mail,
+	MapPin,
+	MessageCircle,
+	MonitorSmartphone,
+	Newspaper,
+	PackageCheck,
+	PenLine,
+	Phone,
+	Puzzle,
+	Route,
+	Scale,
+	ScrollText,
+	Send,
+	ShieldCheck,
+	Stamp,
+	Target,
+	Users,
+	Waypoints,
+	Workflow,
+};
+const Hub = ICONS[scene.hub];
+// Clockwise from the top right; each tile is turned back by the opposite rotation.
+const POSITIONS = [
+	{ turn: "-rotate-40", back: "rotate-40", angle: -40, delay: "delay-150" },
+	{ turn: "rotate-25", back: "-rotate-25", angle: 25, delay: "delay-300" },
+	{ turn: "rotate-140", back: "-rotate-140", angle: 140, delay: "delay-500" },
+	{ turn: "rotate-215", back: "-rotate-215", angle: 215, delay: "delay-700" },
+];
+const satellites = scene.satellites.map((name, index) => ({ Icon: ICONS[name], gold: index === 0, ...POSITIONS[index] }));
+---
+
+<div aria-hidden="true" data-proximity class={cn("relative aspect-square select-none", className)}>
+	<div class="absolute inset-1/6 rounded-full bg-sky-400/20 blur-3xl"></div>
+	<div class="absolute inset-0 rounded-full border border-sky-400/10"></div>
+	<div class="absolute inset-1/8 rounded-full border border-dashed border-sky-400/20"></div>
+	<div class="absolute inset-1/3 rounded-full border border-sky-400/10"></div>
+
+	{
+		satellites.map((satellite) => (
+			<div data-spoke data-upright data-angle={satellite.angle} class={cn("absolute top-1/2 left-1/2 h-0 w-3/8 origin-left", satellite.turn)}>
+				<div
+					data-line
+					class={cn(
+						"h-px w-full origin-left bg-linear-to-r from-sky-400/60 to-sky-400/10 transition-none",
+						"motion-safe:animate-in motion-safe:fill-mode-both motion-safe:zoom-in-0 motion-safe:duration-700 motion-safe:ease-out",
+						satellite.delay,
+					)}
+				></div>
+				<div class={cn("absolute top-0 right-0 translate-x-1/2 -translate-y-1/2", satellite.back)}>
+					<span data-node class="block">
+					<span
+						class={cn(
+							"grid size-12 place-items-center rounded-2xl bg-sky-900 shadow-lg ring-1 shadow-sky-950/40 md:size-14",
+							satellite.gold ? "text-yellow-500 ring-yellow-600/50" : "text-sky-300 ring-sky-400/30",
+							"motion-safe:animate-in motion-safe:fill-mode-both motion-safe:fade-in motion-safe:zoom-in-75 motion-safe:duration-500",
+							satellite.delay,
+						)}
+					>
+						<satellite.Icon className="size-5 md:size-6" strokeWidth={1.75} />
+					</span>
+					</span>
+				</div>
+			</div>
+		))
+	}
+
+	<div class="absolute inset-0 grid place-items-center">
+		<span class="absolute size-28 rounded-full bg-sky-400/15 motion-safe:animate-pulse md:size-32"></span>
+		<span
+			class="relative grid size-20 place-items-center rounded-3xl bg-sky-400 text-sky-950 shadow-xl shadow-sky-400/30 md:size-24 motion-safe:animate-in motion-safe:fill-mode-both motion-safe:fade-in motion-safe:zoom-in-50 motion-safe:duration-500"
+		>
+			<Hub className="size-9 md:size-10" strokeWidth={1.75} />
+		</span>
+	</div>
+</div>

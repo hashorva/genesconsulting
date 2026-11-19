@@ -1,0 +1,147 @@
+---
+/**
+ * The redesign's only script (no library): scroll reveals and the header's scrolled state.
+ *
+ * - Elements with `data-reveal` that start below the fold fade up as they enter the
+ *   viewport, with tw-animate-css classes (default durations and delays). Elements already
+ *   on screen are left alone, so nothing flashes, and without this script everything is
+ *   simply visible.
+ * - Visitors who ask for reduced motion get no reveal at all.
+ * - The header gets `data-scrolled` once the page moves, for its frosted look.
+ * - Proximity: in a hero illustration (`data-proximity`), nodes near the mouse lean toward
+ *   it and ease back when it moves away; their spokes stretch and turn so they stay joined.
+ *   Mouse only (no touch) and never with reduced motion.
+ *
+ * Page-to-page transitions are native CSS (Base.astro), not Astro's ClientRouter.
+ */
+---
+
+<script>
+	const header = document.querySelector<HTMLElement>("[data-site-header]");
+	const onScroll = () => header?.toggleAttribute("data-scrolled", window.scrollY > 8);
+	onScroll();
+	window.addEventListener("scroll", onScroll, { passive: true });
+
+	const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+	if (!reduce && "IntersectionObserver" in window) {
+		const ENTER = ["animate-in", "fade-in", "slide-in-from-bottom-6", "duration-700", "ease-out", "fill-mode-both"];
+		const observer = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					if (!entry.isIntersecting) continue;
+					entry.target.classList.remove("opacity-0");
+					entry.target.classList.add(...ENTER);
+					observer.unobserve(entry.target);
+				}
+			},
+			{ rootMargin: "0px 0px -10% 0px" },
+		);
+		for (const element of document.querySelectorAll<HTMLElement>("[data-reveal]")) {
+			// Only what the visitor has not seen yet waits for its reveal.
+			if (element.getBoundingClientRect().top < window.innerHeight * 0.9) continue;
+			element.classList.add("opacity-0");
+			observer.observe(element);
+		}
+	}
+	// Proximity effect on the hero illustrations (Network.astro, Scene.astro).
+	const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+	if (!reduce && fine) {
+		const RADIUS = 200; // px around a node where it feels the pointer
+		const PULL = 0.5; // share of the distance a node travels at its closest
+		const MAX = 28; // px a node may move at most
+		const EASE = 0.12; // per frame, toward the target
+
+		type Item = { node: HTMLElement; line: HTMLElement; cos: number; sin: number; upright: boolean; x: number; y: number };
+		const roots = [...document.querySelectorAll<HTMLElement>("[data-proximity]")].map((root) => ({
+			root,
+			items: [...root.querySelectorAll<HTMLElement>("[data-spoke]")].flatMap((spoke): Item[] => {
+				const node = spoke.querySelector<HTMLElement>("[data-node]");
+				const line = spoke.querySelector<HTMLElement>("[data-line]");
+				const angle = (Number(spoke.dataset.angle) * Math.PI) / 180;
+				if (!node || !line || Number.isNaN(angle)) return [];
+				return [{ node, line, cos: Math.cos(angle), sin: Math.sin(angle), upright: spoke.hasAttribute("data-upright"), x: 0, y: 0 }];
+			}),
+		}));
+
+		let pointer: { x: number; y: number } | null = null;
+		let frame = 0;
+		const kick = () => {
+			if (!frame) frame = requestAnimationFrame(tick);
+		};
+
+		// x, y: the node's offset on screen. A node inside a turned spoke is moved in the spoke's
+		// own frame, so the offset is turned back; the spoke follows the node to stay joined.
+		const place = (item: Item) => {
+			const lx = item.cos * item.x + item.sin * item.y;
+			const ly = -item.sin * item.x + item.cos * item.y;
+			item.node.style.translate = item.upright ? `${item.x}px ${item.y}px` : `${lx}px ${ly}px`;
+			const length = item.line.offsetWidth;
+			if (!length) return;
+			const ex = length + lx;
+			item.line.style.rotate = `${Math.atan2(ly, ex)}rad`;
+			item.line.style.scale = `${Math.hypot(ex, ly) / length} 1`;
+		};
+
+		function tick() {
+			frame = 0;
+			let moving = false;
+			for (const { root, items } of roots) {
+				const box = root.getBoundingClientRect();
+				const near =
+					pointer !== null &&
+					pointer.x > box.left - RADIUS &&
+					pointer.x < box.right + RADIUS &&
+					pointer.y > box.top - RADIUS &&
+					pointer.y < box.bottom + RADIUS;
+				for (const item of items) {
+					let tx = 0;
+					let ty = 0;
+					if (near && pointer) {
+						const rect = item.node.getBoundingClientRect();
+						const dx = pointer.x - (rect.left + rect.width / 2 - item.x);
+						const dy = pointer.y - (rect.top + rect.height / 2 - item.y);
+						const distance = Math.hypot(dx, dy);
+						if (distance < RADIUS) {
+							const pull = (1 - distance / RADIUS) * PULL;
+							tx = dx * pull;
+							ty = dy * pull;
+							const reach = Math.hypot(tx, ty);
+							if (reach > MAX) {
+								tx *= MAX / reach;
+								ty *= MAX / reach;
+							}
+						}
+					}
+					if (tx === item.x && ty === item.y) continue;
+					item.x += (tx - item.x) * EASE;
+					item.y += (ty - item.y) * EASE;
+					if (Math.abs(tx - item.x) < 0.1 && Math.abs(ty - item.y) < 0.1) {
+						item.x = tx;
+						item.y = ty;
+					} else {
+						moving = true;
+					}
+					place(item);
+				}
+			}
+			if (moving) kick();
+		}
+
+		if (roots.length > 0) {
+			window.addEventListener(
+				"pointermove",
+				(event) => {
+					if (event.pointerType !== "mouse") return;
+					pointer = { x: event.clientX, y: event.clientY };
+					kick();
+				},
+				{ passive: true },
+			);
+			document.documentElement.addEventListener("pointerleave", () => {
+				pointer = null;
+				kick();
+			});
+			window.addEventListener("scroll", kick, { passive: true });
+		}
+	}
+</script>

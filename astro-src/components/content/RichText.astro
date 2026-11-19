@@ -1,0 +1,23 @@
+---
+import { PortableText } from "emdash/ui";
+
+import { cn } from "@/lib/utils";
+
+/**
+ * EmDash Portable Text with the site's typography (`.rich-text` in global.css).
+ * Every page body written in the admin goes through here, so headings, lists,
+ * quotes and links look the same everywhere.
+ */
+interface Props {
+	value: unknown;
+	class?: string;
+	/** Portable Text component overrides (astro-portabletext), e.g. the redesign's h2. */
+	components?: Record<string, unknown>;
+}
+
+const { value, class: className, components } = Astro.props;
+---
+
+<div class={cn("rich-text", className)}>
+	<PortableText value={value as never} components={components as never} />
+</div>

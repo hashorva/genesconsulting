@@ -1,0 +1,38 @@
+---
+import ButtonList from "@/components/blocks/ButtonList.astro";
+import { buttonVariants } from "@/components/ui/button";
+import { safeHref } from "@/lib/safe-href";
+import { alignClass, pick } from "@/lib/section-style";
+import { cn } from "@/lib/utils";
+import type { PageLayoutCtaBlock } from "../../../emdash-env";
+
+/**
+ * "Invito all'azione": closing panel (brand-colors.md: Button default, size lg).
+ * page_composer adds a list of buttons and centring; with a section background
+ * chosen, the band replaces the muted panel.
+ */
+interface Props {
+	value: PageLayoutCtaBlock;
+}
+const { value } = Astro.props;
+const href = safeHref(value.button_url);
+const hasList = (value.buttons?.length ?? 0) > 0;
+const inBand = pick("background", value.background, "Nessuno") !== "Nessuno";
+const centered = alignClass(value.align);
+---
+
+<section class={cn("space-y-4", inBand ? "py-4" : "rounded-2xl bg-muted p-8 md:p-12", centered && "text-center")}>
+	<h2 class="text-2xl font-bold tracking-tight md:text-3xl">{value.heading}</h2>
+	{value.text && <p class={cn("max-w-2xl leading-relaxed text-muted-foreground", centered && "mx-auto")}>{value.text}</p>}
+	{
+		hasList ? (
+			<ButtonList buttons={value.buttons} class={cn(centered && "justify-center")} />
+		) : (
+			href && (
+				<a href={href} class={buttonVariants({ size: "lg" })}>
+					{value.button_label || value.heading}
+				</a>
+			)
+		)
+	}
+</section>

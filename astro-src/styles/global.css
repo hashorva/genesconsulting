@@ -136,3 +136,65 @@
 		@apply bg-background text-foreground antialiased;
 	}
 }
+
+/* Typography for EmDash rich text (components/content/RichText.astro).
+   Default Tailwind utilities only (HARD RULE, AGENTS.md). */
+@layer components {
+	.rich-text {
+		@apply space-y-4 leading-relaxed;
+	}
+	.rich-text h2 {
+		@apply pt-6 text-2xl font-bold tracking-tight md:text-3xl;
+	}
+	.rich-text h3 {
+		@apply pt-2 text-xl font-semibold tracking-tight;
+	}
+	.rich-text h4 {
+		@apply text-lg font-semibold;
+	}
+	.rich-text ul {
+		@apply list-disc space-y-2 pl-6;
+	}
+	.rich-text ol {
+		@apply list-decimal space-y-2 pl-6;
+	}
+	.rich-text li::marker {
+		@apply text-muted-foreground;
+	}
+	.rich-text a {
+		@apply font-medium text-sky-700 underline underline-offset-4 hover:text-sky-900 dark:text-sky-400 dark:hover:text-sky-300;
+	}
+	.rich-text blockquote {
+		@apply border-l-4 border-yellow-600 pl-4 text-lg italic;
+	}
+	.rich-text strong {
+		@apply font-semibold;
+	}
+}
+
+/* Page bodies in the redesign (flag design_refresh, components/refresh/PageBody.astro).
+   Default Tailwind utilities only (HARD RULE, AGENTS.md). */
+@layer components {
+	.refresh-prose {
+		@apply text-lg;
+	}
+	.refresh-prose h2 {
+		@apply pt-10 text-3xl font-semibold md:text-4xl;
+	}
+	.refresh-prose h2:first-child {
+		@apply pt-0;
+	}
+	.refresh-prose h3 {
+		@apply pt-4 text-xl;
+	}
+	.refresh-prose ul,
+	.refresh-prose ol {
+		@apply space-y-3 pl-6;
+	}
+	.refresh-prose li {
+		@apply pl-1;
+	}
+	.refresh-prose li::marker {
+		@apply font-semibold text-sky-500 dark:text-sky-400;
+	}
+}

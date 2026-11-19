@@ -197,6 +197,27 @@ Each visual element found in the documents, and the default shadcn/ui component 
 
 Exact component names (`Item`, `Field`) are to be confirmed against the shadcn version installed by the preset. If one is not available, `Card` and the plain form primitives cover the same need.
 
+### Section presets (editor choices)
+
+Editors style page sections ("Sezioni") only by picking a word from a list in EmDash. Each word maps to the classes below, in `astro-src/lib/section-style.ts` (tested in `tests/section-style.test.ts`). A new option is a code PR that adds a row here; editors never type a class or a colour.
+
+| Field (EmDash) | Option | Classes / component |
+| --- | --- | --- |
+| Sfondo | Nessuno | page background |
+| Sfondo | Tenue | `bg-muted dark:bg-sky-900/50` |
+| Sfondo | Blu | `dark border-y border-border bg-background text-foreground`: the band switches to the dark theme tokens (sky-950, cards sky-900, primary sky-400), so contents keep their contrast. Default for Apertura |
+| Spaziatura | Compatta / Normale / Ampia | `py-4 md:py-6` / `py-8 md:py-12` / `py-12 md:py-20`; with a background `py-8 md:py-10` / `py-12 md:py-16` / `py-16 md:py-24` |
+| Larghezza | Normale / Stretta | none / `mx-auto max-w-3xl` |
+| Allineamento | Sinistra / Centrato | none / `text-center`, buttons `justify-center` |
+| Colonne (schede) | Automatiche / 2 / 3 / 4 | by card count / `@xl:grid-cols-2` / `+ @4xl:grid-cols-3` / `+ @5xl:grid-cols-4` |
+| Stile schede | Schede / Semplice | `Card` / no card, `border-t pt-4` |
+| Pulsanti: Stile | Principale / Secondario / Contorno / Link | `Button` `default` / `secondary` / `outline` / `link`, size `lg` |
+| Accento (Apertura) | Oro | bar `h-1 w-12 rounded-full bg-yellow-600`, eyebrow `text-yellow-700 dark:text-yellow-600`. Never a gold background: white on yellow-600 fails contrast |
+| Illustrazione (Apertura) | Rete / Immagine / Nessuna | lucide `Waypoints` `size-48 text-sky-400` / EmDash image `rounded-2xl` / none |
+| Posizione immagine (Testo e immagine) | Destra / Sinistra | `md:grid-cols-2`, text `md:order-2` when the image is left |
+| Icona (schede) | Rete, Documento, Edificio, Persone, Scudo, Grafico, Telefono, Posta, Calendario, Bilancia, Valigetta, Spunta, Stretta di mano, Istituzione | lucide `Waypoints`, `FileText`, `Building2`, `Users`, `ShieldCheck`, `ChartLine`, `Phone`, `Mail`, `Calendar`, `Scale`, `Briefcase`, `CircleCheck`, `Handshake`, `Landmark`, `size-6 text-sky-700 dark:text-sky-300` (`astro-src/components/blocks/icons.ts`) |
+| Numeri chiave | number + label | number `text-4xl md:text-5xl font-bold text-sky-700 dark:text-sky-300`, rule `border-l-2 border-sky-400` |
+
 ## 6. Icon table
 
 All icons from lucide, which is the icon library the shadcn preset installs. Default stroke, sized with `size-4`, `size-5`, `size-6` or `size-8`.
@@ -270,6 +291,25 @@ Do not use `sky-400`, `sky-500`, `cyan-500`, `teal-200` or `yellow-600` for smal
 - The footer has a three-way switch, `[ light | system | dark ]`, built with the shadcn `ToggleGroup`.
 - The choice is stored in the browser. "System" removes the stored choice and follows the device again.
 - A small inline script in the page head applies the `dark` class before first paint, so the page does not flash the wrong theme.
+
+## Redesign (design_refresh)
+
+Behind the `design_refresh` flag (on top of `page_composer`), the site takes its look from the client deck. Components in `astro-src/components/refresh/`, band rhythm in `astro-src/lib/refresh-style.ts`. Defaults only, as everywhere.
+
+| Deck element | Tailwind / shadcn |
+| --- | --- |
+| Brand band (header, opening, steps, CTA, footer) | `dark` scope + `bg-sky-950`, bands `bg-linear-to-b from-sky-900 to-sky-950` |
+| Soft band (linked card grids) | `bg-sky-50 dark:bg-sky-900/40` |
+| Eyebrow over titles | `h-0.5 w-8 bg-sky-500 dark:bg-sky-400` + `text-xs font-semibold tracking-widest uppercase text-sky-700 dark:text-sky-400` (gold: `yellow-600` / `yellow-700`) |
+| Claim on two lines | second sentence `text-sky-400` |
+| Numbers 01 02 03 | `font-light tabular-nums text-sky-600 dark:text-sky-400` |
+| Hub-and-spoke "G" network | divs only: `h-px` spokes turned with default `rotate-*`, nodes `bg-sky-400` / `bg-yellow-600` with `ring-4`, hub `bg-sky-400 text-sky-950` (Zam, 2026-11-18: no SVG) |
+| Glow / depth | `rounded-full blur-3xl bg-sky-400/15` (or `/10`, `/20`) |
+| CTA rule | `h-1 w-16 bg-yellow-600` |
+| Running line | `border-t border-sky-400/20 text-xs tracking-widest uppercase text-slate-400` |
+| Motion | tw-animate-css `animate-in fade-in slide-in-from-bottom-6 duration-700`, `delay-0..300`; all `motion-safe:` or skipped by the script under reduced motion |
+
+Page rhythm when the editor leaves "Sfondo" empty: CTA and steps on the brand band, three or more linked cards on the soft band, everything else on the page colour. An editor's choice always wins.
 
 ## 10. Decided
 
