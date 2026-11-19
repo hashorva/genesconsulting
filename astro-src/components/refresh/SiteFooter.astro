@@ -1,14 +1,16 @@
 ---
 import SiteBrand from "@/components/site/SiteBrand.astro";
-import LegalBar from "@/components/site/LegalBar.astro";
 import ThemeToggle from "@/components/site/ThemeToggle";
 import { resolveLocale, useTranslations } from "@/i18n";
-import { menuItems } from "@/lib/content-links";
+import { menuItems, pageLink } from "@/lib/content-links";
 
 /**
- * Footer of the redesign: dark in both themes, a cyan rule on top and the deck's
- * running line ("GENES CONSULTING • MILANO") at the bottom. Links come from the EmDash
- * "primary" and "footer" menus, so nothing points to unpublished pages.
+ * Footer of the redesign: dark in both themes, a cyan rule on top, the deck's running line
+ * ("GENES CONSULTING • MILANO") under the brand. Links come from the EmDash "primary" and
+ * "footer" menus, so nothing points to unpublished pages. With cookie_notice, the legal
+ * column adds the privacy and cookie policies and "Preferenze cookie" under Note legali,
+ * and the bottom row carries the company data (P.IVA, C.F.) next to the copyright and
+ * the theme switcher (Zam, 2026-11-19).
  */
 interface Props {
 	siteTitle: string;
@@ -21,7 +23,17 @@ const { siteTitle, siteTagline, showLegal = false } = Astro.props;
 const locale = resolveLocale(Astro.currentLocale);
 const t = useTranslations(locale);
 const year = new Date().getFullYear();
-const [primary, legal] = await Promise.all([menuItems(Astro, "primary", locale), menuItems(Astro, "footer", locale)]);
+const [primary, legal, privacyHref, cookieHref] = await Promise.all([
+	menuItems(Astro, "primary", locale),
+	menuItems(Astro, "footer", locale),
+	showLegal ? pageLink(Astro, "legal.privacy", locale) : null,
+	showLegal ? pageLink(Astro, "legal.cookies", locale) : null,
+]);
+// Policy links show only once their EmDash pages are published (Garante guidelines, par. 7.1 iii).
+const policies = [
+	privacyHref && { label: t("legal.privacy"), url: privacyHref },
+	cookieHref && { label: t("cookies.policy"), url: cookieHref },
+].filter((item): item is { label: string; url: string } => Boolean(item));
 const linkClass = "text-slate-300 transition-colors hover:text-sky-300";
 ---
 
@@ -31,6 +43,9 @@ const linkClass = "text-slate-300 transition-colors hover:text-sky-300";
 		<div class="space-y-4 md:col-span-6 lg:col-span-5">
 			<SiteBrand siteTitle={siteTitle} />
 			<p class="max-w-sm leading-relaxed text-slate-400">{siteTagline}</p>
+			<p class="text-xs tracking-widest text-slate-400 uppercase">
+				{t("site.name")} <span aria-hidden="true" class="px-1 text-sky-400">•</span> {t("site.city")}
+			</p>
 		</div>
 		{
 			primary.length > 0 && (
@@ -49,27 +64,35 @@ const linkClass = "text-slate-300 transition-colors hover:text-sky-300";
 			)
 		}
 		{
-			legal.length > 0 && (
+			(legal.length > 0 || showLegal) && (
 				<nav aria-label={t("footer.legal")} class="space-y-4 md:col-span-3 lg:col-span-2">
 					<p class="text-xs font-semibold tracking-widest text-sky-400 uppercase">{t("footer.legal")}</p>
 					<ul class="space-y-2 text-sm">
-						{legal.map((item) => (
+						{[...legal, ...policies].map((item) => (
 							<li>
 								<a class={linkClass} href={item.url}>
 									{item.label}
 								</a>
 							</li>
 						))}
+						{showLegal && (
+							<li>
+								<button type="button" data-cookie-notice-open class:list={[linkClass, "cursor-pointer"]}>
+									{t("cookies.preferences")}
+								</button>
+							</li>
+						)}
 					</ul>
 				</nav>
 			)
 		}
 	</div>
 	<div class="container mx-auto px-4 md:px-6">
-		{showLegal && <LegalBar />}
-		<div class="flex flex-wrap items-center justify-between gap-4 border-t border-sky-400/20 py-6 text-xs tracking-widest text-slate-400 uppercase">
-			<span>{t("site.name")} <span aria-hidden="true" class="px-1 text-sky-400">•</span> {t("site.city")}</span>
-			<span class="normal-case tracking-normal">{t("footer.copyright", { year, name: siteTitle })}</span>
+		<div class="flex flex-col gap-4 border-t border-sky-400/20 py-6 text-xs text-slate-400 md:flex-row md:items-center md:justify-between">
+			<div class="space-y-1">
+				{showLegal && <p>{t("company.identity")}</p>}
+				<p>{t("footer.copyright", { year, name: siteTitle })}</p>
+			</div>
 			<ThemeToggle
 				client:idle
 				labels={{ group: t("theme.label"), light: t("theme.light"), system: t("theme.system"), dark: t("theme.dark") }}
