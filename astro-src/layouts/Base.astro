@@ -16,6 +16,9 @@ import { LOCALE_META, resolveLocale, useTranslations } from "@/i18n";
 import { resolveSiteIdentity } from "@/utils/site-identity";
 import "@/styles/global.css";
 
+/** Link preview image, made by scripts/og/build-og-image.ts. */
+const OG_IMAGE = { path: "/brand/genes-consulting-og.png", width: 1200, height: 630, type: "image/png" };
+
 interface Props {
 	title: string;
 	pageTitle?: string | null;
@@ -47,6 +50,14 @@ const { siteTitle, siteTagline, siteLogo } = resolveSiteIdentity(settingsResult.
 const separator = t("seo:titleSeparator");
 const fullTitle = title === siteTitle || title.endsWith(`${separator}${siteTitle}`) ? title : `${title}${separator}${siteTitle}`;
 
+// Link previews (WhatsApp, LinkedIn, email...): scrapers need absolute URLs, so the page URL
+// defaults to this request's address without the query string (drops ?_preview and the like).
+const pageUrl = canonical ?? new URL(Astro.url.pathname, Astro.url.origin).href;
+// An image set in EmDash wins: the page's SEO panel (applied inside EmDashHead) or the site
+// settings' default SEO image. Without either, the brand card from public/brand.
+const editorImage = image || settingsResult.data.seo?.defaultOgImage?.url;
+const brandCard = editorImage ? null : new URL(OG_IMAGE.path, Astro.url.origin).href;
+
 const pageCtx = createPublicPageContext({
 	Astro,
 	kind: content ? "content" : "custom",
@@ -54,8 +65,8 @@ const pageCtx = createPublicPageContext({
 	title: fullTitle,
 	pageTitle: pageTitle ?? title,
 	description: description ?? siteTagline,
-	canonical,
-	image,
+	canonical: pageUrl,
+	image: image ?? brandCard,
 	content,
 	siteName: siteTitle,
 });
@@ -70,7 +81,18 @@ const pageCtx = createPublicPageContext({
 		<meta property="og:locale" content={LOCALE_META[locale].og} />
 		<link rel="icon" href="/brand/genes-consulting-logo.svg" type="image/svg+xml" />
 		<link rel="icon" href="/brand/genes-consulting-logo.ico" sizes="48x48" />
-		<link rel="apple-touch-icon" href="/brand/genes-consulting-logo.png" />
+		<link rel="apple-touch-icon" href="/brand/genes-consulting-touch.png" sizes="180x180" />
+		{
+			brandCard && (
+				<>
+					<meta property="og:image:width" content={String(OG_IMAGE.width)} />
+					<meta property="og:image:height" content={String(OG_IMAGE.height)} />
+					<meta property="og:image:type" content={OG_IMAGE.type} />
+					<meta property="og:image:alt" content={t("seo:ogImageAlt")} />
+					<meta name="twitter:image:alt" content={t("seo:ogImageAlt")} />
+				</>
+			)
+		}
 		<title>{fullTitle}</title>
 		<!--
 			Light/dark: follows the system setting live unless the visitor picked

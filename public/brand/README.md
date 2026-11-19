@@ -9,6 +9,10 @@ There is one version of the logo, transparent, used on light and dark alike (no 
 | `genes-consulting-logo.svg` | The logo (SVG, used on the site and as the favicon) |
 | `genes-consulting-logo.png` | 256 px transparent PNG: fallback for browsers without SVG, and the touch icon |
 | `genes-consulting-logo.ico` | Favicon for browsers that need ICO (16, 32 and 48 px, transparent) |
+| `genes-consulting-touch.png` | 180 px Apple touch icon: the mark on an opaque white tile (iOS fills transparency with black) |
+| `genes-consulting-og.png` | 1200x630 link preview image (Open Graph / Twitter card) for WhatsApp, LinkedIn, email and the like |
+
+The preview image and touch icon come from `scripts/og/og-image.html`: rebuild them with `bun scripts/og/build-og-image.ts` (needs Playwright with Chromium). The preview card is the mark, the name, a `yellow-600` rule and the payoff on `sky-950`, with the lucide Waypoints network in `sky-900`; colours and sizes are read from Tailwind's default theme. Everything important stays inside the centre square, because WhatsApp crops thumbnails. `layouts/Base.astro` uses it on every page unless EmDash has an image (the page's SEO panel, or the default SEO image in site settings).
 
 Colors are Tailwind v4 default palette values only: `sky-500` (C arc), `sky-600` (G arc), `yellow-600` (bar and terminal). They keep enough contrast on both white and `sky-950`.
 
