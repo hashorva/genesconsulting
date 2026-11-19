@@ -17,7 +17,7 @@ import type { PageLayoutHeroBlock } from "../../../emdash-env";
 /**
  * Opening of a page in the redesign: always on the dark brand band (like the deck's
  * cover), eyebrow + bar, the claim on two lines with the second in cyan, up to three
- * buttons, the animated network (or the editor's image) and the deck's running line.
+ * buttons, the animated network (or the editor's image).
  * Used by the Apertura block and by the homepage when it has no Apertura.
  */
 interface Props {
@@ -110,10 +110,6 @@ const links = (buttons ?? [])
 					</div>
 				)
 			}
-		</div>
-		<!-- The deck's running line under every slide. -->
-		<div class="border-t border-sky-400/20 py-4 text-xs tracking-widest text-slate-400 uppercase">
-			{t("site.name")} <span aria-hidden="true" class="px-1 text-sky-400">•</span> {t("site.city")}
 		</div>
 	</div>
 </div>
