@@ -153,6 +153,45 @@ export function canAddHeroDraft(
 	);
 }
 
+/** Default value of each block type's fields, from seed/seed.json: `{ hero: { background: "Blu", ... } }`. */
+export type BlockDefaults = Record<string, Record<string, unknown>>;
+
+export function blockDefaults(seed: {
+	blockTypes?: Array<{ slug: string; currentVersion: number; versions: Array<{ version: number; fields: unknown[] }> }>;
+}): BlockDefaults {
+	const out: BlockDefaults = {};
+	for (const type of seed.blockTypes ?? []) {
+		const active = type.versions.find((v) => v.version === type.currentVersion);
+		const defaults: Record<string, unknown> = {};
+		for (const field of (active?.fields ?? []) as Array<{ slug: string; defaultValue?: unknown }>) {
+			if (field.defaultValue !== undefined) defaults[field.slug] = field.defaultValue;
+		}
+		out[type.slug] = defaults;
+	}
+	return out;
+}
+
+/**
+ * Stored sections without the default values the admin fills in when a draft is
+ * opened (or previewed in edit mode): a field the loader did not write whose value is
+ * just the block type's default. Anything else a person changed is kept, so it still
+ * counts as an edit. Sections are matched by _key.
+ */
+export function withoutFilledDefaults(stored: unknown, expected: readonly LayoutBlock[], defaults: BlockDefaults): unknown {
+	if (!Array.isArray(stored)) return stored;
+	const byKey = new Map(expected.map((block) => [block._key, block]));
+	return stored.map((block: Record<string, unknown>) => {
+		const wanted = byKey.get(block?._key as string);
+		const typeDefaults = defaults[block?._type as string];
+		if (!wanted || !typeDefaults) return block;
+		const copy = { ...block };
+		for (const [field, value] of Object.entries(typeDefaults)) {
+			if (!(field in wanted) && JSON.stringify(copy[field]) === JSON.stringify(value)) delete copy[field];
+		}
+		return copy;
+	});
+}
+
 /**
  * A stable form of stored content for comparison: Portable Text keys are random,
  * so blocks and spans lose their _key and mark references become markDef positions.
