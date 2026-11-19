@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils";
  * classes only (Zam, 2026-11-18): each spoke is a 1px line from the centre, turned with a
  * default rotate-* value; the node sits at its tip. Cyan nodes, a few gold ones, a glowing hub.
  * On load the spokes grow out of the hub and the nodes appear one after the other
- * (motion-safe only: with reduced motion the drawing is simply there).
+ * (motion-safe only: with reduced motion the drawing is simply there). With a mouse, nodes
+ * near the pointer lean toward it (Motion.astro, `data-proximity`).
  */
 interface Props {
 	class?: string;
@@ -18,17 +19,18 @@ const { class: className, label = "G" } = Astro.props;
 // Angle (default rotate-* class), length (default fraction of the radius), colour, delay.
 // Angles follow the deck: nodes spread unevenly all around, gold at top, lower right, lower left.
 const spokes = [
-	{ rotate: "rotate-0", length: "w-9/20", gold: false, delay: "delay-150" },
-	{ rotate: "rotate-45", length: "w-2/5", gold: true, delay: "delay-200" },
-	{ rotate: "rotate-100", length: "w-9/20", gold: false, delay: "delay-300" },
-	{ rotate: "rotate-155", length: "w-2/5", gold: true, delay: "delay-500" },
-	{ rotate: "rotate-205", length: "w-9/20", gold: false, delay: "delay-700" },
-	{ rotate: "rotate-255", length: "w-2/5", gold: true, delay: "delay-1000" },
-	{ rotate: "rotate-305", length: "w-9/20", gold: false, delay: "delay-700" },
+	{ rotate: "rotate-0", angle: 0, length: "w-9/20", gold: false, delay: "delay-150" },
+	{ rotate: "rotate-45", angle: 45, length: "w-2/5", gold: true, delay: "delay-200" },
+	{ rotate: "rotate-100", angle: 100, length: "w-9/20", gold: false, delay: "delay-300" },
+	{ rotate: "rotate-155", angle: 155, length: "w-2/5", gold: true, delay: "delay-500" },
+	{ rotate: "rotate-205", angle: 205, length: "w-9/20", gold: false, delay: "delay-700" },
+	// The gold node at the top keeps a slow, quiet signal.
+	{ rotate: "rotate-255", angle: 255, length: "w-2/5", gold: true, delay: "delay-1000", ping: true },
+	{ rotate: "rotate-305", angle: 305, length: "w-9/20", gold: false, delay: "delay-700" },
 ];
 ---
 
-<div aria-hidden="true" class={cn("relative aspect-square select-none", className)}>
+<div aria-hidden="true" data-proximity class={cn("relative aspect-square select-none", className)}>
 	<!-- Soft glow behind the drawing and two faint orbits: depth without images. -->
 	<div class="absolute inset-1/6 rounded-full bg-sky-400/20 blur-3xl"></div>
 	<div class="absolute inset-0 rounded-full border border-sky-400/10"></div>
@@ -36,32 +38,33 @@ const spokes = [
 
 	{
 		spokes.map((spoke) => (
-			<div class={cn("absolute top-1/2 left-1/2 h-0 origin-left", spoke.rotate, spoke.length)}>
+			<div data-spoke data-angle={spoke.angle} class={cn("absolute top-1/2 left-1/2 h-0 origin-left", spoke.rotate, spoke.length)}>
 				<div
+					data-line
 					class={cn(
-						"h-px w-full origin-left bg-linear-to-r from-sky-400/70 to-sky-400/20",
+						// transition-none: duration-700 would otherwise make the spoke lag behind its node.
+						"h-px w-full origin-left bg-linear-to-r from-sky-400/70 to-sky-400/20 transition-none",
 						"motion-safe:animate-in motion-safe:fill-mode-both motion-safe:zoom-in-0 motion-safe:duration-700 motion-safe:ease-out",
 						spoke.delay,
 					)}
 				></div>
-				<span
-					class={cn(
-						"absolute top-0 right-0 size-3 translate-x-1/2 -translate-y-1/2 rounded-full ring-4 md:size-4",
-						spoke.gold ? "bg-yellow-600 ring-yellow-600/20" : "bg-sky-400 ring-sky-400/20",
-						"motion-safe:animate-in motion-safe:fill-mode-both motion-safe:fade-in motion-safe:zoom-in-50 motion-safe:duration-500",
-						spoke.delay,
+				<!-- The node's anchor at the spoke's tip: Motion.astro moves it toward the pointer. -->
+				<span data-node class="absolute top-0 right-0">
+					{spoke.ping && (
+						<span class="absolute size-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-yellow-600/40 motion-safe:animate-ping"></span>
 					)}
-				></span>
+					<span
+						class={cn(
+							"absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-4 md:size-4",
+							spoke.gold ? "bg-yellow-600 ring-yellow-600/20" : "bg-sky-400 ring-sky-400/20",
+							"motion-safe:animate-in motion-safe:fill-mode-both motion-safe:fade-in motion-safe:zoom-in-50 motion-safe:duration-500",
+							spoke.delay,
+						)}
+					></span>
+				</span>
 			</div>
 		))
 	}
-
-	<!-- The gold node at the top keeps a slow, quiet signal. -->
-	<div class="absolute inset-0 rotate-255">
-		<span
-			class="absolute top-1/2 left-9/10 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-yellow-600/40 motion-safe:animate-ping"
-		></span>
-	</div>
 
 	<div class="absolute inset-0 grid place-items-center">
 		<span class="absolute size-24 rounded-full bg-sky-400/20 motion-safe:animate-pulse md:size-28"></span>
