@@ -8,6 +8,10 @@
     "design_refresh": {
       "public": false,
       "description": "Redesign with the client deck's look: dark brand bands, eyebrow labels, the animated G network, redesigned cards, steps, CTA, header and footer, scroll reveals and page transitions. Needs page_composer on (release page_composer first). Until released, visitors see the current design."
+    },
+    "cookie_notice": {
+      "public": false,
+      "description": "Garante cookie and privacy compliance: the cookie notice (bottom card, shown again after 6 months), and the footer's legal row with company data, P.IVA, privacy and cookie policy links and 'Preferenze cookie'. Release only after the Privacy policy (/privacy/) and Cookie policy (/cookie/) pages are completed and published in EmDash. See docs/legal/garante-compliance.md."
     }
   }
 }

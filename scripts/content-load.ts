@@ -34,6 +34,7 @@ import { markdownToPortableText } from "emdash/client";
 import {
 	canAddHeroDraft,
 	canAddLayoutDraft,
+	hasPlaceholders,
 	isLoaderDraft,
 	type LayoutBlock,
 	parseLayoutFile,
@@ -152,6 +153,10 @@ async function publish(files: PageFile[]) {
 		// (then unpublished), scheduled, or retitled in the admin is left alone.
 		if (!isLoaderDraft(entry, page)) {
 			console.log(`skip     ${page.slug} (status ${entry.status}, changed in the admin or published before)`);
+			continue;
+		}
+		if (hasPlaceholders(page)) {
+			console.log(`skip     ${page.slug} (has [DA COMPLETARE] markers: complete and publish it in the admin)`);
 			continue;
 		}
 		if (!dryRun) await client.publish("pages", entry.id);

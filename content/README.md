@@ -39,7 +39,7 @@ Pages with sections depend on them for most of their copy. Rolling back to a tag
 
 ## Not written yet (needs the client)
 
-- `/privacy/` and `/cookie/`: no legal text in the source.
+- `/privacy/` and `/cookie/`: drafts written from the Garante's guidelines (`docs/legal/garante-compliance.md`); every `[DA COMPLETARE]` / `[DA VERIFICARE]` needs the client's data or their privacy advisor before publishing.
 - REA number, share capital and PEC for `/note-legali/` (mandatory on Italian company sites).
 - LinkedIn URL, opening hours, area served, founding year and team for Chi siamo.
 - Blog posts: the starter topics in the content map need facts checked by Genes.

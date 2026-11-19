@@ -7,6 +7,7 @@ import { markdownToPortableText } from "emdash/client";
 
 import {
 	canAddHeroDraft,
+	hasPlaceholders,
 	canAddLayoutDraft,
 	isLoaderDraft,
 	parseLayoutFile,
@@ -172,5 +173,15 @@ describe("sameContent", () => {
 		expect(sameContent([{ ...layout[0], _key: "d" }], layout)).toBe(false);
 		expect(sameContent([...layout, ...layout], layout)).toBe(false);
 		expect(sameContent(undefined, layout)).toBe(false);
+	});
+});
+
+describe("placeholder guard", () => {
+	it("keeps the policy drafts from being published by the loader", () => {
+		for (const name of ["privacy.md", "cookie.md"]) {
+			const page = parsePageFile(readFileSync(join(dir, name), "utf-8"), name);
+			expect(hasPlaceholders(page)).toBe(true);
+		}
+		expect(hasPlaceholders({ body: "## Dati societari\n\nTesto completo." })).toBe(false);
 	});
 });

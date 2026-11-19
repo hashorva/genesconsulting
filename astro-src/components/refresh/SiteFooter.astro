@@ -1,5 +1,6 @@
 ---
 import SiteBrand from "@/components/site/SiteBrand.astro";
+import LegalBar from "@/components/site/LegalBar.astro";
 import ThemeToggle from "@/components/site/ThemeToggle";
 import { resolveLocale, useTranslations } from "@/i18n";
 import { menuItems } from "@/lib/content-links";
@@ -12,9 +13,11 @@ import { menuItems } from "@/lib/content-links";
 interface Props {
 	siteTitle: string;
 	siteTagline: string;
+	/** Flag cookie_notice: show the legal row (company data, policies, cookie preferences). */
+	showLegal?: boolean;
 }
 
-const { siteTitle, siteTagline } = Astro.props;
+const { siteTitle, siteTagline, showLegal = false } = Astro.props;
 const locale = resolveLocale(Astro.currentLocale);
 const t = useTranslations(locale);
 const year = new Date().getFullYear();
@@ -63,6 +66,7 @@ const linkClass = "text-slate-300 transition-colors hover:text-sky-300";
 		}
 	</div>
 	<div class="container mx-auto px-4 md:px-6">
+		{showLegal && <LegalBar />}
 		<div class="flex flex-wrap items-center justify-between gap-4 border-t border-sky-400/20 py-6 text-xs tracking-widest text-slate-400 uppercase">
 			<span>{t("site.name")} <span aria-hidden="true" class="px-1 text-sky-400">•</span> {t("site.city")}</span>
 			<span class="normal-case tracking-normal">{t("footer.copyright", { year, name: siteTitle })}</span>

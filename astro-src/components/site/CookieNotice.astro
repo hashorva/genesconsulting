@@ -1,0 +1,105 @@
+---
+import { X } from "lucide-react";
+
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { resolveLocale, useTranslations } from "@/i18n";
+import { pageLink } from "@/lib/content-links";
+
+/**
+ * Cookie notice (flag cookie_notice). Server-rendered hidden, shown by the script below
+ * when the visitor has not closed it in the last 6 months (lib/cookie-notice.ts).
+ * Closing with the X or "Ho capito" records the choice; nothing else is stored and no
+ * cookie is set. Any element with data-cookie-notice-open (the footer's "Preferenze
+ * cookie") shows it again. Not a modal: the page stays usable while it is open.
+ */
+const locale = resolveLocale(Astro.currentLocale);
+const t = useTranslations(locale);
+const [cookieHref, privacyHref] = await Promise.all([
+	pageLink(Astro, "legal.cookies", locale),
+	pageLink(Astro, "legal.privacy", locale),
+]);
+const linkClass = "font-medium text-foreground underline underline-offset-4";
+---
+
+<div
+	data-cookie-notice
+	hidden
+	role="region"
+	aria-label={t("cookies.label")}
+	tabindex="-1"
+	class="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-xl outline-none"
+>
+	<Card size="sm" className="shadow-lg">
+		<CardContent className="flex items-start gap-3">
+			<div class="space-y-2">
+				<p class="font-semibold text-foreground">{t("cookies.title")}</p>
+				<p class="text-muted-foreground">{t("cookies.text")}</p>
+				{
+					(cookieHref || privacyHref) && (
+						<p class="flex flex-wrap gap-x-4 gap-y-1">
+							{cookieHref && (
+								<a class={linkClass} href={cookieHref}>
+									{t("cookies.policy")}
+								</a>
+							)}
+							{privacyHref && (
+								<a class={linkClass} href={privacyHref}>
+									{t("legal.privacy")}
+								</a>
+							)}
+						</p>
+					)
+				}
+			</div>
+			<button
+				type="button"
+				data-cookie-notice-close
+				aria-label={t("cookies.close")}
+				class={buttonVariants({ variant: "ghost", size: "icon-sm", className: "shrink-0" })}
+			>
+				<X aria-hidden="true" />
+			</button>
+		</CardContent>
+		<CardFooter className="justify-end">
+			<button type="button" data-cookie-notice-close class={buttonVariants({ size: "sm" })}>
+				{t("cookies.ok")}
+			</button>
+		</CardFooter>
+	</Card>
+</div>
+
+<script>
+	import { NOTICE_STORAGE_KEY, isNoticeCurrent, makeNoticeRecord } from "@/lib/cookie-notice";
+
+	const notice = document.querySelector<HTMLElement>("[data-cookie-notice]");
+	if (notice) {
+		let stored: string | null = null;
+		try {
+			stored = localStorage.getItem(NOTICE_STORAGE_KEY);
+		} catch {
+			// Storage blocked: show the notice on every page, which is the safe default.
+		}
+		if (!isNoticeCurrent(stored, Date.now())) notice.hidden = false;
+
+		const close = () => {
+			notice.hidden = true;
+			try {
+				localStorage.setItem(NOTICE_STORAGE_KEY, makeNoticeRecord(Date.now()));
+			} catch {}
+		};
+		for (const button of notice.querySelectorAll("[data-cookie-notice-close]")) {
+			button.addEventListener("click", close);
+		}
+		notice.addEventListener("keydown", (event) => {
+			if (event.key === "Escape") close();
+		});
+		for (const opener of document.querySelectorAll("[data-cookie-notice-open]")) {
+			opener.addEventListener("click", (event) => {
+				event.preventDefault();
+				notice.hidden = false;
+				notice.focus();
+			});
+		}
+	}
+</script>
