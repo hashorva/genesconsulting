@@ -82,8 +82,12 @@ const linkClass = "font-medium text-foreground underline underline-offset-4";
 		}
 		if (!isNoticeCurrent(stored, Date.now())) notice.hidden = false;
 
+		// The control that reopened the notice gets focus back when it closes (WCAG 2.4.3).
+		let lastOpener: HTMLElement | null = null;
 		const close = () => {
 			notice.hidden = true;
+			lastOpener?.focus();
+			lastOpener = null;
 			try {
 				localStorage.setItem(NOTICE_STORAGE_KEY, makeNoticeRecord(Date.now()));
 			} catch {}
@@ -97,6 +101,7 @@ const linkClass = "font-medium text-foreground underline underline-offset-4";
 		for (const opener of document.querySelectorAll("[data-cookie-notice-open]")) {
 			opener.addEventListener("click", (event) => {
 				event.preventDefault();
+				lastOpener = event.currentTarget as HTMLElement;
 				notice.hidden = false;
 				notice.focus();
 			});
