@@ -48,7 +48,10 @@ const { siteTitle, siteTagline, siteLogo } = resolveSiteIdentity(settingsResult.
 	tagline: t("seo:defaultDescription"),
 });
 const separator = t("seo:titleSeparator");
-const fullTitle = title === siteTitle || title.endsWith(`${separator}${siteTitle}`) ? title : `${title}${separator}${siteTitle}`;
+// A title that already names the site (alone, first or last) is used as is.
+const namesSite =
+	title === siteTitle || title.startsWith(`${siteTitle}${separator}`) || title.endsWith(`${separator}${siteTitle}`);
+const fullTitle = namesSite ? title : `${title}${separator}${siteTitle}`;
 
 // Link previews (WhatsApp, LinkedIn, email...): scrapers need absolute URLs, so the page URL
 // defaults to this request's address without the query string (drops ?_preview and the like).
