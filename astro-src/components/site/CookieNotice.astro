@@ -84,9 +84,14 @@ const linkClass = "font-medium text-foreground underline underline-offset-4";
 
 		// The control that reopened the notice gets focus back when it closes (WCAG 2.4.3).
 		let lastOpener: HTMLElement | null = null;
+		// When the notice opened by itself and the visitor tabbed into it, focus goes to the
+		// footer's "Preferenze cookie" button, right before the notice in tab order.
 		const close = () => {
+			const focusInside = notice.contains(document.activeElement);
+			const target =
+				lastOpener ?? (focusInside ? document.querySelector<HTMLElement>("[data-cookie-notice-open]") : null);
 			notice.hidden = true;
-			lastOpener?.focus();
+			target?.focus();
 			lastOpener = null;
 			try {
 				localStorage.setItem(NOTICE_STORAGE_KEY, makeNoticeRecord(Date.now()));
