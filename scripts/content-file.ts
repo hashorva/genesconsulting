@@ -30,6 +30,15 @@ export function parsePageFile(source: string, name = "page"): PageFile {
 }
 
 /** The fields of an EmDash content item that decide whether the loader may publish it. */
+/**
+ * Pages whose starter text still has "[DA COMPLETARE ...]" or "[DA VERIFICARE ...]" markers
+ * (the privacy and cookie policy drafts) need the client's data first: the loader creates
+ * them as drafts but never publishes them. A person completes and publishes them in the admin.
+ */
+export function hasPlaceholders(file: Pick<PageFile, "body">): boolean {
+	return /\[DA (COMPLETARE|VERIFICARE)\b/.test(file.body);
+}
+
 export interface PageState {
 	status: string;
 	publishedAt: string | null;

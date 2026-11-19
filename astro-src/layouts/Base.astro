@@ -5,10 +5,12 @@ import { createPublicPageContext } from "emdash/page";
 import { EmDashBodyEnd, EmDashBodyStart, EmDashHead } from "emdash/ui";
 
 import Motion from "@/components/refresh/Motion.astro";
+import CookieNotice from "@/components/site/CookieNotice.astro";
 import RefreshFooter from "@/components/refresh/SiteFooter.astro";
 import RefreshHeader from "@/components/refresh/SiteHeader.astro";
 import SiteFooter from "@/components/site/SiteFooter.astro";
 import SiteHeader from "@/components/site/SiteHeader.astro";
+import { isEnabled } from "@/flags";
 import { isRefresh } from "@/lib/design";
 import { LOCALE_META, resolveLocale, useTranslations } from "@/i18n";
 import { resolveSiteIdentity } from "@/utils/site-identity";
@@ -32,6 +34,8 @@ const t = useTranslations(locale);
 const refresh = isRefresh(env, Astro.locals.user);
 const Header = refresh ? RefreshHeader : SiteHeader;
 const Footer = refresh ? RefreshFooter : SiteFooter;
+// cookie_notice (editors only until released): cookie notice and the footer's legal row.
+const legal = isEnabled("cookie_notice", env, Astro.locals.user);
 
 const settingsResult = await getSiteSettingsWithCacheHint();
 if (Astro.cache?.enabled) Astro.cache.set(settingsResult.cacheHint);
@@ -114,7 +118,8 @@ const pageCtx = createPublicPageContext({
 		<main id="main" class="flex-1">
 			<slot />
 		</main>
-		<Footer siteTitle={siteTitle} siteTagline={siteTagline} />
+		<Footer siteTitle={siteTitle} siteTagline={siteTagline} showLegal={legal} />
+		{legal && <CookieNotice />}
 		{refresh && <Motion />}
 		<EmDashBodyEnd page={pageCtx} />
 	</body>
