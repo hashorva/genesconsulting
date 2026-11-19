@@ -1,5 +1,5 @@
 ---
-import { getEmDashCollection, getEmDashEntry, getSiteSettings } from "emdash";
+import { getEmDashCollection, getEmDashEntry, getSeoMeta, getSiteSettings } from "emdash";
 import { Waypoints } from "lucide-react";
 import { env } from "cloudflare:workers";
 
@@ -50,9 +50,14 @@ const { siteTitle, siteTagline } = resolveSiteIdentity(settings, {
 	title: t("site.name"),
 	tagline: t("seo:defaultDescription"),
 });
+// Browser/search title: the home page's SEO panel title when an editor set one, otherwise
+// "Genes Consulting | <what the firm does>" (the name alone is too short for search results).
+// The share card keeps the plain site name (pageTitle).
+const defaultHomeTitle = `${siteTitle}${t("seo:titleSeparator")}${t("seo:homeTitle")}`;
+const homeTitle = home ? getSeoMeta(home, { defaultTitle: defaultHomeTitle }).title : defaultHomeTitle;
 ---
 
-<Base title={siteTitle} description={siteTagline}>
+<Base title={homeTitle} pageTitle={siteTitle} description={siteTagline}>
 	{refresh ? (
 		<RefreshHome
 			title={home?.data.title ?? siteTitle}
