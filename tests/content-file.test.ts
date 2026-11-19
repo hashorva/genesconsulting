@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { markdownToPortableText } from "emdash/client";
 
 import {
+	blockDefaults,
 	canAddHeroDraft,
 	hasPlaceholders,
 	canAddLayoutDraft,
@@ -13,6 +14,7 @@ import {
 	parseLayoutFile,
 	parsePageFile,
 	sameContent,
+	withoutFilledDefaults,
 } from "../scripts/content-file";
 import { safeHref } from "../astro-src/lib/safe-href";
 
@@ -183,5 +185,24 @@ describe("placeholder guard", () => {
 			expect(hasPlaceholders(page)).toBe(true);
 		}
 		expect(hasPlaceholders({ body: "## Dati societari\n\nTesto completo." })).toBe(false);
+	});
+});
+
+describe("withoutFilledDefaults", () => {
+	const defaults = blockDefaults(JSON.parse(readFileSync(join(import.meta.dirname, "..", "seed", "seed.json"), "utf-8")));
+	const hero = { _type: "hero" as const, _version: 1, _key: "home-hero", heading: "Meno complessità. Più impresa.", illustration: "Rete" };
+
+	it("ignores the defaults the admin fills in on opening a draft", () => {
+		expect(defaults.hero).toMatchObject({ background: "Blu", align: "Sinistra", accent: "Nessuno" });
+		const opened = [{ ...hero, background: "Blu", spacing: defaults.hero.spacing, align: "Sinistra", accent: "Nessuno" }];
+		expect(sameContent(withoutFilledDefaults(opened, [hero], defaults), [hero])).toBe(true);
+	});
+
+	it("still sees a real edit, a value the file set, and unknown sections", () => {
+		expect(sameContent(withoutFilledDefaults([{ ...hero, background: "Tenue" }], [hero], defaults), [hero])).toBe(false);
+		const fileSet = { ...hero, illustration: "Nessuna" };
+		expect(sameContent(withoutFilledDefaults([{ ...fileSet, illustration: "Rete" }], [fileSet], defaults), [fileSet])).toBe(false);
+		const other = [{ ...hero, _key: "added", background: "Blu" }];
+		expect(withoutFilledDefaults(other, [hero], defaults)).toEqual(other);
 	});
 });

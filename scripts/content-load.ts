@@ -32,6 +32,7 @@ import { parseArgs } from "node:util";
 import { markdownToPortableText } from "emdash/client";
 
 import {
+	blockDefaults,
 	canAddHeroDraft,
 	canAddLayoutDraft,
 	hasPlaceholders,
@@ -42,10 +43,13 @@ import {
 	type PageFile,
 	type PageState,
 	sameContent,
+	withoutFilledDefaults,
 } from "./content-file";
 import { createClient } from "./emdash-client";
 
 const CONTENT_DIR = join(import.meta.dirname, "..", "content", "it", "pages");
+// Field defaults per block type: the admin fills them in when a draft is opened.
+const DEFAULTS = blockDefaults(JSON.parse(readFileSync(join(import.meta.dirname, "..", "seed", "seed.json"), "utf-8")));
 const LOCALE = "it";
 const TAGLINE = "Consulenza aziendale e servizi integrati per imprese e studi professionali.";
 // The seed's placeholder (seed/seed.json). Any other tagline was set by an editor and is kept.
@@ -241,12 +245,12 @@ async function publishLayouts(files: PageFile[]) {
 			continue;
 		}
 		// Publish only if the draft is exactly what the loader wrote: title, body and every
-		// section field. Any edit made in the admin since then is left for a person to publish.
+		// section field (defaults the admin filled in on opening the draft do not count). Any edit made in the admin since then is left for a person to publish.
 		const { draft } = await client.compare("pages", entry.id);
 		const same =
 			draft?.title === page.title &&
 			sameContent(draft?.content, markdownToPortableText(page.body)) &&
-			sameContent(draft?.layout, layoutData(blocks));
+			sameContent(withoutFilledDefaults(draft?.layout, blocks, DEFAULTS), layoutData(blocks));
 		if (!same) {
 			console.log(`skip     ${page.slug} (draft changed in the admin; publish it there)`);
 			continue;

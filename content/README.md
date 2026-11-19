@@ -24,7 +24,7 @@ bun scripts/content-load.ts --url https://genesconsulting.purrfect.workers.dev -
 bun scripts/content-load.ts --url https://genesconsulting.purrfect.workers.dev --layout --publish  # after approval
 ```
 
-`--layout` only touches pages published by the loader and not edited since. `--layout --publish` publishes only drafts still exactly as the loader wrote them (title, body and every section field).
+`--layout` only touches pages published by the loader and not edited since. `--layout --publish` publishes only drafts still exactly as the loader wrote them (title, body and every section field). Default values the admin fills in when someone opens a draft (for example an Apertura's Sfondo: Blu) don't count as edits; any other change does.
 
 Each layout file opens with an Apertura (`hero` block, the page's opening band; it shows only while the `page_composer` flag is on for the viewer). To add it to pages that are live with their other sections:
 
